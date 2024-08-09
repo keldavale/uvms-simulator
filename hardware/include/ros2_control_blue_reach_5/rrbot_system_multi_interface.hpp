@@ -95,17 +95,17 @@ namespace ros2_control_blue_reach_5
 
   private:
 
-    // Enum defining at which control level we are
-    // maintaining the command_interface type per joint.
-    enum mode_level_t : std::uint8_t
+   enum class mode_level_t
     {
-      MODE_STANDBY = 0x00,
-      MODE_DISABLE = 0x01,
-      MODE_POSITION = 0x02,
-      MODE_VELOCITY = 0x03,
-      MODE_CURRENT = 0x04,
-      MODE_EFFORT = 0x09,
+      MODE_STANDBY,
+      MODE_DISABLE,
+      MODE_POSITION,
+      MODE_VELOCITY,
+      MODE_CURRENT,
+      MODE_EFFORT,
+      MODE_CARTESIAN
     };
+
     bool use_coupled_system;
     bool endeffector_control;
     // Active control mode for each actuator

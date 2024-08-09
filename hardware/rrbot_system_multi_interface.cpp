@@ -316,9 +316,7 @@ namespace ros2_control_blue_reach_5
       control_level_[i] = mode_level_t::MODE_DISABLE;
     }
 
-    RCLCPP_INFO(
-        rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "System successfully activated! %u",
-        control_level_[0]);
+    RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Successfully deactivated!");
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 

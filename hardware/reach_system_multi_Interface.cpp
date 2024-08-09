@@ -280,7 +280,7 @@ namespace ros2_control_blue_reach_5
             if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos ||
                 info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
             {
-              control_level_.push_back(mode_level_t::MODE_POSITION);
+              control_level_.push_back(mode_level_t::MODE_CARTESIAN);
             }
           }
         }
@@ -666,12 +666,6 @@ namespace ros2_control_blue_reach_5
           // enforce hard limit;
           const double enforced_target_current = robot_structs_.hw_joint_struct_[i].enforce_hard_limits(robot_structs_.hw_joint_struct_[i].command_state_.current);
 
-          // if (static_cast<int>(target_device) == 3)
-          // {
-          //   RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "currents sent :::%f ", robot_structs_.hw_joint_struct_[i].command_state_.current);
-          //   RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "state position :::%f ",robot_structs_.hw_joint_struct_[i].async_state_.position);
-          // }
-
           driver_.setCurrent(enforced_target_current, target_device);
           if (enforced_target_current == 0.0)
           {
@@ -709,6 +703,9 @@ namespace ros2_control_blue_reach_5
             driver_.setVelocity(0.0, target_device); // incase of currents leak
           };
         }
+        break;
+      case mode_level_t::MODE_CARTESIAN:
+        RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "endeffector commanding");
         break;
       case mode_level_t::MODE_STANDBY:
         // Handle standby mode if needed, or just break
