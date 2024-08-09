@@ -107,11 +107,11 @@ namespace ros2_control_blue_reach_5
           return hardware_interface::CallbackReturn::ERROR;
         }
       }
-      if (joint.state_interfaces.size() != 15)
+      if (joint.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "Joint '%s'has %zu state interfaces. 15 expected.",
+            "Joint '%s'has %zu state interfaces. 19 expected.",
             joint.name.c_str(),
             joint.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -335,6 +335,20 @@ namespace ros2_control_blue_reach_5
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_VELOCITY_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.predicted_velocity_uncertainty));
+
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_position));
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_position_uncertainty));
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_velocity));
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_velocity_uncertainty));
+
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_STATE_ID, &robot_structs_.hw_joint_struct_[i].current_state_.state_id));

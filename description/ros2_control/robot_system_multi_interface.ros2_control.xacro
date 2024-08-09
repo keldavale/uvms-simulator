@@ -74,6 +74,11 @@
         <state_interface name="predicted_position_uncertainty"/>
         <state_interface name="predicted_velocity"/>
         <state_interface name="predicted_velocity_uncertainty"/>
+
+        <state_interface name="adaptive_predicted_position"/>
+        <state_interface name="adaptive_predicted_position_uncertainty"/>
+        <state_interface name="adaptive_predicted_velocity"/>
+        <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
       </joint>
 
@@ -128,6 +133,11 @@
         <state_interface name="predicted_position_uncertainty"/>
         <state_interface name="predicted_velocity"/>
         <state_interface name="predicted_velocity_uncertainty"/>
+
+        <state_interface name="adaptive_predicted_position"/>
+        <state_interface name="adaptive_predicted_position_uncertainty"/>
+        <state_interface name="adaptive_predicted_velocity"/>
+        <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
       </joint>
 
@@ -182,6 +192,11 @@
         <state_interface name="predicted_position_uncertainty"/>
         <state_interface name="predicted_velocity"/>
         <state_interface name="predicted_velocity_uncertainty"/>
+
+        <state_interface name="adaptive_predicted_position"/>
+        <state_interface name="adaptive_predicted_position_uncertainty"/>
+        <state_interface name="adaptive_predicted_velocity"/>
+        <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
       </joint>   
 
@@ -236,6 +251,11 @@
         <state_interface name="predicted_position_uncertainty"/>
         <state_interface name="predicted_velocity"/>
         <state_interface name="predicted_velocity_uncertainty"/>
+
+        <state_interface name="adaptive_predicted_position"/>
+        <state_interface name="adaptive_predicted_position_uncertainty"/>
+        <state_interface name="adaptive_predicted_velocity"/>
+        <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
       </joint>     
       
@@ -290,6 +310,11 @@
         <state_interface name="predicted_position_uncertainty"/>
         <state_interface name="predicted_velocity"/>
         <state_interface name="predicted_velocity_uncertainty"/>
+
+        <state_interface name="adaptive_predicted_position"/>
+        <state_interface name="adaptive_predicted_position_uncertainty"/>
+        <state_interface name="adaptive_predicted_velocity"/>
+        <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
       </joint>
 

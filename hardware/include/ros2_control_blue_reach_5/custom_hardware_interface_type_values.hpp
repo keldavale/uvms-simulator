@@ -47,6 +47,21 @@ constexpr char HW_IF_PREDICTED_POSITION_UNCERTAINTY[] = "predicted_position_unce
 
 /// Constant defining predicted_position interface
 constexpr char HW_IF_PREDICTED_VELOCITY_UNCERTAINTY[] = "predicted_velocity_uncertainty";
+
+
+/// Constant defining predicted_position interface
+constexpr char HW_IF_ADAPTIVE_PREDICTED_POSITION[] = "adaptive_predicted_position";
+
+/// Constant defining predicted_velocity interface
+constexpr char HW_IF_ADAPTIVE_PREDICTED_VELOCITY[] = "adaptive_predicted_velocity";
+
+/// Constant defining predicted_position interface
+constexpr char HW_IF_ADAPTIVE_PREDICTED_POSITION_UNCERTAINTY[] = "adaptive_predicted_position_uncertainty";
+
+/// Constant defining predicted_position interface
+constexpr char HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY[] = "adaptive_predicted_velocity_uncertainty";
 }  // namespace hardware_interface
+
+
 
 #endif  // ROS2_CONTROL_BLUE_REACH_5__CUSTOM_HARDWARE_INTERFACE_TYPE_VALUES_HPP_

@@ -20,10 +20,6 @@ public:
 
     struct State
     {
-        double inertia = 0.00002;
-        double viscous = 1;
-        casadi::DM pk0 = 10 * casadi::DM::eye(8);
-
         double position = 0;
         double filtered_position = 0;
         double err_p = 0;
@@ -43,11 +39,13 @@ public:
         double predicted_velocity_uncertainty = 0;
         double state_id = 0;
         casadi::DM covariance = 100 * casadi::DM::eye(4);
-
         std::vector<double> sigma_m = {pow(0.1, 2), pow(0.1, 2)}; // measurement noise covariance matrix
         casadi::DM Q = 0.01 * casadi::DM::eye(4);
 
-        // casadi::DM KF_error = casadi::DM();
+        double adaptive_predicted_position = 0;
+        double adaptive_predicted_position_uncertainty = 0;
+        double adaptive_predicted_velocity = 0;
+        double adaptive_predicted_velocity_uncertainty = 0;
     };
 
     State default_state_{}, command_state_{}, current_state_{}, async_state_{};
