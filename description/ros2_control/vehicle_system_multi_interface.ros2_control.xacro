@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="vehicle_system_multi_interface" 
+  params="name prefix serial_port state_update_frequency use_mock_hardware use_coupled_system use_thruster_command">
+
+    <ros2_control name="${name}" type="system">
+
+      <hardware>
+        <xacro:if value="${use_mock_hardware}">
+          <plugin>ros2_control_blue_reach_5/VehicleSystemMultiInterfaceHardware</plugin>
+          <param name="use_coupled_system">${use_coupled_system}</param>
+          <param name="use_thruster_command">${use_thruster_command}</param>
+        </xacro:if>
+
+        <xacro:unless value="${use_mock_hardware}">
+          <plugin>ros2_control_blue_reach_5/VehicleSystemMultiInterfaceHardware</plugin>
+          <param name="use_coupled_system">${use_coupled_system}</param>
+          <param name="use_thruster_command">${use_thruster_command}</param>
+        </xacro:unless>
+      </hardware>
+
+      <joint name="${prefix}thruster1_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+      <joint name="${prefix}thruster2_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+       <joint name="${prefix}thruster3_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+       <joint name="${prefix}thruster4_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+       <joint name="${prefix}thruster5_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+       <joint name="${prefix}thruster6_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+       <joint name="${prefix}thruster7_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+       <joint name="${prefix}thruster8_joint">
+        <xacro:if value="${use_thruster_command}">
+          <command_interface name="current">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="effort">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+        </xacro:if>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+        <state_interface name="acceleration"/>
+        <state_interface name="current"/>
+      </joint>
+
+      <gpio name="${prefix}_IOs">
+        <xacro:unless value="${use_thruster_command}">
+          <command_interface name="position.x"/>
+          <command_interface name="position.y"/>
+          <command_interface name="position.z"/>
+          <command_interface name="orientation.w"/>
+          <command_interface name="orientation.x"/>
+          <command_interface name="orientation.y"/>
+          <command_interface name="orientation.z"/>
+
+          <command_interface name="velocity.u"/>
+          <command_interface name="velocity.v"/>
+          <command_interface name="velocity.w"/>
+          <command_interface name="velocity.p"/>
+          <command_interface name="velocity.q"/>
+          <command_interface name="velocity.r"/>
+          
+          <command_interface name="force.x"/>
+          <command_interface name="force.y"/>
+          <command_interface name="force.z"/>
+          <command_interface name="torque.x"/>
+          <command_interface name="torque.y"/>
+          <command_interface name="torque.z"/>
+        </xacro:unless>
+        <state_interface name="position.x"/>
+        <state_interface name="position.y"/>
+        <state_interface name="position.z"/>
+        <state_interface name="orientation.w"/>
+        <state_interface name="orientation.x"/>
+        <state_interface name="orientation.y"/>
+        <state_interface name="orientation.z"/>
+        <state_interface name="velocity.u"/>
+        <state_interface name="velocity.v"/>
+        <state_interface name="velocity.w"/>
+        <state_interface name="velocity.p"/>
+        <state_interface name="velocity.q"/>
+        <state_interface name="velocity.r"/>
+        <state_interface name="force.x"/>
+        <state_interface name="force.y"/>
+        <state_interface name="force.z"/>
+        <state_interface name="torque.x"/>
+        <state_interface name="torque.y"/>
+        <state_interface name="torque.z"/>
+      </gpio>
+
+    </ros2_control>
+  </xacro:macro>
+
+</robot>
