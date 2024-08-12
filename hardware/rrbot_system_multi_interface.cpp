@@ -74,27 +74,36 @@ namespace ros2_control_blue_reach_5
         return hardware_interface::CallbackReturn::ERROR;
       }
     };
-    for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
+
+    hardware_interface::ComponentInfo endeffector_IO = info_.gpios[0];
+    if (endeffector_control)
     {
-      if (endeffector_control)
-      {
-        if (gpio.command_interfaces.size() != 7)
-        {
-          RCLCPP_FATAL(
-              rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
-              "GPIO '%s'has %zu command interfaces. 7 expected.", gpio.name.c_str(),
-              gpio.command_interfaces.size());
-          return hardware_interface::CallbackReturn::ERROR;
-        }
-      }
-      if (gpio.state_interfaces.size() != 7)
+      if (endeffector_IO.command_interfaces.size() != 7)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "GPIO '%s'has %zu state interfaces. 7 expected.", gpio.name.c_str(),
-            gpio.state_interfaces.size());
+            "GPIO '%s'has %zu command interfaces. 7 expected.", endeffector_IO.name.c_str(),
+            endeffector_IO.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
+    }
+    if (endeffector_IO.state_interfaces.size() != 7)
+    {
+      RCLCPP_FATAL(
+          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+          "GPIO '%s'has %zu state interfaces. 7 expected.", endeffector_IO.name.c_str(),
+          endeffector_IO.state_interfaces.size());
+      return hardware_interface::CallbackReturn::ERROR;
+    }
+  
+    hardware_interface::ComponentInfo step_IO = info_.gpios[1];
+    if (step_IO.state_interfaces.size() != 17)
+    {
+      RCLCPP_FATAL(
+          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+          "GPIO '%s'has %zu state interfaces. 17 expected.", step_IO.name.c_str(),
+          step_IO.state_interfaces.size());
+      return hardware_interface::CallbackReturn::ERROR;
     }
 
     return hardware_interface::CallbackReturn::SUCCESS;
@@ -192,6 +201,44 @@ namespace ros2_control_blue_reach_5
         info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &robot_structs_.current_state_.orientation_y));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &robot_structs_.current_state_.orientation_z));
+
+
+
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[0].name, &robot_structs_.mhe_data.time));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[1].name, &robot_structs_.mhe_data.t_step));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[2].name, &robot_structs_.mhe_data.je_ic_position));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[3].name, &robot_structs_.mhe_data.je_ic_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[4].name, &robot_structs_.mhe_data.je_ic_effort));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[5].name, &robot_structs_.mhe_data.jd_ic_position));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[6].name, &robot_structs_.mhe_data.jd_ic_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[7].name, &robot_structs_.mhe_data.jd_ic_effort));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[8].name, &robot_structs_.mhe_data.jc_ic_position));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[9].name, &robot_structs_.mhe_data.jc_ic_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[10].name, &robot_structs_.mhe_data.jc_ic_effort));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[11].name, &robot_structs_.mhe_data.jb_ic_position));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[12].name, &robot_structs_.mhe_data.jb_ic_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[13].name, &robot_structs_.mhe_data.jb_ic_effort));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[14].name, &robot_structs_.mhe_data.ja_ic_position));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[15].name, &robot_structs_.mhe_data.ja_ic_velocity));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[1].name, info_.gpios[1].state_interfaces[16].name, &robot_structs_.mhe_data.ja_ic_effort));
+        
     return state_interfaces;
   }
 

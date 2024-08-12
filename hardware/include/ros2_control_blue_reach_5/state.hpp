@@ -46,6 +46,17 @@ namespace uvms
 
         Pose_ default_state_, command_state_, current_state_, async_state_;
 
+
+        struct Step_condition_ {
+            double time;
+            double t_step;
+            double je_ic_position, jd_ic_position, jc_ic_position, jb_ic_position, ja_ic_position;
+            double je_ic_velocity, jd_ic_velocity, jc_ic_velocity, jb_ic_velocity, ja_ic_velocity;
+            double je_ic_effort, jd_ic_effort, jc_ic_effort, jb_ic_effort, ja_ic_effort;
+        };
+
+        Step_condition_ mhe_data;
+
         // Store the state & commands for the robot vehicle
         blue::dynamics::Vehicle hw_vehicle_struct_;
 

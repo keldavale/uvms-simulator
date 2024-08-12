@@ -318,7 +318,6 @@
         <state_interface name="stateId"/>
       </joint>
 
-
       <gpio name="${prefix}_endeffector_IOs">
         <xacro:if value="${endeffector_control}">
             <command_interface name="position.x"/>
@@ -338,6 +337,30 @@
           <state_interface name="orientation.z"/>
         </gpio>
 
+        <gpio name="${prefix}_step_IOs">
+            <state_interface name="time"/>
+            <state_interface name="t_step"/>
+            
+            <state_interface name="je_ic_position"/>
+            <state_interface name="je_ic_velocity"/>
+            <state_interface name="je_ic_effort"/>
+
+            <state_interface name="jd_ic_position"/>
+            <state_interface name="jd_ic_velocity"/>
+            <state_interface name="jd_ic_effort"/>
+            
+            <state_interface name="jc_ic_position"/>
+            <state_interface name="jc_ic_velocity"/>
+            <state_interface name="jc_ic_effort"/>
+            
+            <state_interface name="jb_ic_position"/>
+            <state_interface name="jb_ic_velocity"/>
+            <state_interface name="jb_ic_effort"/>
+            
+            <state_interface name="ja_ic_position"/>
+            <state_interface name="ja_ic_velocity"/>
+            <state_interface name="ja_ic_effort"/>
+          </gpio>
     </ros2_control>
 
   </xacro:macro>

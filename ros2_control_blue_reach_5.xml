@@ -21,3 +21,6 @@
     </description>
   </class>
 </library>
+
+<!-- ros2 bag record -a -o my_bag1 -->
+<!-- python3 ros2bag_convert/main.py ../my_bag1/my_bag1_0.db3 -->

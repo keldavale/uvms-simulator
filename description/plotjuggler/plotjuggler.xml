@@ -3,32 +3,40 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <Tab containers="1" tab_name="torque_validation">
    <Container>
-    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
-     <DockSplitter sizes="0.500652;0.499348" count="2" orientation="|">
+    <DockSplitter sizes="0.5;0.5" orientation="-" count="2">
+     <DockSplitter sizes="0.500652;0.499348" orientation="|" count="2">
       <DockArea name="Joint e">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723087537.619517" bottom="-2.000000" right="1723087542.613326" top="2.000000"/>
-        <limitY max="2" min="-2"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.000000" left="1723421670.030214" bottom="-2.000000" right="1723421675.029359"/>
+        <limitY min="-2" max="2"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[10]" color="#1f77b4"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[11]" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="Joint d">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723087537.619517" bottom="-2.000000" right="1723087542.613326" top="2.000000"/>
-        <limitY max="2" min="-2"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.000000" left="1723421670.030214" bottom="-2.000000" right="1723421675.029359"/>
+        <limitY min="-2" max="2"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[10]" color="#17becf"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[11]" color="#bcbd22"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.502608;0.497392" count="2" orientation="|">
+     <DockSplitter sizes="0.502608;0.497392" orientation="|" count="2">
       <DockArea name="Joint c">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238160.214174" bottom="-2.000000" right="1723238165.208071" top="2.000000"/>
-        <limitY max="2" min="-2"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.000000" left="1723421670.030214" bottom="-2.000000" right="1723421675.029359"/>
+        <limitY min="-2" max="2"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[10]" color="#f14cc1"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[11]" color="#9467bd"/>
        </plot>
       </DockArea>
       <DockArea name="Joint b">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238162.926992" bottom="-2.000000" right="1723238167.910811" top="2.000000"/>
-        <limitY max="2" min="-2"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.000000" left="1723421670.030214" bottom="-2.000000" right="1723421675.029359"/>
+        <limitY min="-2" max="2"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[10]" color="#1ac938"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[11]" color="#ff7f0e"/>
        </plot>
       </DockArea>
      </DockSplitter>
@@ -37,32 +45,40 @@
   </Tab>
   <Tab containers="1" tab_name="Position Prediction">
    <Container>
-    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
-     <DockSplitter sizes="0.500652;0.499348" count="2" orientation="|">
+    <DockSplitter sizes="0.5;0.5" orientation="-" count="2">
+     <DockSplitter sizes="0.500652;0.499348" orientation="|" count="2">
       <DockArea name="Joint e">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238166.093872" bottom="0.000000" right="1723238171.089018" top="6.280000"/>
-        <limitY max="6.28" min="0"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="6.280000" left="1723421670.030214" bottom="0.000000" right="1723421675.029359"/>
+        <limitY min="0" max="6.28"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[0]" color="#f14cc1"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[16]" color="#9467bd"/>
        </plot>
       </DockArea>
       <DockArea name="Joint d">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238168.978909" bottom="0.000000" right="1723238173.947747" top="6.280000"/>
-        <limitY max="6.28" min="0"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="6.280000" left="1723421670.030214" bottom="0.000000" right="1723421675.029359"/>
+        <limitY min="0" max="6.28"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[0]" color="#1f77b4"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[16]" color="#d62728"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.502608;0.497392" count="2" orientation="|">
+     <DockSplitter sizes="0.502608;0.497392" orientation="|" count="2">
       <DockArea name="Joint c">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238167.644785" bottom="0.000000" right="1723238172.618268" top="6.280000"/>
-        <limitY max="6.28" min="0"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="6.280000" left="1723421670.030214" bottom="0.000000" right="1723421675.029359"/>
+        <limitY min="0" max="6.28"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[0]" color="#17becf"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[16]" color="#bcbd22"/>
        </plot>
       </DockArea>
       <DockArea name="Joint b">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238170.570084" bottom="0.000000" right="1723238175.545151" top="6.280000"/>
-        <limitY max="6.28" min="0"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="6.280000" left="1723421670.030214" bottom="0.000000" right="1723421675.029359"/>
+        <limitY min="0" max="6.28"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[0]" color="#f14cc1"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[16]" color="#9467bd"/>
        </plot>
       </DockArea>
      </DockSplitter>
@@ -71,65 +87,86 @@
   </Tab>
   <Tab containers="1" tab_name="Velocity Prediction">
    <Container>
-    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+    <DockSplitter sizes="0.5;0.5" orientation="-" count="2">
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
       <DockArea name="Joint e">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238173.506089" bottom="-2.500000" right="1723238178.496353" top="2.500000"/>
-        <limitY max="2.5" min="-2.5"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.500000" left="1723421670.030214" bottom="-2.500000" right="1723421675.029359"/>
+        <limitY min="-2.5" max="2.5"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[1]" color="#1ac938"/>
+        <curve name="/dynamic_joint_states/interface_values[15]/values[15]" color="#ff7f0e"/>
        </plot>
       </DockArea>
       <DockArea name="Joint d">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238177.066240" bottom="-2.500000" right="1723238182.023017" top="2.500000"/>
-        <limitY max="2.5" min="-2.5"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.500000" left="1723421670.030214" bottom="-2.500000" right="1723421675.029359"/>
+        <limitY min="-2.5" max="2.5"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[1]" color="#1ac938"/>
+        <curve name="/dynamic_joint_states/interface_values[6]/values[15]" color="#ff7f0e"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
       <DockArea name="Joint c">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238175.232853" bottom="-2.500000" right="1723238180.225352" top="2.500000"/>
-        <limitY max="2.5" min="-2.5"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.500000" left="1723421670.030214" bottom="-2.500000" right="1723421675.029359"/>
+        <limitY min="-2.5" max="2.5"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[1]" color="#1f77b4"/>
+        <curve name="/dynamic_joint_states/interface_values[14]/values[15]" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="Joint b">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="1723238178.675594" bottom="-2.500000" right="1723238183.673038" top="2.500000"/>
-        <limitY max="2.5" min="-2.5"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="2.500000" left="1723421670.030214" bottom="-2.500000" right="1723421675.029359"/>
+        <limitY min="-2.5" max="2.5"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[1]" color="#17becf"/>
+        <curve name="/dynamic_joint_states/interface_values[1]/values[15]" color="#bcbd22"/>
        </plot>
       </DockArea>
      </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab containers="1" tab_name="step_IO">
+   <Container>
+    <DockSplitter sizes="1" orientation="-" count="1">
+     <DockArea name="time step">
+      <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+       <range top="0.089948" left="1723421670.030214" bottom="0.042961" right="1723421675.029359"/>
+       <limitY/>
+       <curve name="/dynamic_joint_states/interface_values[12]/values[0]" color="#1f77b4"/>
+      </plot>
+     </DockArea>
     </DockSplitter>
    </Container>
   </Tab>
   <Tab containers="1" tab_name="cartesian">
    <Container>
-    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+    <DockSplitter sizes="0.5;0.5" orientation="-" count="2">
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
       <DockArea name="x">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="0.000000" bottom="0.000000" right="1.000000" top="1.000000"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="1.000000" left="0.000000" bottom="0.000000" right="1.000000"/>
         <limitY/>
        </plot>
       </DockArea>
       <DockArea name="y">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="0.000000" bottom="0.000000" right="1.000000" top="1.000000"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="1.000000" left="0.000000" bottom="0.000000" right="1.000000"/>
         <limitY/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
       <DockArea name="z">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="0.000000" bottom="0.000000" right="1.000000" top="1.000000"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="1.000000" left="0.000000" bottom="0.000000" right="1.000000"/>
         <limitY/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" flip_x="false" mode="TimeSeries">
-        <range left="0.000000" bottom="0.000000" right="1.000000" top="1.000000"/>
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="1.000000" left="0.000000" bottom="0.000000" right="1.000000"/>
         <limitY/>
        </plot>
       </DockArea>
@@ -137,14 +174,52 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <currentTabIndex index="3"/>
+  <Tab containers="1" tab_name="tab2">
+   <Container>
+    <DockSplitter sizes="0.5;0.5" orientation="-" count="2">
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
+      <DockArea name="MHE">
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="3.219993" left="1723421670.077441" bottom="3.218636" right="1723421675.052610"/>
+        <limitY/>
+        <curve name="/viscous_drag/data[0]" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="1.966492" left="1723421670.077441" bottom="1.965059" right="1723421675.052610"/>
+        <limitY/>
+        <curve name="/viscous_drag/data[1]" color="#d62728"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="0.740445" left="1723421670.077441" bottom="0.738931" right="1723421675.052610"/>
+        <limitY/>
+        <curve name="/viscous_drag/data[2]" color="#1ac938"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries" flip_y="false" flip_x="false">
+        <range top="0.107742" left="1723421670.077441" bottom="0.103714" right="1723421675.052610"/>
+        <limitY/>
+        <curve name="/viscous_drag/data[3]" color="#ff7f0e"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="5"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="0"/>
  <!-- - - - - - - - - - - - - - - -->
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <parameters delimiter="0" time_axis=""/>
+   <parameters time_axis="" delimiter="0"/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS2 bags">
@@ -162,7 +237,7 @@
    <max_array_size value="100"/>
    <boolean_strings_to_number value="true"/>
    <remove_suffix_from_strings value="true"/>
-   <selected_topics value="/dynamic_joint_states"/>
+   <selected_topics value="/dynamic_joint_states;/viscous_drag"/>
   </plugin>
   <plugin ID="UDP Server"/>
   <plugin ID="WebSocket Server"/>
