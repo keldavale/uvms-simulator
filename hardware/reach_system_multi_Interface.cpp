@@ -138,7 +138,7 @@ namespace ros2_control_blue_reach_5
           endeffector_IO.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
-  
+
     hardware_interface::ComponentInfo step_IO = info_.gpios[1];
     if (step_IO.state_interfaces.size() != 17)
     {
@@ -148,6 +148,14 @@ namespace ros2_control_blue_reach_5
           step_IO.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
+
+    // Add random ID to prevent warnings about multiple publishers within the same node
+    rclcpp::NodeOptions options;
+    options.arguments({"--ros-args", "-r", "__node:=topic_based_ros2_control_" + info_.name});
+    node_ = rclcpp::Node::make_shared("_", options);
+    topic_based_parameter_subscriber_ = node_->create_subscription<RefType>("/viscous_drag", rclcpp::SensorDataQoS(),
+                                                                            [this](const RefType::SharedPtr joint_state)
+                                                                            { latest_parameter_state_ = *joint_state; });
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
@@ -493,8 +501,25 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::read(
-      const rclcpp::Time & time, const rclcpp::Duration &period)
+      const rclcpp::Time &time, const rclcpp::Duration &period)
   {
+    // Get access to the real-time states
+    const std::lock_guard<std::mutex> lock(access_async_states_);
+
+    if (rclcpp::ok())
+    {
+      rclcpp::spin_some(node_);
+    }
+
+    if (latest_parameter_state_.data.size() == 4)
+    {
+      drag = latest_parameter_state_.data;
+      p_mhe[4] = drag[0];
+      p_mhe[5] = drag[1];
+      p_mhe[6] = drag[2];
+      p_mhe[7] = drag[3];
+    };
+
     double delta_seconds = period.seconds();
     double time_seconds = time.seconds();
     robot_structs_.mhe_data.t_step = delta_seconds;
@@ -542,9 +567,6 @@ namespace ros2_control_blue_reach_5
                     robot_structs_.hw_joint_struct_[2].current_state_.predicted_velocity,
                     robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity};
     };
-
-    // Get access to the real-time states
-    const std::lock_guard<std::mutex> lock(access_async_states_);
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
@@ -605,13 +627,13 @@ namespace ros2_control_blue_reach_5
     // Create the diagonal matrix using casadi::diag
     DM Pk_x0__ = diag(Pk_x0__values);
 
-    std::vector<DM> forward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
+    forward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
 
-    std::vector<DM> backward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 0.5, 1.5};
+    backward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 0.5, 1.5};
 
-    std::vector<DM> FD_param_Selector_arg = {q_dot_prev, forward_p0, backward_p0};
+    FD_param_Selector_arg = {q_dot_prev, forward_p0, backward_p0};
 
-    std::vector<DM> FD_selected_p0 = dynamics_service.params_selector(FD_param_Selector_arg);
+    FD_selected_p0 = dynamics_service.params_selector(FD_param_Selector_arg);
 
     const std::vector<DM> U_APPLIED = {robot_structs_.hw_joint_struct_[4].current_state_.effort,
                                        robot_structs_.hw_joint_struct_[3].current_state_.effort,
@@ -622,8 +644,11 @@ namespace ros2_control_blue_reach_5
 
     DM Qk0_FD = DM::vertcat({4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7});
 
-    std::vector<DM> fd_arg = {q_prev, q_dot_prev, U_APPLIED, FD_selected_p0.at(0), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
-    std::vector<DM> FNEXT = dynamics_service.forward_dynamics(fd_arg);
+    fd_arg = {q_prev, q_dot_prev, U_APPLIED, FD_selected_p0.at(0), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
+    FNEXT = dynamics_service.forward_dynamics(fd_arg);
+
+    fd_arg_mhe = {q_prev, q_dot_prev, U_APPLIED, DM(p_mhe), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
+    FNEXT_mhe = dynamics_service.forward_dynamics(fd_arg_mhe);
 
     robot_structs_.hw_joint_struct_[4].current_state_.predicted_position = FNEXT.at(0).nonzeros()[0];
     robot_structs_.hw_joint_struct_[3].current_state_.predicted_position = FNEXT.at(0).nonzeros()[1];
@@ -649,9 +674,29 @@ namespace ros2_control_blue_reach_5
     {
       std::string fd_arg_str = vectorToString(fd_arg);
       RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%s", fd_arg_str.c_str());
-      RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "predicted uncertainty %f",
+      RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "predicted uncertainty is negative . unrealistic%f",
                   robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity_uncertainty);
     }
+
+    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[0];
+    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[1];
+    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[2];
+    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[3];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[4];
+    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[5];
+    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[6];
+    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[7];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[0];
+    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[1];
+    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[2];
+    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[3];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[4];
+    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[5];
+    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[6];
+    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     std::vector<DM> q = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,

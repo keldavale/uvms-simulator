@@ -32,6 +32,7 @@
 #include "rclcpp/clock.hpp"
 #include "rclcpp/duration.hpp"
 #include "rclcpp/macros.hpp"
+#include "rclcpp/rclcpp.hpp"
 #include "rclcpp/time.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -43,11 +44,13 @@
 #include "ros2_control_blue_reach_5/state.hpp"
 #include "ros2_control_blue_reach_5/dynamics.hpp"
 #include "ros2_control_blue_reach_5/custom_hardware_interface_type_values.hpp"
-
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
 {
+
+  using RefType = std_msgs::msg::Float64MultiArray;
   class ReachSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
   {
 
@@ -109,7 +112,7 @@ namespace ros2_control_blue_reach_5
     // ReachComms comms_;
     Config cfg_;
 
-   enum class mode_level_t
+    enum class mode_level_t
     {
       MODE_STANDBY,
       MODE_DISABLE,
@@ -119,7 +122,7 @@ namespace ros2_control_blue_reach_5
       MODE_EFFORT,
       MODE_CARTESIAN
     };
-    
+
     bool use_coupled_system;
     bool endeffector_control;
     // Active control mode for each actuator
@@ -135,6 +138,25 @@ namespace ros2_control_blue_reach_5
     std::vector<DM> q_dot_prev;
     std::vector<DM> C2T_arg;
     std::vector<DM> T2C_arg;
+
+    std::vector<DM> forward_p0;
+    std::vector<DM> backward_p0;
+    std::vector<DM> FD_param_Selector_arg;
+    std::vector<DM> FD_selected_p0;
+
+    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
+
+    std::vector<double> drag;
+
+    std::vector<DM> fd_arg;
+    std::vector<DM> FNEXT;
+
+    std::vector<DM> fd_arg_mhe;
+    std::vector<DM> FNEXT_mhe;
+
+    rclcpp::Subscription<RefType>::SharedPtr topic_based_parameter_subscriber_;
+    rclcpp::Node::SharedPtr node_;
+    RefType latest_parameter_state_;
 
     // Store the dynamics function for the robot joints
     casadi_reach_alpha_5::Dynamics dynamics_service;
