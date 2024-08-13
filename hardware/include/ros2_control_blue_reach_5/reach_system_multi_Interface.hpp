@@ -136,6 +136,10 @@ namespace ros2_control_blue_reach_5
     // Declare the vectors before the if-else block
     std::vector<DM> q_prev;
     std::vector<DM> q_dot_prev;
+
+    std::vector<DM> q_prev_mhe;
+    std::vector<DM> q_dot_prev_mhe;
+
     std::vector<DM> C2T_arg;
     std::vector<DM> T2C_arg;
 

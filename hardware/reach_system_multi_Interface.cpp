@@ -554,6 +554,16 @@ namespace ros2_control_blue_reach_5
                     robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
                     robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
                     robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
+
+      q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,
+                robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
+                robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
+                robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
+
+      q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_velocity,
+                    robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
+                    robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
+                    robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
     }
     else
     {
@@ -566,6 +576,16 @@ namespace ros2_control_blue_reach_5
                     robot_structs_.hw_joint_struct_[3].current_state_.predicted_velocity,
                     robot_structs_.hw_joint_struct_[2].current_state_.predicted_velocity,
                     robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity};
+
+      q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position,
+                robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position,
+                robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position,
+                robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position};
+
+      q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity,
+                    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity,
+                    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity,
+                    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity};
     };
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -627,14 +647,6 @@ namespace ros2_control_blue_reach_5
     // Create the diagonal matrix using casadi::diag
     DM Pk_x0__ = diag(Pk_x0__values);
 
-    forward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
-
-    backward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 0.5, 1.5};
-
-    FD_param_Selector_arg = {q_dot_prev, forward_p0, backward_p0};
-
-    FD_selected_p0 = dynamics_service.params_selector(FD_param_Selector_arg);
-
     const std::vector<DM> U_APPLIED = {robot_structs_.hw_joint_struct_[4].current_state_.effort,
                                        robot_structs_.hw_joint_struct_[3].current_state_.effort,
                                        robot_structs_.hw_joint_struct_[2].current_state_.effort,
@@ -644,11 +656,40 @@ namespace ros2_control_blue_reach_5
 
     DM Qk0_FD = DM::vertcat({4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7});
 
+    fd_arg_mhe = {q_prev_mhe, q_dot_prev_mhe, U_APPLIED, DM(p_mhe), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
+    FNEXT_mhe = dynamics_service.forward_dynamics(fd_arg_mhe);
+
+    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[0];
+    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[1];
+    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[2];
+    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[3];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[4];
+    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[5];
+    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[6];
+    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[7];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[0];
+    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[1];
+    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[2];
+    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[3];
+
+    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[4];
+    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[5];
+    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[6];
+    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
+
+
+    forward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
+
+    backward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 0.5, 1.5};
+
+    FD_param_Selector_arg = {q_dot_prev, forward_p0, backward_p0};
+
+    FD_selected_p0 = dynamics_service.params_selector(FD_param_Selector_arg);
+
     fd_arg = {q_prev, q_dot_prev, U_APPLIED, FD_selected_p0.at(0), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
     FNEXT = dynamics_service.forward_dynamics(fd_arg);
-
-    fd_arg_mhe = {q_prev, q_dot_prev, U_APPLIED, DM(p_mhe), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
-    FNEXT_mhe = dynamics_service.forward_dynamics(fd_arg_mhe);
 
     robot_structs_.hw_joint_struct_[4].current_state_.predicted_position = FNEXT.at(0).nonzeros()[0];
     robot_structs_.hw_joint_struct_[3].current_state_.predicted_position = FNEXT.at(0).nonzeros()[1];
@@ -677,26 +718,6 @@ namespace ros2_control_blue_reach_5
       RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "predicted uncertainty is negative . unrealistic%f",
                   robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity_uncertainty);
     }
-
-    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_position = FNEXT_mhe.at(0).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[7];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.mhe_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     std::vector<DM> q = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,

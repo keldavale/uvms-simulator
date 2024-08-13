@@ -37,11 +37,6 @@ public:
         double predicted_position_uncertainty = 0;
         double predicted_velocity = 0;
         double predicted_velocity_uncertainty = 0;
-
-        double mhe_predicted_position = 0;
-        double mhe_predicted_position_uncertainty = 0;
-        double mhe_predicted_velocity = 0;
-        double mhe_predicted_velocity_uncertainty = 0;
         
         double state_id = 0;
         casadi::DM covariance = 100 * casadi::DM::eye(4);
