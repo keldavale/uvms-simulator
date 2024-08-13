@@ -520,7 +520,7 @@ namespace ros2_control_blue_reach_5
       p_mhe[7] = drag[3];
     };
 
-    double delta_seconds = period.seconds();
+    double delta_seconds = 0.045;
     double time_seconds = time.seconds();
     robot_structs_.mhe_data.t_step = delta_seconds;
     robot_structs_.mhe_data.time = time_seconds;
