@@ -733,16 +733,14 @@ namespace ros2_control_blue_reach_5
                               robot_structs_.hw_joint_struct_[2].current_state_.estimated_acceleration,
                               robot_structs_.hw_joint_struct_[1].current_state_.estimated_acceleration};
 
-    DM Pk_p_values = DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2});
+    DM Pk_p_values = DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2, 1e-1, 1e-1, 8e-1, 5e-2});
     DM Pk_p_tau = diag(Pk_p_values);
 
     DM Qk_tau = DM::vertcat({1e-7, 1e-7, 1e-7, 1e-7});
 
-    std::vector<DM> ID_param_Selector_arg = {q_dot, forward_p0, backward_p0};
+    std::vector<DM> ID_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.5, 1.5};
 
-    std::vector<DM> ID_selected_p0 = dynamics_service.params_selector(ID_param_Selector_arg);
-
-    std::vector<DM> id_arg = {q, q_dot, q_ddot, ID_selected_p0.at(0), Pk_x0__, Pk_p_tau, Qk_tau};
+    std::vector<DM> id_arg = {q, q_dot, q_ddot, ID_param_x, Pk_x0__, Pk_p_tau, Qk_tau};
     std::vector<DM> computed_torques = dynamics_service.inverse_dynamics(id_arg);
     // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "index name:::%s", robot_structs_.hw_joint_struct_[4].name.c_str());
 
