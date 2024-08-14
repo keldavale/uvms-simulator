@@ -518,6 +518,10 @@ namespace ros2_control_blue_reach_5
       p_mhe[5] = drag[1];
       p_mhe[6] = drag[2];
       p_mhe[7] = drag[3];
+      p_mhe[8] = drag[0];
+      p_mhe[9] = drag[1];
+      p_mhe[10] = drag[2];
+      p_mhe[11] = drag[3];
     };
 
     double delta_seconds = 0.045;
@@ -652,7 +656,7 @@ namespace ros2_control_blue_reach_5
                                        robot_structs_.hw_joint_struct_[2].current_state_.effort,
                                        robot_structs_.hw_joint_struct_[1].current_state_.effort};
 
-    DM Pk_p_dt_u_values = DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2, 0.0, 0.0, 0.0, 0.0, 0.0});
+    DM Pk_p_dt_u_values = diag(DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2, 1e-1, 1e-1, 8e-1, 5e-2, 0.0, 0.0, 0.0, 0.0, 0.0}));
 
     DM Qk0_FD = DM::vertcat({4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7});
 
@@ -680,15 +684,7 @@ namespace ros2_control_blue_reach_5
     robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
 
 
-    forward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
-
-    backward_p0 = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 0.5, 1.5};
-
-    FD_param_Selector_arg = {q_dot_prev, forward_p0, backward_p0};
-
-    FD_selected_p0 = dynamics_service.params_selector(FD_param_Selector_arg);
-
-    fd_arg = {q_prev, q_dot_prev, U_APPLIED, FD_selected_p0.at(0), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
+    fd_arg = {q_prev, q_dot_prev, U_APPLIED, DM(FD_param_x), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
     FNEXT = dynamics_service.forward_dynamics(fd_arg);
 
     robot_structs_.hw_joint_struct_[4].current_state_.predicted_position = FNEXT.at(0).nonzeros()[0];

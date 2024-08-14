@@ -148,7 +148,8 @@ namespace ros2_control_blue_reach_5
     std::vector<DM> FD_param_Selector_arg;
     std::vector<DM> FD_selected_p0;
 
-    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3};
+    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.5, 1.5};
+    std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.5, 1.5};
 
     std::vector<double> drag;
 
