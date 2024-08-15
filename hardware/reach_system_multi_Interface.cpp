@@ -51,7 +51,6 @@ namespace ros2_control_blue_reach_5
     dynamics_service.torque2currentMap = dynamics_service.load_casadi_fun("torque_to_current_map", "libT2C.so");
 
     dynamics_service.inverse_dynamics = dynamics_service.load_casadi_fun("tau_eval", "libTau_MEval.so");
-    dynamics_service.params_selector = dynamics_service.load_casadi_fun("params_selected", "libParamSelector.so");
 
     dynamics_service.forward_dynamics = dynamics_service.load_casadi_fun("stochastic_model", "libAFnext.so");
     dynamics_service.pd_controller = dynamics_service.load_casadi_fun("pid", "libPD.so");
@@ -511,22 +510,24 @@ namespace ros2_control_blue_reach_5
       rclcpp::spin_some(node_);
     }
 
-    if (latest_parameter_state_.data.size() == 4)
+    // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "mhe size is %zu", latest_parameter_state_.data.size());
+
+    if (latest_parameter_state_.data.size() == 8)
     {
       drag = latest_parameter_state_.data;
       p_mhe[4] = drag[0];
       p_mhe[5] = drag[1];
       p_mhe[6] = drag[2];
       p_mhe[7] = drag[3];
-      p_mhe[8] = drag[0];
-      p_mhe[9] = drag[1];
-      p_mhe[10] = drag[2];
-      p_mhe[11] = drag[3];
+      p_mhe[8] = drag[4];
+      p_mhe[9] = drag[5];
+      p_mhe[10] = drag[6];
+      p_mhe[11] = drag[7];
     };
 
     double delta_seconds = 0.045;
     double time_seconds = time.seconds();
-    robot_structs_.mhe_data.t_step = delta_seconds;
+    robot_structs_.mhe_data.t_step = period.seconds();
     robot_structs_.mhe_data.time = time_seconds;
 
     robot_structs_.mhe_data.je_ic_position = robot_structs_.hw_joint_struct_[4].current_state_.position;
@@ -560,14 +561,14 @@ namespace ros2_control_blue_reach_5
                     robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
 
       q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
+                    robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
+                    robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
+                    robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
 
       q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
+                        robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
+                        robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
+                        robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
     }
     else
     {
@@ -582,14 +583,14 @@ namespace ros2_control_blue_reach_5
                     robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity};
 
       q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position,
-                robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position,
-                robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position,
-                robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position};
+                    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position,
+                    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position,
+                    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position};
 
       q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity,
-                    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity,
-                    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity,
-                    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity};
+                        robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity,
+                        robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity,
+                        robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity};
     };
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -682,7 +683,6 @@ namespace ros2_control_blue_reach_5
     robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[5];
     robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[6];
     robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
-
 
     fd_arg = {q_prev, q_dot_prev, U_APPLIED, DM(FD_param_x), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
     FNEXT = dynamics_service.forward_dynamics(fd_arg);

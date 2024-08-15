@@ -24,7 +24,6 @@ namespace casadi_reach_alpha_5
         Function torque2currentMap; // forward motor dynamics
         Function current2torqueMap; // inverse motor dynamics
         Function uvms_dynamics;
-        Function params_selector;
         Function pd_controller;
 
         Dynamics() = default;
