@@ -206,9 +206,14 @@ def generate_launch_description():
         executable='namor_node'
     )
 
-    mouse_control = Node(
+    mouse_control_current = Node(
         package='namor',
-        executable='mouse_node'
+        executable='mouse_node_current',
+    )
+
+    mouse_control_velocity = Node(
+        package='namor',
+        executable='mouse_node_velocity'
     )
 
     # Delay rviz start after `joint_state_broadcaster`
@@ -230,7 +235,8 @@ def generate_launch_description():
     nodes = [
         conditional_use_thruster_command_action,
         run_plotjuggler,
-        mouse_control,
+        mouse_control_current,
+        # mouse_control_velocity,
         # ema_filter_entity,
         namor_entity,
         control_node,

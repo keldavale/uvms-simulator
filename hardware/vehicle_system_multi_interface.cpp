@@ -250,6 +250,10 @@ namespace ros2_control_blue_reach_5
       for (std::size_t i = 0; i < info_.joints.size(); i++)
       {
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[i].name, hardware_interface::HW_IF_POSITION, &robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[i].command_state_.current));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[i].command_state_.current));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[i].command_state_.current));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[i].command_state_.effort));
@@ -312,6 +316,14 @@ namespace ros2_control_blue_reach_5
       {
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
+          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
+          {
+            new_modes.push_back(mode_level_t::MODE_CURRENT);
+          }
+          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
+          {
+            new_modes.push_back(mode_level_t::MODE_CURRENT);
+          }
           if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
           {
             new_modes.push_back(mode_level_t::MODE_CURRENT);

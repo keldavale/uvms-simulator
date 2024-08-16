@@ -515,14 +515,24 @@ namespace ros2_control_blue_reach_5
     if (latest_parameter_state_.data.size() == 8)
     {
       drag = latest_parameter_state_.data;
+      // p_mhe[4] = drag[0];
+      // p_mhe[5] = drag[1];
+      // p_mhe[6] = drag[2];
+      // p_mhe[7] = drag[3];
+      // p_mhe[8] = drag[4];
+      // p_mhe[9] = drag[5];
+      // p_mhe[10] = drag[6];
+      // p_mhe[11] = drag[7];
+
       p_mhe[4] = drag[0];
-      p_mhe[5] = drag[1];
-      p_mhe[6] = drag[2];
-      p_mhe[7] = drag[3];
+      p_mhe[5] = 2.3;
+      p_mhe[6] = 2.2;
+      p_mhe[7] = 0.3;
       p_mhe[8] = drag[4];
-      p_mhe[9] = drag[5];
-      p_mhe[10] = drag[6];
-      p_mhe[11] = drag[7];
+      p_mhe[9] = 1.8;
+      p_mhe[10] = 1.0;
+      p_mhe[11] = 1.15;
+
     };
 
     double delta_seconds = 0.045;
@@ -791,6 +801,7 @@ namespace ros2_control_blue_reach_5
               static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
                   ? robot_structs_.hw_joint_struct_[i].command_state_.velocity * 1000
                   : robot_structs_.hw_joint_struct_[i].command_state_.velocity;
+          // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%d size is %f", static_cast<int>(target_device), target_velocity);
 
           driver_.setVelocity(target_velocity, target_device);
         }
