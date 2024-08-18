@@ -5,7 +5,7 @@ This repository features a ros2_control simulator for the BlueROV Heavy with an 
 
 <!-- ![alt text](./doc/uvms.drawio.png?raw=true "Blue Heavy with Reach Alpha attached") -->
 
-<img src="./doc/uvms.drawio.png" alt="Blue Heavy with Reach Alpha attached" title="Blue Heavy with Reach Alpha attached" style="width: 100%; max-width: 800px;">
+<img src="./doc/uvms.drawio.png" alt="Blue Heavy with Reach Alpha attached" title="Blue Heavy with Reach Alpha attached" style="width: 800px; height: auto;">
 
 
 ## Documentation
