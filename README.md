@@ -3,7 +3,7 @@
 This repository features a ros2_control simulator for the BlueROV Heavy with an attached Reach Alpha 5 manipulator, using Thor Fossen’s methods for underwater dynamics and Featherstone's algorithm for the manipulator.
 
 
-![alt text](./doc/uvms.png?raw=true "Blue Heavy with Reach Alpha attached")
+![alt text](./doc/uvms_new.png?raw=true "Blue Heavy with Reach Alpha attached")
 
 ## Documentation
 
