@@ -60,14 +60,14 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_coupled_system",
-            default_value="true",
+            default_value="false",
             description="Start robot with coupled dynamics of the underwater manipulator and the vehicle.",
         )
     )
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_thruster_command",
-            default_value="false",
+            default_value="true",
             description="control vehicle robot with thruster command (8 commands). False uses the generalized forces & torques(6 commands).",
         )
     )
@@ -235,10 +235,10 @@ def generate_launch_description():
     nodes = [
         conditional_use_thruster_command_action,
         run_plotjuggler,
-        mouse_control_current,
+        # mouse_control_current,
         # mouse_control_velocity,
         # ema_filter_entity,
-        namor_entity,
+        # namor_entity,
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,

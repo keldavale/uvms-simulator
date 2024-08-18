@@ -3,28 +3,52 @@
 .. _ros2_control_RA5BHS_userdoc:
 
 ************************************************
-Reach Alpha Blue heavy Dynamics Simulator
+Reach Alpha Blue Heavy Dynamics Simulator
 ************************************************
 
-For *Reach Alpha Blue heavy Dynamics Simulator*, the interface plugin is implemented having multiple state and command interfaces.
+The *Reach Alpha Blue Heavy Dynamics Simulator* includes an interface plugin that supports multiple state and command interfaces.
 
-
-Tutorial steps
+Prerequisites
 --------------------------
 
-1. To check that *reach alpha blue heavy sim* descriptions are working properly use following launch commands
+Before beginning the tutorial steps, ensure you have installed the necessary packages and dependencies:
+
+.. code-block:: shell
+
+   sudo apt-get install git-lfs
+   sudo apt-get install ros-humble-hardware-interface
+   sudo apt-get install ros-humble-xacro
+   sudo apt-get install ros-humble-controller-manager
+   sudo apt-get install ros-humble-joint-state-broadcaster
+   sudo apt-get install ros-humble-joint-state-publisher-gui
+   sudo apt-get install ros-humble-forward-command-controller
+   sudo apt-get install ros-humble-ros2-control
+
+   # Install CasADi (required for dynamics and kinematics calculations)
+   # Follow the installation instructions on the CasADi wiki:
+   https://github.com/casadi/casadi/wiki/InstallationLinux
+
+   # Initialize Git LFS and pull the necessary files for dynamics and kinematics
+   git lfs install
+   git lfs pull
+
+Tutorial Steps
+--------------------------
+
+1. **Verify the Simulator Descriptions**
+
+   To check that the *Reach Alpha Blue Heavy Sim* descriptions are working correctly, use the following launch command:
 
    .. code-block:: shell
 
     ros2 launch ros2_control_blue_reach_5 view_robot.launch.py
 
    .. note::
-    Getting the following output in terminal is OK: ``Warning: Invalid frame ID "odom" passed to canTransform argument target_frame - frame does not exist``.
-    This happens because ``joint_state_publisher_gui`` node need some time to start.
-    The ``joint_state_publisher_gui`` provides a GUI to generate  a random configuration for rrbot. It is immediately displayed in *RViz*.
+    It is normal to see the message ``Warning: Invalid frame ID "odom" passed to canTransform argument target_frame - frame does not exist``. This warning appears because the ``joint_state_publisher_gui`` node needs a moment to start. The ``joint_state_publisher_gui`` provides a GUI to generate a random configuration for the robot, which will be displayed in *RViz*.
 
+2. **Start the Reach Alpha 5 Example**
 
-2. To start *reach alpha 5* example open a terminal, source your ROS2-workspace and execute its launch file with
+   Open a terminal, source your ROS2 workspace, and execute the launch file with:
 
    .. code-block:: shell
 
@@ -32,16 +56,15 @@ Tutorial steps
 
    Useful launch-file options:
 
-   ``robot_controller:=forward_effort_controller``
-    starts demo and spawns effort controller. Robot can be then controlled using ``forward_effort_controller`` as described below.
+   - ``robot_controller:=forward_effort_controller``: Starts the demo and spawns an effort controller, allowing the robot to be controlled using the ``forward_effort_controller``.
 
-   ``robot_controller:=forward_current_controller``
-    starts demo and spawns current controller. Robot can be then controlled using ``forward_current_controller`` as described below.
+   - ``robot_controller:=forward_current_controller``: Starts the demo and spawns a current controller, allowing the robot to be controlled using the ``forward_current_controller``.
 
-   The launch file loads and starts the robot hardware, controllers and opens *RViz*.
-   In starting terminal you will see a lot of output from the hardware implementation showing its internal states.
+   The launch file will load and start the robot hardware, controllers, and open *RViz*. You will see extensive output from the hardware implementation in the terminal, showing its internal states.
 
-3. Check if the hardware interface loaded properly, by opening another terminal and executing
+3. **Check Hardware Interface**
+
+   Verify that the hardware interface has loaded properly by running:
 
    .. code-block:: shell
 
@@ -197,40 +220,40 @@ Tutorial steps
          alphathruster8_joint/position
          alphathruster8_joint/velocity
 
+   Markings of ``[claimed]`` by command interfaces indicate that a controller has access to the command system.
 
-   Marker ``[claimed]`` by command interfaces means that a controller has access to command *system*.
+4. **Verify Running Controllers**
 
-4. Check which controllers are running
+   To check which controllers are currently active, run:
 
    .. code-block:: shell
 
     ros2 control list_controllers
 
-   gives
+   The output should look like:
 
    .. code-block:: shell
 
       joint_state_broadcaster[joint_state_broadcaster/JointStateBroadcaster] active    
       forward_current_controller[forward_command_controller/ForwardCommandController] active
 
-   Check how this output changes if you use the different launch file arguments described above.
+   Observe how this output changes based on the launch file arguments used.
 
-5. If you get output from above you can send commands to *Forward Current Controller*, either:
+5. **Send Commands to the Controller**
 
-   #. Manually using ROS 2 CLI interface.
+   If the controllers are active, you can send commands to the *Forward Current Controller* as follows:
 
-      * when using ``forward_current_controller`` controller
+   - For the ``forward_current_controller``:
 
-        .. code-block:: shell
+     .. code-block:: shell
 
-         ros2 topic pub /forward_current_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0]}" --once
+      ros2 topic pub /forward_current_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0]}" --once
 
-      * when using ``forward_effort_controller`` controller
+   - For the ``forward_effort_controller``:
 
-        .. code-block:: shell
+     .. code-block:: shell
 
-         ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0]}" --once
-   
+      ros2 topic pub /forward_effort_controller/commands std_msgs/msg/Float64MultiArray "{data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 , 0.0, 0.0]}" --once
+
    .. note::
-      The initial five floating-point values are assigned sequentially to the manipulator, starting from the base at index[0] to the end-effector 
-      at index[4]. The subsequent eight floating-point values are designated for the vehicle's thrusters.
+      The first five floating-point values correspond to the manipulator, from the base at index[0] to the end-effector at index[4]. The following eight values are for the vehicle's thrusters.
