@@ -235,10 +235,10 @@ def generate_launch_description():
     nodes = [
         conditional_use_thruster_command_action,
         run_plotjuggler,
-        # mouse_control_current,
+        mouse_control_current,
         # mouse_control_velocity,
         # ema_filter_entity,
-        # namor_entity,
+        namor_entity,
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
