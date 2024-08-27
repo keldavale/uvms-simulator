@@ -106,8 +106,6 @@ namespace ros2_control_blue_reach_5
       MODE_CARTESIAN
     };
 
-    bool use_coupled_system;
-    bool endeffector_control;
     // Active control mode for each actuator
     std::vector<mode_level_t> control_level_;
 

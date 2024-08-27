@@ -58,8 +58,6 @@ namespace ros2_control_blue_reach_5
     cfg_.serial_port_ = info_.hardware_parameters["serial_port"];
     cfg_.state_update_freq_ = std::stoi(info_.hardware_parameters["state_update_frequency"]);
 
-    use_coupled_system = (info_.hardware_parameters["use_coupled_system"] == "True");
-    endeffector_control = (info_.hardware_parameters["endeffector_control"] == "True");
     robot_structs_.hw_joint_struct_.reserve(info_.joints.size());
 
     // hw_joint_struct_.reserve(info_.joints.size());
@@ -95,8 +93,7 @@ namespace ros2_control_blue_reach_5
       robot_structs_.hw_joint_struct_.emplace_back(joint.name, device_id, initialState, jointLimits, positionLimitsFlag, jointSoftLimits, actuatorProp);
       // ReachSystemMultiInterface has exactly 13 state interfaces
       // and 4 command interfaces on each joint
-      if (!endeffector_control)
-      {
+
         if (joint.command_interfaces.size() != 4)
         {
           RCLCPP_FATAL(
@@ -105,7 +102,7 @@ namespace ros2_control_blue_reach_5
               joint.command_interfaces.size());
           return hardware_interface::CallbackReturn::ERROR;
         }
-      }
+
       if (joint.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
@@ -118,17 +115,6 @@ namespace ros2_control_blue_reach_5
     };
 
     hardware_interface::ComponentInfo endeffector_IO = info_.gpios[0];
-    if (endeffector_control)
-    {
-      if (endeffector_IO.command_interfaces.size() != 7)
-      {
-        RCLCPP_FATAL(
-            rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "GPIO '%s'has %zu command interfaces. 7 expected.", endeffector_IO.name.c_str(),
-            endeffector_IO.command_interfaces.size());
-        return hardware_interface::CallbackReturn::ERROR;
-      }
-    }
     if (endeffector_IO.state_interfaces.size() != 7)
     {
       RCLCPP_FATAL(
@@ -223,8 +209,6 @@ namespace ros2_control_blue_reach_5
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
 
-    if (!endeffector_control)
-    {
       for (std::string key : start_interfaces)
       {
         for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -283,26 +267,7 @@ namespace ros2_control_blue_reach_5
           return hardware_interface::return_type::ERROR;
         }
         control_level_[i] = new_modes[i];
-      }
-    }
-    else
-    {
-      for (std::string key : start_interfaces)
-      {
-        for (std::size_t j = 0; j < info_.gpios[0].command_interfaces.size(); j++)
-        {
-          std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
-          if (key == full_name)
-          {
-            if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos ||
-                info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
-            {
-              control_level_.push_back(mode_level_t::MODE_CARTESIAN);
-            }
-          }
-        }
-      }
-    };
+      };
     RCLCPP_INFO(
         rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
@@ -425,25 +390,6 @@ namespace ros2_control_blue_reach_5
   {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-    if (endeffector_control)
-    {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &robot_structs_.command_state_.position_x));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[1].name, &robot_structs_.command_state_.position_y));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[2].name, &robot_structs_.command_state_.position_z));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[3].name, &robot_structs_.command_state_.orientation_w));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[4].name, &robot_structs_.command_state_.orientation_x));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[5].name, &robot_structs_.command_state_.orientation_y));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[6].name, &robot_structs_.command_state_.orientation_z));
-    }
-    else
-    {
       for (std::size_t i = 0; i < info_.joints.size(); i++)
       {
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -455,7 +401,7 @@ namespace ros2_control_blue_reach_5
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].command_state_.effort));
       }
-    }
+
 
     return command_interfaces;
   }
@@ -515,23 +461,23 @@ namespace ros2_control_blue_reach_5
     if (latest_parameter_state_.data.size() == 8)
     {
       drag = latest_parameter_state_.data;
-      // p_mhe[4] = drag[0];
-      // p_mhe[5] = drag[1];
-      // p_mhe[6] = drag[2];
-      // p_mhe[7] = drag[3];
-      // p_mhe[8] = drag[4];
-      // p_mhe[9] = drag[5];
-      // p_mhe[10] = drag[6];
-      // p_mhe[11] = drag[7];
-
       p_mhe[4] = drag[0];
-      p_mhe[5] = 2.3;
-      p_mhe[6] = 2.2;
-      p_mhe[7] = 0.3;
+      p_mhe[5] = drag[1];
+      p_mhe[6] = drag[2];
+      p_mhe[7] = drag[3];
       p_mhe[8] = drag[4];
-      p_mhe[9] = 1.8;
-      p_mhe[10] = 1.0;
-      p_mhe[11] = 1.15;
+      p_mhe[9] = drag[5];
+      p_mhe[10] = drag[6];
+      p_mhe[11] = drag[7];
+
+      // p_mhe[4] = drag[0];
+      // p_mhe[5] = 2.3;
+      // p_mhe[6] = 2.2;
+      // p_mhe[7] = 0.3;
+      // p_mhe[8] = drag[4];
+      // p_mhe[9] = 1.8;
+      // p_mhe[10] = 1.0;
+      // p_mhe[11] = 1.15;
 
     };
 

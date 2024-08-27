@@ -59,20 +59,6 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "use_coupled_system",
-            default_value="false",
-            description="Start robot with coupled dynamics of the underwater manipulator and the vehicle.",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "use_thruster_command",
-            default_value="true",
-            description="control vehicle robot with thruster command (8 commands). False uses the generalized forces & torques(6 commands).",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             "endeffector_control",
             default_value="false",
             description="use cartesian control",
@@ -96,21 +82,11 @@ def generate_launch_description():
     # Initialize Arguments
     prefix = LaunchConfiguration("prefix")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
-    use_coupled_system = LaunchConfiguration("use_coupled_system")
-    use_thruster_command = LaunchConfiguration("use_thruster_command")
-    endeffector_control = LaunchConfiguration("endeffector_control")
     serial_port = LaunchConfiguration("serial_port")
     state_update_frequency = LaunchConfiguration("state_update_frequency")
     robot_controller = LaunchConfiguration("robot_controller")
     gui = LaunchConfiguration("gui")
 
-    # Get URDF via xacro
-
-    conditional_use_thruster_command_action = SetLaunchConfiguration(
-        name='use_thruster_command',
-        value=TextSubstitution(text='false'),
-        condition=IfCondition(use_coupled_system)
-    )
 
     # Define the robot description command with a conditional substitution
     robot_description_content = Command(
@@ -125,10 +101,7 @@ def generate_launch_description():
             "prefix:=", prefix, " ",
             "serial_port:=", serial_port, " ",
             "state_update_frequency:=", state_update_frequency, " ",
-            "use_mock_hardware:=", use_mock_hardware, " ",
-            "use_coupled_system:=", use_coupled_system, " ",
-            "use_thruster_command:=", use_thruster_command, " ",
-            "endeffector_control:=", endeffector_control, " "
+            "use_mock_hardware:=", use_mock_hardware, " "
         ]
     )
 
@@ -174,20 +147,19 @@ def generate_launch_description():
                    "--controller-manager", "/controller_manager"],
     )
 
-    uvms_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["uvms_controller",
-                   "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_coupled_system)
-    )
+    # uvms_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["uvms_controller",
+    #                "--controller-manager", "/controller_manager"],
+    #     condition=IfCondition(use_coupled_system)
+    # )
 
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=[robot_controller,
-                   "--controller-manager", "/controller_manager"],
-        condition=UnlessCondition(use_coupled_system)
+                   "--controller-manager", "/controller_manager"]
     )
 
     run_plotjuggler = ExecuteProcess(
@@ -233,16 +205,15 @@ def generate_launch_description():
     )
 
     nodes = [
-        conditional_use_thruster_command_action,
         run_plotjuggler,
         mouse_control_current,
         # mouse_control_velocity,
         # ema_filter_entity,
-        namor_entity,
+        # namor_entity,
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        uvms_spawner,
+        # uvms_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner
     ]

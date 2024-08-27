@@ -127,20 +127,11 @@ namespace ros2_control_blue_reach_5
         // Store the dynamics function for the robot joints
         casadi_reach_alpha_5::Dynamics dynamics_service;
 
-        bool use_coupled_system;
-        bool use_thruster_command;
-
         // Store the state & commands for the whole body robot
         uvms::State robot_structs_;
 
         // stores the dynamic response from the forward dynamics simulator
         std::vector<double> forward_dynamics_res;
-
-        realtime_tools::RealtimeBuffer<std::shared_ptr<RefType>> rt_position_ptr_;
-        rclcpp::Subscription<RefType>::SharedPtr position_ref_subscriber_;
-
-        realtime_tools::RealtimeBuffer<std::shared_ptr<RefType>> rt_velocity_ptr_;
-        rclcpp::Subscription<RefType>::SharedPtr velocity_ref_subscriber_;
 
         std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>

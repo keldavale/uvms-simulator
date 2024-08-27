@@ -6,9 +6,6 @@
   <xacro:arg name="prefix" default="alpha" />
   <xacro:arg name="serial_port" default="/dev/ttyUSB0"/>
   <xacro:arg name="state_update_frequency" default="250"/>
-  <xacro:arg name="use_coupled_system" default="true"/>
-  <xacro:arg name="use_thruster_command" default="false"/>
-  <xacro:arg name="endeffector_control" default="false"/>
     <!-- Properties -->
   <xacro:property name="description_package" value="ros2_control_blue_reach_5" />
   <xacro:property name="prefix" value="$(arg prefix)" />
@@ -28,17 +25,13 @@
     prefix="$(arg prefix)"
     serial_port="$(arg serial_port)"
     state_update_frequency="$(arg state_update_frequency)"
-    use_mock_hardware="$(arg use_mock_hardware)"
-    use_coupled_system="$(arg use_coupled_system)"
-    endeffector_control="$(arg endeffector_control)"/>
+    use_mock_hardware="$(arg use_mock_hardware)"/>
 
   <xacro:vehicle_system_multi_interface
     name="BlueSystemMultiInterface"
     prefix="$(arg prefix)"
     serial_port="$(arg serial_port)"
     state_update_frequency="$(arg state_update_frequency)"
-    use_mock_hardware="$(arg use_mock_hardware)"
-    use_coupled_system="$(arg use_coupled_system)"
-    use_thruster_command="$(arg use_thruster_command)"/>
+    use_mock_hardware="$(arg use_mock_hardware)"/>
 
 </robot>

@@ -31,9 +31,6 @@ namespace ros2_control_blue_reach_5
     // Use CasADi's "external" to load the compiled dynamics functions
     dynamics_service.usage_cplusplus_checks("test", "libtest.so", "rrbot system");
 
-    use_coupled_system = (info_.hardware_parameters["use_coupled_system"] == "True");
-    endeffector_control = (info_.hardware_parameters["endeffector_control"] == "True");
-
     robot_structs_.hw_joint_struct_.reserve(info_.joints.size());
     control_level_.resize(info_.joints.size(), mode_level_t::MODE_DISABLE);
 
@@ -53,8 +50,7 @@ namespace ros2_control_blue_reach_5
       robot_structs_.hw_joint_struct_.emplace_back(joint.name, device_id, initialState);
       // RRBotSystemMultiInterface has exactly 3 state interfaces
       // and 3 command interfaces on each joint
-      if (!endeffector_control)
-      {
+
         if (joint.command_interfaces.size() != 4)
         {
           RCLCPP_FATAL(
@@ -63,7 +59,7 @@ namespace ros2_control_blue_reach_5
               joint.command_interfaces.size());
           return hardware_interface::CallbackReturn::ERROR;
         }
-      }
+    
       if (joint.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
@@ -76,17 +72,6 @@ namespace ros2_control_blue_reach_5
     };
 
     hardware_interface::ComponentInfo endeffector_IO = info_.gpios[0];
-    if (endeffector_control)
-    {
-      if (endeffector_IO.command_interfaces.size() != 7)
-      {
-        RCLCPP_FATAL(
-            rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "GPIO '%s'has %zu command interfaces. 7 expected.", endeffector_IO.name.c_str(),
-            endeffector_IO.command_interfaces.size());
-        return hardware_interface::CallbackReturn::ERROR;
-      }
-    }
     if (endeffector_IO.state_interfaces.size() != 7)
     {
       RCLCPP_FATAL(
@@ -246,26 +231,6 @@ namespace ros2_control_blue_reach_5
   RRBotSystemMultiInterfaceHardware::export_command_interfaces()
   {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
-
-    if (endeffector_control)
-    {
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &robot_structs_.command_state_.position_x));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[1].name, &robot_structs_.command_state_.position_y));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[2].name, &robot_structs_.command_state_.position_z));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[3].name, &robot_structs_.command_state_.orientation_w));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[4].name, &robot_structs_.command_state_.orientation_x));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[5].name, &robot_structs_.command_state_.orientation_y));
-      command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.gpios[0].name, info_.gpios[0].command_interfaces[6].name, &robot_structs_.command_state_.orientation_z));
-    }
-    else
-    {
       for (std::size_t i = 0; i < info_.joints.size(); i++)
       {
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -276,8 +241,7 @@ namespace ros2_control_blue_reach_5
             info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_joint_struct_[i].command_state_.current));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].command_state_.effort));
-      }
-    }
+      };
     return command_interfaces;
   }
 
@@ -287,8 +251,7 @@ namespace ros2_control_blue_reach_5
   {
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
-    if (!endeffector_control)
-    {
+
       for (std::string key : start_interfaces)
       {
         for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -310,27 +273,8 @@ namespace ros2_control_blue_reach_5
             new_modes.push_back(mode_level_t::MODE_EFFORT);
           }
         }
-      }
+      };
       control_level_ = new_modes;
-    }
-    else
-    {
-      for (std::string key : start_interfaces)
-      {
-        for (std::size_t j = 0; j < info_.gpios[0].command_interfaces.size(); j++)
-        {
-          std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
-          if (key == full_name)
-          {
-            if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos ||
-                info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
-            {
-              control_level_.push_back(mode_level_t::MODE_POSITION);
-            }
-          }
-        }
-      }
-    };
     return hardware_interface::return_type::OK;
   }
 

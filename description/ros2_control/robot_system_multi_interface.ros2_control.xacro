@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:macro name="robot_system_multi_interface" 
-  params="name prefix serial_port state_update_frequency use_mock_hardware use_coupled_system endeffector_control">
+  params="name prefix serial_port state_update_frequency use_mock_hardware">
 
     <ros2_control name="${name}" type="system">
 
@@ -10,16 +10,12 @@
         <xacro:if value="${use_mock_hardware}">
           <plugin>ros2_control_blue_reach_5/RRBotSystemMultiInterfaceHardware</plugin>
           <param name="state_update_frequency">${state_update_frequency}</param>
-          <param name="use_coupled_system">${use_coupled_system}</param>
-          <param name="endeffector_control">${endeffector_control}</param>
         </xacro:if>
 
         <xacro:unless value="${use_mock_hardware}">
           <plugin>ros2_control_blue_reach_5/ReachSystemMultiInterfaceHardware</plugin>
           <param name="serial_port">${serial_port}</param>
           <param name="state_update_frequency">${state_update_frequency}</param>
-          <param name="use_coupled_system">${use_coupled_system}</param>
-          <param name="endeffector_control">${endeffector_control}</param>
         </xacro:unless>
       </hardware>
 
@@ -42,7 +38,6 @@
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
-        <xacro:unless value="${endeffector_control}">
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -59,7 +54,6 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-        </xacro:unless>
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -101,7 +95,7 @@
         <param name="backward_I_static">20</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
-        <xacro:unless value="${endeffector_control}">
+
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -118,7 +112,7 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-        </xacro:unless>
+
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -160,7 +154,6 @@
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
-        <xacro:unless value="${endeffector_control}">
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -177,7 +170,7 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-        </xacro:unless>
+
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -219,7 +212,6 @@
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
-        <xacro:unless value="${endeffector_control}">
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -236,7 +228,7 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-        </xacro:unless>
+
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -278,7 +270,6 @@
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
-        <xacro:unless value="${endeffector_control}">
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -295,7 +286,7 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-        </xacro:unless>
+
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -319,15 +310,6 @@
       </joint>
 
       <gpio name="${prefix}_endeffector_IOs">
-        <xacro:if value="${endeffector_control}">
-            <command_interface name="position.x"/>
-            <command_interface name="position.y"/>
-            <command_interface name="position.z"/>
-            <command_interface name="orientation.w"/>
-            <command_interface name="orientation.x"/>
-            <command_interface name="orientation.y"/>
-            <command_interface name="orientation.z"/>
-        </xacro:if>
           <state_interface name="position.x"/>
           <state_interface name="position.y"/>
           <state_interface name="position.z"/>
