@@ -40,23 +40,13 @@ uvms_controller:
       - alpha_axis_b 
       - alpha_axis_a
 
-    thrusters:
-      - alphathruster1_joint
-      - alphathruster2_joint
-      - alphathruster3_joint
-      - alphathruster4_joint
-      - alphathruster5_joint
-      - alphathruster6_joint
-      - alphathruster7_joint
-      - alphathruster8_joint
-
     alpha_IOs:
       dynamics_identifier: "floating_base"
-      pose_topic_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
-      velocity_topic_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      pose_command_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
-      velocity_command_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      effort_command_interface: [force.x, force.y, force.z, torque.x, torque.y, torque.z]
+      pose_topic_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
+      velocity_topic_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
+      pose_command_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
+      velocity_command_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
+      effort_command_interface: [effort.x, effort.y, effort.z, effort.roll, effort.pitch, effort.yaw]
 
     alpha_axis_e:
       dynamics_identifier: "joint0"

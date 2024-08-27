@@ -51,15 +51,15 @@ namespace ros2_control_blue_reach_5
       // RRBotSystemMultiInterface has exactly 3 state interfaces
       // and 3 command interfaces on each joint
 
-        if (joint.command_interfaces.size() != 4)
-        {
-          RCLCPP_FATAL(
-              rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-              "Joint '%s' has %zu command interfaces. 4 expected.", joint.name.c_str(),
-              joint.command_interfaces.size());
-          return hardware_interface::CallbackReturn::ERROR;
-        }
-    
+      if (joint.command_interfaces.size() != 4)
+      {
+        RCLCPP_FATAL(
+            rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+            "Joint '%s' has %zu command interfaces. 4 expected.", joint.name.c_str(),
+            joint.command_interfaces.size());
+        return hardware_interface::CallbackReturn::ERROR;
+      }
+
       if (joint.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
@@ -80,7 +80,7 @@ namespace ros2_control_blue_reach_5
           endeffector_IO.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
     }
-  
+
     hardware_interface::ComponentInfo step_IO = info_.gpios[1];
     if (step_IO.state_interfaces.size() != 17)
     {
@@ -168,7 +168,6 @@ namespace ros2_control_blue_reach_5
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_velocity_uncertainty));
 
-
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_STATE_ID, &robot_structs_.hw_joint_struct_[i].current_state_.state_id));
     };
@@ -186,8 +185,6 @@ namespace ros2_control_blue_reach_5
         info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &robot_structs_.current_state_.orientation_y));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &robot_structs_.current_state_.orientation_z));
-
-
 
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.gpios[1].name, info_.gpios[1].state_interfaces[0].name, &robot_structs_.mhe_data.time));
@@ -223,7 +220,7 @@ namespace ros2_control_blue_reach_5
         info_.gpios[1].name, info_.gpios[1].state_interfaces[15].name, &robot_structs_.mhe_data.ja_ic_velocity));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
         info_.gpios[1].name, info_.gpios[1].state_interfaces[16].name, &robot_structs_.mhe_data.ja_ic_effort));
-        
+
     return state_interfaces;
   }
 
@@ -231,30 +228,34 @@ namespace ros2_control_blue_reach_5
   RRBotSystemMultiInterfaceHardware::export_command_interfaces()
   {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
-      for (std::size_t i = 0; i < info_.joints.size(); i++)
-      {
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.joints[i].name, hardware_interface::HW_IF_POSITION, &robot_structs_.hw_joint_struct_[i].command_state_.position));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &robot_structs_.hw_joint_struct_[i].command_state_.velocity));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_joint_struct_[i].command_state_.current));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].command_state_.effort));
-      };
+    for (std::size_t i = 0; i < info_.joints.size(); i++)
+    {
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, hardware_interface::HW_IF_POSITION, &robot_structs_.hw_joint_struct_[i].command_state_.position));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &robot_structs_.hw_joint_struct_[i].command_state_.velocity));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_joint_struct_[i].command_state_.current));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].command_state_.effort));
+    };
     return command_interfaces;
   }
 
   hardware_interface::return_type RRBotSystemMultiInterfaceHardware::prepare_command_mode_switch(
       const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> & /*stop_interfaces*/)
+      const std::vector<std::string> &stop_interfaces)
   {
+    RCLCPP_INFO( // NOLINT
+        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "preparing command mode switch");
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
 
-      for (std::string key : start_interfaces)
+    for (std::string key : start_interfaces)
+    {
+      for (std::size_t i = 0; i < info_.joints.size(); i++)
       {
-        for (std::size_t i = 0; i < info_.joints.size(); i++)
+        if (key == info_.joints[i].name + "/" + "effort")
         {
           if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
           {
@@ -273,8 +274,50 @@ namespace ros2_control_blue_reach_5
             new_modes.push_back(mode_level_t::MODE_EFFORT);
           }
         }
-      };
-      control_level_ = new_modes;
+      }
+    };
+
+    //  criteria: All joints must be given new command mode at the same time
+    if (new_modes.size() != info_.joints.size())
+    {
+      return hardware_interface::return_type::ERROR;
+    };
+
+    //  criteria: All joints must have the same command mode
+    if (!std::all_of(
+            new_modes.begin() + 1, new_modes.end(),
+            [&](mode_level_t mode)
+            { return mode == new_modes[0]; }))
+    {
+      return hardware_interface::return_type::ERROR;
+    }
+
+    // Stop motion on all relevant joints that are stopping
+    for (std::string key : stop_interfaces)
+    {
+      for (std::size_t i = 0; i < info_.joints.size(); i++)
+      {
+        if (key.find(info_.joints[i].name) != std::string::npos)
+        {
+          robot_structs_.hw_joint_struct_[i].command_state_.velocity = 0;
+          robot_structs_.hw_joint_struct_[i].command_state_.current = 0;
+          control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
+        }
+      }
+    }
+
+    // Set the new command modes
+    for (std::size_t i = 0; i < info_.joints.size(); i++)
+    {
+      if (control_level_[i] != mode_level_t::MODE_DISABLE)
+      {
+        // Something else is using the joint! Abort!
+        return hardware_interface::return_type::ERROR;
+      }
+      control_level_[i] = new_modes[i];
+    }
+    RCLCPP_INFO(
+        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
   }
 
