@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_CONTROL_BLUE_REACH_5__RRBOT_SYSTEM_MULTI_INTERFACE_HPP_
-#define ROS2_CONTROL_BLUE_REACH_5__RRBOT_SYSTEM_MULTI_INTERFACE_HPP_
+#ifndef ROS2_CONTROL_BLUE_REACH_5__SIM_REACH_SYSTEM_MULTI_INTERFACE_HPP_
+#define ROS2_CONTROL_BLUE_REACH_5__SIM_REACH_SYSTEM_MULTI_INTERFACE_HPP_
 
 #include <chrono>
 #include <cstdint>
@@ -43,11 +43,11 @@
 
 namespace ros2_control_blue_reach_5
 {
-  class RRBotSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
+  class SimReachSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
   {
 
   public:
-    RCLCPP_SHARED_PTR_DEFINITIONS(RRBotSystemMultiInterfaceHardware);
+    RCLCPP_SHARED_PTR_DEFINITIONS(SimReachSystemMultiInterfaceHardware);
 
     ROS2_CONTROL_BLUE_REACH_5_PUBLIC
     hardware_interface::CallbackReturn on_init(
@@ -120,4 +120,4 @@ namespace ros2_control_blue_reach_5
   };
 
 } // namespace ros2_control_blue_reach_5
-#endif // ROS2_CONTROL_BLUE_REACH_5__RRBOT_SYSTEM_MULTI_INTERFACE_HPP_
+#endif // ROS2_CONTROL_BLUE_REACH_5__SIM_REACH_SYSTEM_MULTI_INTERFACE_HPP_

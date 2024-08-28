@@ -213,24 +213,22 @@ namespace ros2_control_blue_reach_5
     {
       for (std::size_t i = 0; i < info_.joints.size(); i++)
       {
-        if (key == info_.joints[i].name + "/" + "effort")
+
+        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
         {
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
-          {
-            new_modes.push_back(mode_level_t::MODE_POSITION);
-          }
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
-          {
-            new_modes.push_back(mode_level_t::MODE_VELOCITY);
-          }
-          if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
-          {
-            new_modes.push_back(mode_level_t::MODE_CURRENT);
-          }
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
-          {
-            new_modes.push_back(mode_level_t::MODE_EFFORT);
-          }
+          new_modes.push_back(mode_level_t::MODE_POSITION);
+        }
+        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
+        {
+          new_modes.push_back(mode_level_t::MODE_VELOCITY);
+        }
+        if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
+        {
+          new_modes.push_back(mode_level_t::MODE_CURRENT);
+        }
+        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
+        {
+          new_modes.push_back(mode_level_t::MODE_EFFORT);
         }
       }
     };
@@ -463,257 +461,10 @@ namespace ros2_control_blue_reach_5
 
     // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "mhe size is %zu", latest_parameter_state_.data.size());
 
-    if (latest_parameter_state_.data.size() == 8)
-    {
-      drag = latest_parameter_state_.data;
-      p_mhe[4] = drag[0];
-      p_mhe[5] = drag[1];
-      p_mhe[6] = drag[2];
-      p_mhe[7] = drag[3];
-      p_mhe[8] = drag[4];
-      p_mhe[9] = drag[5];
-      p_mhe[10] = drag[6];
-      p_mhe[11] = drag[7];
-
-      // p_mhe[4] = drag[0];
-      // p_mhe[5] = 2.3;
-      // p_mhe[6] = 2.2;
-      // p_mhe[7] = 0.3;
-      // p_mhe[8] = drag[4];
-      // p_mhe[9] = 1.8;
-      // p_mhe[10] = 1.0;
-      // p_mhe[11] = 1.15;
-    };
-
-    double delta_seconds = 0.045;
-    double time_seconds = time.seconds();
-    robot_structs_.mhe_data.t_step = period.seconds();
-    robot_structs_.mhe_data.time = time_seconds;
-
-    robot_structs_.mhe_data.je_ic_position = robot_structs_.hw_joint_struct_[4].current_state_.position;
-    robot_structs_.mhe_data.jd_ic_position = robot_structs_.hw_joint_struct_[3].current_state_.position;
-    robot_structs_.mhe_data.jc_ic_position = robot_structs_.hw_joint_struct_[2].current_state_.position;
-    robot_structs_.mhe_data.jb_ic_position = robot_structs_.hw_joint_struct_[1].current_state_.position;
-    robot_structs_.mhe_data.ja_ic_position = robot_structs_.hw_joint_struct_[0].current_state_.position;
-
-    robot_structs_.mhe_data.je_ic_velocity = robot_structs_.hw_joint_struct_[4].current_state_.velocity;
-    robot_structs_.mhe_data.jd_ic_velocity = robot_structs_.hw_joint_struct_[3].current_state_.velocity;
-    robot_structs_.mhe_data.jc_ic_velocity = robot_structs_.hw_joint_struct_[2].current_state_.velocity;
-    robot_structs_.mhe_data.jb_ic_velocity = robot_structs_.hw_joint_struct_[1].current_state_.velocity;
-    robot_structs_.mhe_data.ja_ic_velocity = robot_structs_.hw_joint_struct_[0].current_state_.velocity;
-
-    robot_structs_.mhe_data.je_ic_effort = robot_structs_.hw_joint_struct_[4].current_state_.effort;
-    robot_structs_.mhe_data.jd_ic_effort = robot_structs_.hw_joint_struct_[3].current_state_.effort;
-    robot_structs_.mhe_data.jc_ic_effort = robot_structs_.hw_joint_struct_[2].current_state_.effort;
-    robot_structs_.mhe_data.jb_ic_effort = robot_structs_.hw_joint_struct_[1].current_state_.effort;
-    robot_structs_.mhe_data.ja_ic_effort = robot_structs_.hw_joint_struct_[0].current_state_.effort;
-
-    if (predictor_i < 10)
-    {
-      q_prev = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
-                robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
-
-      q_dot_prev = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
-                    robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
-
-      q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,
-                    robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
-                    robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
-                    robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
-
-      q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_velocity,
-                        robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
-                        robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
-                        robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
-    }
-    else
-    {
-      q_prev = {robot_structs_.hw_joint_struct_[4].current_state_.predicted_position,
-                robot_structs_.hw_joint_struct_[3].current_state_.predicted_position,
-                robot_structs_.hw_joint_struct_[2].current_state_.predicted_position,
-                robot_structs_.hw_joint_struct_[1].current_state_.predicted_position};
-
-      q_dot_prev = {robot_structs_.hw_joint_struct_[4].current_state_.predicted_velocity,
-                    robot_structs_.hw_joint_struct_[3].current_state_.predicted_velocity,
-                    robot_structs_.hw_joint_struct_[2].current_state_.predicted_velocity,
-                    robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity};
-
-      q_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position,
-                    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position,
-                    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position,
-                    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position};
-
-      q_dot_prev_mhe = {robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity,
-                        robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity,
-                        robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity,
-                        robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity};
-    };
-
-    for (std::size_t i = 0; i < info_.joints.size(); i++)
-    {
-      // robot_structs_.hw_joint_struct_[i].current_state_.state_id++;
-      double prev_velocity_ = robot_structs_.hw_joint_struct_[i].current_state_.velocity;
-      robot_structs_.hw_joint_struct_[i].current_state_.position = robot_structs_.hw_joint_struct_[i].async_state_.position;
-      robot_structs_.hw_joint_struct_[i].current_state_.velocity = robot_structs_.hw_joint_struct_[i].async_state_.velocity;
-      robot_structs_.hw_joint_struct_[i].current_state_.current = robot_structs_.hw_joint_struct_[i].async_state_.current;
-
-      if (robot_structs_.hw_joint_struct_[i].current_state_.current > 0)
-      {
-        T2C_arg = {DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.kt),
-                   DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.forward_I_static),
-                   DM(robot_structs_.hw_joint_struct_[i].current_state_.current)};
-      }
-      else
-      {
-        T2C_arg = {DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.kt),
-                   DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.backward_I_static),
-                   DM(robot_structs_.hw_joint_struct_[i].current_state_.current)};
-      };
-      std::vector<DM> torque = dynamics_service.current2torqueMap(T2C_arg);
-      robot_structs_.hw_joint_struct_[i].current_state_.effort = torque.at(0).scalar();
-      robot_structs_.hw_joint_struct_[i].calcAcceleration(robot_structs_.hw_joint_struct_[i].current_state_.velocity, prev_velocity_, delta_seconds);
-
-      std::vector<double> x_est = {
-          robot_structs_.hw_joint_struct_[i].current_state_.filtered_position,
-          robot_structs_.hw_joint_struct_[i].current_state_.filtered_velocity,
-          robot_structs_.hw_joint_struct_[i].current_state_.estimated_acceleration,
-          robot_structs_.hw_joint_struct_[i].current_state_.estimated_jerk}; // Initial estimate of state
-      double dt = delta_seconds;                                             // time step
-
-      casadi::DM Q = robot_structs_.hw_joint_struct_[i].current_state_.Q;                      // process noise
-      std::vector<double> sigma_m = robot_structs_.hw_joint_struct_[i].current_state_.sigma_m; // measurement noise
-
-      casadi::DM p_0d = robot_structs_.hw_joint_struct_[i].current_state_.covariance; // initial covariance matrix
-      std::vector<double> z = {robot_structs_.hw_joint_struct_[i].current_state_.position,
-                               robot_structs_.hw_joint_struct_[i].current_state_.velocity}; // example measurment (position and velocity)
-      std::vector<DM> arg = {DM(x_est), DM(z), p_0d, DM(sigma_m), Q, DM(dt)};               // KF argument bundled
-      std::vector<DM> estimates_dm = dynamics_service.kalman_filter(arg);                   // execute KF
-
-      robot_structs_.hw_joint_struct_[i].current_state_.filtered_position = estimates_dm.at(0).nonzeros()[0];
-      robot_structs_.hw_joint_struct_[i].current_state_.filtered_velocity = estimates_dm.at(0).nonzeros()[1];
-      robot_structs_.hw_joint_struct_[i].current_state_.estimated_acceleration = estimates_dm.at(0).nonzeros()[2];
-      robot_structs_.hw_joint_struct_[i].current_state_.covariance = estimates_dm.at(1);
-      robot_structs_.hw_joint_struct_[i].current_state_.err_p = robot_structs_.hw_joint_struct_[i].current_state_.covariance.nonzeros()[0];
-      robot_structs_.hw_joint_struct_[i].current_state_.err_v = robot_structs_.hw_joint_struct_[i].current_state_.covariance.nonzeros()[5];
-    };
-
-    DM Pk_x0__values = DM::vertcat({robot_structs_.hw_joint_struct_[4].current_state_.err_p,
-                                    robot_structs_.hw_joint_struct_[3].current_state_.err_p,
-                                    robot_structs_.hw_joint_struct_[2].current_state_.err_p,
-                                    robot_structs_.hw_joint_struct_[1].current_state_.err_p,
-                                    robot_structs_.hw_joint_struct_[4].current_state_.err_v,
-                                    robot_structs_.hw_joint_struct_[3].current_state_.err_v,
-                                    robot_structs_.hw_joint_struct_[2].current_state_.err_v,
-                                    robot_structs_.hw_joint_struct_[1].current_state_.err_v});
-    // Create the diagonal matrix using casadi::diag
-    DM Pk_x0__ = diag(Pk_x0__values);
-
-    const std::vector<DM> U_APPLIED = {robot_structs_.hw_joint_struct_[4].current_state_.effort,
-                                       robot_structs_.hw_joint_struct_[3].current_state_.effort,
-                                       robot_structs_.hw_joint_struct_[2].current_state_.effort,
-                                       robot_structs_.hw_joint_struct_[1].current_state_.effort};
-
-    DM Pk_p_dt_u_values = diag(DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2, 1e-1, 1e-1, 8e-1, 5e-2, 0.0, 0.0, 0.0, 0.0, 0.0}));
-
-    DM Qk0_FD = DM::vertcat({4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7, 4e-7});
-
-    fd_arg_mhe = {q_prev_mhe, q_dot_prev_mhe, U_APPLIED, DM(p_mhe), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
-    FNEXT_mhe = dynamics_service.forward_dynamics(fd_arg_mhe);
-
-    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position = FNEXT_mhe.at(0).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity = FNEXT_mhe.at(0).nonzeros()[7];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_position_uncertainty = FNEXT_mhe.at(1).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.adaptive_predicted_velocity_uncertainty = FNEXT_mhe.at(1).nonzeros()[7];
-
-    fd_arg = {q_prev, q_dot_prev, U_APPLIED, DM(FD_param_x), DM(delta_seconds), Pk_x0__, Pk_p_dt_u_values, Qk0_FD};
-    FNEXT = dynamics_service.forward_dynamics(fd_arg);
-
-    robot_structs_.hw_joint_struct_[4].current_state_.predicted_position = FNEXT.at(0).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.predicted_position = FNEXT.at(0).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.predicted_position = FNEXT.at(0).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.predicted_position = FNEXT.at(0).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.predicted_velocity = FNEXT.at(0).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.predicted_velocity = FNEXT.at(0).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.predicted_velocity = FNEXT.at(0).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity = FNEXT.at(0).nonzeros()[7];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.predicted_position_uncertainty = FNEXT.at(1).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[3].current_state_.predicted_position_uncertainty = FNEXT.at(1).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[2].current_state_.predicted_position_uncertainty = FNEXT.at(1).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[1].current_state_.predicted_position_uncertainty = FNEXT.at(1).nonzeros()[3];
-
-    robot_structs_.hw_joint_struct_[4].current_state_.predicted_velocity_uncertainty = FNEXT.at(1).nonzeros()[4];
-    robot_structs_.hw_joint_struct_[3].current_state_.predicted_velocity_uncertainty = FNEXT.at(1).nonzeros()[5];
-    robot_structs_.hw_joint_struct_[2].current_state_.predicted_velocity_uncertainty = FNEXT.at(1).nonzeros()[6];
-    robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity_uncertainty = FNEXT.at(1).nonzeros()[7];
-
-    if (robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity_uncertainty < 0)
-    {
-      std::string fd_arg_str = vectorToString(fd_arg);
-      RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%s", fd_arg_str.c_str());
-      RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "predicted uncertainty is negative . unrealistic%f",
-                  robot_structs_.hw_joint_struct_[1].current_state_.predicted_velocity_uncertainty);
-    }
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    std::vector<DM> q = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_position,
-                         robot_structs_.hw_joint_struct_[3].current_state_.filtered_position,
-                         robot_structs_.hw_joint_struct_[2].current_state_.filtered_position,
-                         robot_structs_.hw_joint_struct_[1].current_state_.filtered_position};
-    std::vector<DM> q_dot = {robot_structs_.hw_joint_struct_[4].current_state_.filtered_velocity,
-                             robot_structs_.hw_joint_struct_[3].current_state_.filtered_velocity,
-                             robot_structs_.hw_joint_struct_[2].current_state_.filtered_velocity,
-                             robot_structs_.hw_joint_struct_[1].current_state_.filtered_velocity};
-    std::vector<DM> q_ddot = {robot_structs_.hw_joint_struct_[4].current_state_.estimated_acceleration,
-                              robot_structs_.hw_joint_struct_[3].current_state_.estimated_acceleration,
-                              robot_structs_.hw_joint_struct_[2].current_state_.estimated_acceleration,
-                              robot_structs_.hw_joint_struct_[1].current_state_.estimated_acceleration};
-
-    DM Pk_p_values = DM::vertcat({4e-7, 3e-7, 8e-7, 7e-8, 1e-1, 1e-1, 8e-1, 5e-2, 1e-1, 1e-1, 8e-1, 5e-2});
-    DM Pk_p_tau = diag(Pk_p_values);
-
-    DM Qk_tau = DM::vertcat({1e-7, 1e-7, 1e-7, 1e-7});
-
-    std::vector<DM> ID_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.5, 1.5};
-
-    std::vector<DM> id_arg = {q, q_dot, q_ddot, ID_param_x, Pk_x0__, Pk_p_tau, Qk_tau};
-    std::vector<DM> computed_torques = dynamics_service.inverse_dynamics(id_arg);
-    // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "index name:::%s", robot_structs_.hw_joint_struct_[4].name.c_str());
-
-    robot_structs_.hw_joint_struct_[4].current_state_.computed_effort = computed_torques.at(0).nonzeros()[0];
-    robot_structs_.hw_joint_struct_[4].current_state_.computed_effort_uncertainty = computed_torques.at(1).nonzeros()[0];
-
-    robot_structs_.hw_joint_struct_[3].current_state_.computed_effort = computed_torques.at(0).nonzeros()[1];
-    robot_structs_.hw_joint_struct_[3].current_state_.computed_effort_uncertainty = computed_torques.at(1).nonzeros()[1];
-
-    robot_structs_.hw_joint_struct_[2].current_state_.computed_effort = computed_torques.at(0).nonzeros()[2];
-    robot_structs_.hw_joint_struct_[2].current_state_.computed_effort_uncertainty = computed_torques.at(1).nonzeros()[2];
-
-    robot_structs_.hw_joint_struct_[1].current_state_.computed_effort = computed_torques.at(0).nonzeros()[3];
-    robot_structs_.hw_joint_struct_[1].current_state_.computed_effort_uncertainty = computed_torques.at(1).nonzeros()[3];
-    predictor_i++;
-
-    // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "uncertainty:::%f", robot_structs_.hw_joint_struct_[4].current_state_.computed_effort_uncertainty);
+    // if (latest_parameter_state_.data.size() == 8)
+    // {
+    //   drag = latest_parameter_state_.data;
+    // };
 
     return hardware_interface::return_type::OK;
   }

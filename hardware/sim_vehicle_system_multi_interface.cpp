@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "ros2_control_blue_reach_5/vehicle_system_multi_interface.hpp"
+#include "ros2_control_blue_reach_5/sim_vehicle_system_multi_interface.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -39,7 +39,7 @@ namespace
 
 namespace ros2_control_blue_reach_5
 {
-  hardware_interface::CallbackReturn VehicleSystemMultiInterfaceHardware::on_init(
+  hardware_interface::CallbackReturn SimVehicleSystemMultiInterfaceHardware::on_init(
       const hardware_interface::HardwareInfo &info)
   {
     if (
@@ -51,8 +51,8 @@ namespace ros2_control_blue_reach_5
 
     // Print the CasADi version
     std::string casadi_version = CasadiMeta::version();
-    RCLCPP_INFO(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
-    RCLCPP_INFO(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
     dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
     dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
@@ -77,7 +77,7 @@ namespace ros2_control_blue_reach_5
       if (joint.state_interfaces.size() != 4)
       {
         RCLCPP_FATAL(
-            rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
+            rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
             "Thruster '%s'has %zu state interfaces. 4 expected.", joint.name.c_str(),
             joint.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -90,7 +90,7 @@ namespace ros2_control_blue_reach_5
       if (gpio.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
-            rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
+            rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
             "GPIO '%s'has %zu state interfaces. 19 expected.", gpio.name.c_str(),
             gpio.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -99,7 +99,7 @@ namespace ros2_control_blue_reach_5
       if (gpio.command_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
-            rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
+            rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
             "GPIO '%s'has %zu command interfaces. 19 expected.", gpio.name.c_str(),
             gpio.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -109,14 +109,14 @@ namespace ros2_control_blue_reach_5
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::CallbackReturn VehicleSystemMultiInterfaceHardware::on_configure(
+  hardware_interface::CallbackReturn SimVehicleSystemMultiInterfaceHardware::on_configure(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     // declare and get parameters needed for controller operations
     // setup realtime buffers, ROS publishers ...
     try
     {
-      auto node_topics_interface = rclcpp::Node("VehicleSystemMultiInterfaceHardware");
+      auto node_topics_interface = rclcpp::Node("SimVehicleSystemMultiInterfaceHardware");
 
       // tf publisher
       odometry_transform_publisher_ = rclcpp::create_publisher<tf2_msgs::msg::TFMessage>(node_topics_interface,
@@ -140,12 +140,12 @@ namespace ros2_control_blue_reach_5
     }
 
     RCLCPP_INFO(
-        rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "configure successful");
+        rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "configure successful");
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
   std::vector<hardware_interface::StateInterface>
-  VehicleSystemMultiInterfaceHardware::export_state_interfaces()
+  SimVehicleSystemMultiInterfaceHardware::export_state_interfaces()
   {
     std::vector<hardware_interface::StateInterface> state_interfaces;
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -206,7 +206,7 @@ namespace ros2_control_blue_reach_5
   }
 
   std::vector<hardware_interface::CommandInterface>
-  VehicleSystemMultiInterfaceHardware::export_command_interfaces()
+  SimVehicleSystemMultiInterfaceHardware::export_command_interfaces()
   {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -252,9 +252,9 @@ namespace ros2_control_blue_reach_5
     return command_interfaces;
   }
 
-  hardware_interface::return_type VehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
+  hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
       const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
+      const std::vector<std::string> & stop_interfaces)
   {
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
@@ -266,48 +266,74 @@ namespace ros2_control_blue_reach_5
         std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
         if (key == full_name)
         {
-          if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
+          if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
           {
-            new_modes.push_back(mode_level_t::MODE_POSITION);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_VELOCITY);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+            if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
+            {
+              new_modes.push_back(mode_level_t::MODE_POSITION);
+            }
+            else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
+            {
+              new_modes.push_back(mode_level_t::MODE_VELOCITY);
+            }
+            else if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
+            {
+              new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+            }
           }
         }
       }
     };
 
     //  criteria: All joints must be given new command mode at the same time
-    // if (new_modes.size() != info_.gpios[0].command_interfaces.size()*3)
-    // {
-    //   return hardware_interface::return_type::ERROR;
-    // };
+    if (new_modes.size() != 6)
+    {
+      return hardware_interface::return_type::ERROR;
+    };
 
-    //  criteria: All joints must have the same command mode
+    // //  criteria: All joints must have the same command mode
     // if (!std::all_of(
     //         new_modes.begin() + 1, new_modes.end(),
     //         [&](mode_level_t mode)
     //         { return mode == new_modes[0]; }))
     // {
     //   return hardware_interface::return_type::ERROR;
-    // };
+    // }
 
-    control_level_ = new_modes;
+    // // Stop motion on all relevant joints that are stopping
+    // for (std::string key : stop_interfaces)
+    // {
+    //   for (std::size_t i = 0; i < info_.joints.size(); i++)
+    //   {
+    //     if (key.find(info_.joints[i].name) != std::string::npos)
+    //     {
+    //       robot_structs_.hw_joint_struct_[i].command_state_.velocity = 0;
+    //       robot_structs_.hw_joint_struct_[i].command_state_.current = 0;
+    //       control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
+    //     }
+    //   }
+    // }
+
+    // // Set the new command modes
+    // for (std::size_t i = 0; i < info_.joints.size(); i++)
+    // {
+    //   if (control_level_[i] != mode_level_t::MODE_DISABLE)
+    //   {
+    //     // Something else is using the joint! Abort!
+    //     return hardware_interface::return_type::ERROR;
+    //   }
+    //   control_level_[i] = new_modes[i];
+    // }
     RCLCPP_INFO(
-        rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Command Mode Switch successful");
+        rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
   }
 
-  hardware_interface::CallbackReturn VehicleSystemMultiInterfaceHardware::on_activate(
+  hardware_interface::CallbackReturn SimVehicleSystemMultiInterfaceHardware::on_activate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     RCLCPP_INFO(
-        rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Activating... please wait...");
+        rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Activating... please wait...");
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
@@ -340,24 +366,24 @@ namespace ros2_control_blue_reach_5
     }
 
     RCLCPP_INFO(
-        rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "System successfully activated!");
+        rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "System successfully activated!");
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::CallbackReturn VehicleSystemMultiInterfaceHardware::on_deactivate(
+  hardware_interface::CallbackReturn SimVehicleSystemMultiInterfaceHardware::on_deactivate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     RCLCPP_INFO(
-        rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Deactivating... please wait...");
-    RCLCPP_INFO(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Successfully deactivated!");
+        rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Deactivating... please wait...");
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Successfully deactivated!");
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::return_type VehicleSystemMultiInterfaceHardware::read(
+  hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::read(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
     // RCLCPP_DEBUG(
-    //     rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
+    //     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
     //     "Got commands: %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
     //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[0].command_state_.effort,
     //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[1].command_state_.effort,
@@ -370,7 +396,7 @@ namespace ros2_control_blue_reach_5
     return hardware_interface::return_type::OK;
   }
 
-  hardware_interface::return_type VehicleSystemMultiInterfaceHardware::write(
+  hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     double delta_seconds = period.seconds();
@@ -400,7 +426,7 @@ namespace ros2_control_blue_reach_5
                               robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[7].command_state_.effort};
     std::vector<double> vc = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     std::vector<DM> dynamic_arg = {DM(x0), DM(u0), DM(delta_seconds), DM(vc)};
-    RCLCPP_DEBUG(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Got states: %.5f second interval, %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
+    RCLCPP_DEBUG(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Got states: %.5f second interval, %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
                  delta_seconds,
                  robot_structs_.hw_vehicle_struct_.current_state_.position_x,
                  robot_structs_.hw_vehicle_struct_.current_state_.position_y,
@@ -467,5 +493,5 @@ namespace ros2_control_blue_reach_5
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-    ros2_control_blue_reach_5::VehicleSystemMultiInterfaceHardware,
+    ros2_control_blue_reach_5::SimVehicleSystemMultiInterfaceHardware,
     hardware_interface::SystemInterface)

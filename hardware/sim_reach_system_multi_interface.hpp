@@ -14,7 +14,7 @@ using namespace casadi;
 
 namespace ros2_control_blue_reach_5
 {
-  hardware_interface::CallbackReturn RRBotSystemMultiInterfaceHardware::on_init(
+  hardware_interface::CallbackReturn SimReachSystemMultiInterfaceHardware::on_init(
       const hardware_interface::HardwareInfo &info)
   {
     if (
@@ -26,8 +26,8 @@ namespace ros2_control_blue_reach_5
 
     // Print the CasADi version
     std::string casadi_version = CasadiMeta::version();
-    RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "CasADi computer from manipulator system: %s", casadi_version.c_str());
-    RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
+    RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "CasADi computer from manipulator system: %s", casadi_version.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
     dynamics_service.usage_cplusplus_checks("test", "libtest.so", "rrbot system");
 
@@ -54,7 +54,7 @@ namespace ros2_control_blue_reach_5
       if (joint.command_interfaces.size() != 4)
       {
         RCLCPP_FATAL(
-            rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+            rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
             "Joint '%s' has %zu command interfaces. 4 expected.", joint.name.c_str(),
             joint.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -63,7 +63,7 @@ namespace ros2_control_blue_reach_5
       if (joint.state_interfaces.size() != 19)
       {
         RCLCPP_FATAL(
-            rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+            rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
             "Joint '%s'has %zu state interfaces. 19 expected.",
             joint.name.c_str(),
             joint.state_interfaces.size());
@@ -75,7 +75,7 @@ namespace ros2_control_blue_reach_5
     if (endeffector_IO.state_interfaces.size() != 7)
     {
       RCLCPP_FATAL(
-          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+          rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
           "GPIO '%s'has %zu state interfaces. 7 expected.", endeffector_IO.name.c_str(),
           endeffector_IO.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
@@ -85,7 +85,7 @@ namespace ros2_control_blue_reach_5
     if (step_IO.state_interfaces.size() != 17)
     {
       RCLCPP_FATAL(
-          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
+          rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
           "GPIO '%s'has %zu state interfaces. 17 expected.", step_IO.name.c_str(),
           step_IO.state_interfaces.size());
       return hardware_interface::CallbackReturn::ERROR;
@@ -247,7 +247,7 @@ namespace ros2_control_blue_reach_5
       const std::vector<std::string> &stop_interfaces)
   {
     RCLCPP_INFO( // NOLINT
-        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "preparing command mode switch");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "preparing command mode switch");
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
 
@@ -317,16 +317,16 @@ namespace ros2_control_blue_reach_5
       control_level_[i] = new_modes[i];
     }
     RCLCPP_INFO(
-        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
   }
 
-  hardware_interface::CallbackReturn RRBotSystemMultiInterfaceHardware::on_activate(
+  hardware_interface::CallbackReturn SimReachSystemMultiInterfaceHardware::on_activate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
     RCLCPP_INFO(
-        rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Activating... please wait...");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Activating... please wait...");
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
@@ -363,28 +363,28 @@ namespace ros2_control_blue_reach_5
       control_level_[i] = mode_level_t::MODE_DISABLE;
     }
 
-    RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Successfully deactivated!");
+    RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Successfully deactivated!");
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::CallbackReturn RRBotSystemMultiInterfaceHardware::on_deactivate(
+  hardware_interface::CallbackReturn SimReachSystemMultiInterfaceHardware::on_deactivate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     RCLCPP_INFO(
-        rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Deactivating... please wait...");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Deactivating... please wait...");
 
-    RCLCPP_INFO(rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Successfully deactivated!");
+    RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Successfully deactivated!");
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::return_type RRBotSystemMultiInterfaceHardware::read(
+  hardware_interface::return_type SimReachSystemMultiInterfaceHardware::read(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
     return hardware_interface::return_type::OK;
   }
 
-  hardware_interface::return_type RRBotSystemMultiInterfaceHardware::write(
+  hardware_interface::return_type SimReachSystemMultiInterfaceHardware::write(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
     return hardware_interface::return_type::OK;
@@ -395,5 +395,5 @@ namespace ros2_control_blue_reach_5
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-    ros2_control_blue_reach_5::RRBotSystemMultiInterfaceHardware,
+    ros2_control_blue_reach_5::SimReachSystemMultiInterfaceHardware,
     hardware_interface::SystemInterface)
