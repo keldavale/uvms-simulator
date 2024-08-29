@@ -31,7 +31,7 @@ endforeach()
 add_library(
   ros2_control_blue_reach_5
   SHARED
-  hardware/rrbot_system_multi_interface.cpp
+  hardware/sim_reach_system_multi_interface.cpp
   hardware/reach_system_multi_Interface.cpp
   hardware/dynamics.cpp
   hardware/cobs.cpp
@@ -79,7 +79,7 @@ install(
   DESTINATION include/${PROJECT_NAME}
 )
 install(
-  DIRECTORY description/launch description/ros2_control description/xacro description/rviz description/alpha description/blue
+  DIRECTORY description/launch description/ros2_control description/xacro description/rviz description/alpha description/Bathymetry description/blue
   DESTINATION share/${PROJECT_NAME}
 )
 install(

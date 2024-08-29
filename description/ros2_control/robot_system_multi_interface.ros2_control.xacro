@@ -8,7 +8,7 @@
 
       <hardware>
         <xacro:if value="${use_mock_hardware}">
-          <plugin>ros2_control_blue_reach_5/RRBotSystemMultiInterfaceHardware</plugin>
+          <plugin>ros2_control_blue_reach_5/SimReachSystemMultiInterfaceHardware</plugin>
           <param name="state_update_frequency">${state_update_frequency}</param>
         </xacro:if>
 

@@ -1,4 +1,4 @@
-#include "ros2_control_blue_reach_5/rrbot_system_multi_interface.hpp"
+#include "ros2_control_blue_reach_5/sim_reach_system_multi_interface.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -42,9 +42,9 @@ namespace ros2_control_blue_reach_5
       uint8_t device_id = static_cast<uint8_t>(std::stoul(device_id_value, nullptr, 16));
 
       RCLCPP_INFO(
-          rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Device with id %u found", static_cast<unsigned int>(device_id));
+          rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Device with id %u found", static_cast<unsigned int>(device_id));
       RCLCPP_INFO(
-          rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Device default position is %f", default_position);
+          rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Device default position is %f", default_position);
 
       Joint::State initialState{default_position, 0.0, 0.0};
       robot_structs_.hw_joint_struct_.emplace_back(joint.name, device_id, initialState);
@@ -94,25 +94,25 @@ namespace ros2_control_blue_reach_5
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::CallbackReturn RRBotSystemMultiInterfaceHardware::on_configure(const rclcpp_lifecycle::State &)
+  hardware_interface::CallbackReturn SimReachSystemMultiInterfaceHardware::on_configure(const rclcpp_lifecycle::State &)
   {
     RCLCPP_INFO( // NOLINT
-        rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"),
-        "Successfully configured the RRBotSystemMultiInterfaceHardware system interface for serial communication!");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
+        "Successfully configured the SimReachSystemMultiInterfaceHardware system interface for serial communication!");
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
-  hardware_interface::CallbackReturn RRBotSystemMultiInterfaceHardware::on_cleanup(const rclcpp_lifecycle::State &)
+  hardware_interface::CallbackReturn SimReachSystemMultiInterfaceHardware::on_cleanup(const rclcpp_lifecycle::State &)
   {
     RCLCPP_INFO( // NOLINT
-        rclcpp::get_logger("RRBotSystemMultiInterfaceHardware"), "Shutting down the AlphaHardware system interface.");
+        rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Shutting down the AlphaHardware system interface.");
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
 
   std::vector<hardware_interface::StateInterface>
-  RRBotSystemMultiInterfaceHardware::export_state_interfaces()
+  SimReachSystemMultiInterfaceHardware::export_state_interfaces()
   {
     std::vector<hardware_interface::StateInterface> state_interfaces;
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -225,7 +225,7 @@ namespace ros2_control_blue_reach_5
   }
 
   std::vector<hardware_interface::CommandInterface>
-  RRBotSystemMultiInterfaceHardware::export_command_interfaces()
+  SimReachSystemMultiInterfaceHardware::export_command_interfaces()
   {
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -242,7 +242,7 @@ namespace ros2_control_blue_reach_5
     return command_interfaces;
   }
 
-  hardware_interface::return_type RRBotSystemMultiInterfaceHardware::prepare_command_mode_switch(
+  hardware_interface::return_type SimReachSystemMultiInterfaceHardware::prepare_command_mode_switch(
       const std::vector<std::string> &start_interfaces,
       const std::vector<std::string> &stop_interfaces)
   {

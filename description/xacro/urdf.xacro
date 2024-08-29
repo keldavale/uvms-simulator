@@ -13,6 +13,7 @@
         </visual>
     </link>
 
+
     <link name="world_bottom"/>
 
     <joint name="world_bottom_joint" type="fixed">
@@ -20,6 +21,31 @@
       <parent link="world" />
       <origin xyz="0.0 0.0 -6.0" rpy="0 0 0"/>
     </joint>
+
+  <link name="bathymetry">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl"/>
+        </geometry>
+        <material name="gray">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    
+    <joint name="bathymetry_joint" type="fixed">
+      <child link="bathymetry" />
+      <parent link="world_bottom" />
+      <origin xyz="0.0 0.0 -0.3" rpy="0 0 0"/>
+    </joint>
+
 
     <!-- Robot body origin -->
     <link name="base_link"/>    
