@@ -18,6 +18,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2
   realtime_tools
   tf2_geometry_msgs
+  sensor_msgs
+  geometry_msgs
 )
 
 # find dependencies

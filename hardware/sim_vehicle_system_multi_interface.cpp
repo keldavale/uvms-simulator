@@ -35,6 +35,8 @@ using namespace casadi;
 namespace
 {
   constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
+  constexpr auto DEFAULT_IMU_TOPIC = "/uvms/imu";
+  constexpr auto DEFAULT_DVL_TOPIC = "/uvms/dvl";
 } // namespace
 
 namespace ros2_control_blue_reach_5
@@ -121,10 +123,21 @@ namespace ros2_control_blue_reach_5
       // tf publisher
       odometry_transform_publisher_ = rclcpp::create_publisher<tf2_msgs::msg::TFMessage>(node_topics_interface,
                                                                                          DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-
       realtime_odometry_transform_publisher_ =
           std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
               odometry_transform_publisher_);
+
+      uv_imu_publisher_ = rclcpp::create_publisher<sensor_msgs::msg::Imu>(node_topics_interface,
+                                                                          DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS());
+      realtime_uv_imu_publisher_ =
+          std::make_shared<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>(
+              uv_imu_publisher_);
+
+      uv_dvl_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::Twist>(node_topics_interface,
+                                                                              DEFAULT_DVL_TOPIC, rclcpp::SystemDefaultsQoS());
+      realtime_uv_dvl_publisher_ =
+          std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>(
+              uv_dvl_publisher_);
 
       auto &odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
       odometry_transform_message.transforms.resize(1);
@@ -254,7 +267,7 @@ namespace ros2_control_blue_reach_5
 
   hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
       const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> & stop_interfaces)
+      const std::vector<std::string> &stop_interfaces)
   {
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
@@ -266,18 +279,18 @@ namespace ros2_control_blue_reach_5
         std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
         if (key == full_name)
         {
-            if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
-            {
-              new_modes.push_back(mode_level_t::MODE_POSITION);
-            }
-            else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
-            {
-              new_modes.push_back(mode_level_t::MODE_VELOCITY);
-            }
-            else if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
-            {
-              new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
-            }
+          if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_POSITION);
+          }
+          else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_VELOCITY);
+          }
+          else if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+          }
         }
       }
     };
@@ -418,7 +431,7 @@ namespace ros2_control_blue_reach_5
     robot_structs_.hw_vehicle_struct_.current_state_.q = forward_dynamics_res[11];
     robot_structs_.hw_vehicle_struct_.current_state_.r = forward_dynamics_res[12];
 
-    if (realtime_odometry_transform_publisher_->trylock())
+    if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
     {
       // original pose in NED
       // RBIZ USES NWU
@@ -447,6 +460,45 @@ namespace ros2_control_blue_reach_5
       transform.transform.rotation.z = q_new.z();
       transform.transform.rotation.w = q_new.w();
       realtime_odometry_transform_publisher_->unlockAndPublish();
+    }
+
+    if (realtime_uv_imu_publisher_ && realtime_uv_imu_publisher_->trylock())
+    {
+      // original pose in NED
+      // RBIZ USES NWU
+      tf2::Quaternion q_orig, q_rot, q_new;
+
+      q_orig.setW(robot_structs_.hw_vehicle_struct_.current_state_.orientation_w);
+      q_orig.setX(robot_structs_.hw_vehicle_struct_.current_state_.orientation_x);
+      q_orig.setY(robot_structs_.hw_vehicle_struct_.current_state_.orientation_y);
+      q_orig.setZ(robot_structs_.hw_vehicle_struct_.current_state_.orientation_z);
+
+      auto & imu_message = realtime_uv_imu_publisher_->msg_;
+      imu_message.header.stamp = time;
+      // imu_message.orientation.x = q_orig.x();
+      // imu_message.orientation.y = q_orig.y();
+      // imu_message.orientation.z = q_orig.z();
+      // imu_message.orientation.w = q_orig.w();
+      // imu_message.angular_velocity.x = robot_structs_.hw_vehicle_struct_.current_state_.u;
+      // imu_message.angular_velocity.y = robot_structs_.hw_vehicle_struct_.current_state_.v;
+      // imu_message.angular_velocity.z = robot_structs_.hw_vehicle_struct_.current_state_.w;
+      // imu_message.linear_acceleration.x = imu_linear_acceleration.x();
+      // imu_message.linear_acceleration.y = imu_linear_acceleration.y();
+      // imu_message.linear_acceleration.z = imu_linear_acceleration.z();
+      realtime_uv_imu_publisher_->unlockAndPublish();
+    }
+
+    if (realtime_uv_dvl_publisher_ && realtime_uv_dvl_publisher_->trylock())
+    {
+      auto & dvl_message = realtime_uv_dvl_publisher_->msg_;
+      dvl_message.header.stamp = time;
+      // dvl_message.linear.x = dvl_velocity.x();
+      // dvl_message.linear.y = dvl_velocity.y();
+      // dvl_message.linear.z = dvl_velocity.z();
+      // dvl_message.angular.x = dvl_angular_velocity.x();
+      // dvl_message.angular.y = dvl_angular_velocity.y();
+      // dvl_message.angular.z = dvl_angular_velocity.z();
+      realtime_uv_dvl_publisher_->unlockAndPublish();
     }
 
     return hardware_interface::return_type::OK;

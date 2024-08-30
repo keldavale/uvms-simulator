@@ -50,6 +50,8 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <sensor_msgs/Imu.h>
+#include <geometry_msgs/Twist.h>
 
 #include <casadi/casadi.hpp>
 
@@ -136,6 +138,14 @@ namespace ros2_control_blue_reach_5
         std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
             realtime_odometry_transform_publisher_;
+
+        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> uv_imu_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>
+            realtime_uv_imu_publisher_;
+
+        std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::Twist>> uv_dvl_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
+            realtime_uv_dvl_publisher_;
     };
 
 } // namespace ros2_control_blue
