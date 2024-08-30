@@ -182,6 +182,7 @@ def generate_launch_description():
     mouse_control_current = Node(
         package='namor',
         executable='mouse_node_current',
+        condition=IfCondition(use_mock_hardware)
     )
 
     mouse_control_velocity = Node(
@@ -208,7 +209,7 @@ def generate_launch_description():
 
     nodes = [
         run_plotjuggler,
-        mouse_control_current,
+        # mouse_control_current,
         # mouse_control_velocity,
         # ema_filter_entity,
         # namor_entity,

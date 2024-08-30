@@ -13,20 +13,31 @@
         </visual>
     </link>
 
-
     <link name="world_bottom"/>
 
-    <joint name="world_bottom_joint" type="fixed">
-      <child link="world_bottom" />
-      <parent link="world" />
-      <origin xyz="0.0 0.0 -6.0" rpy="0 0 0"/>
-    </joint>
-
-  <link name="bathymetry">
+    <link name="bathymetry_shipwreck">
       <visual>
         <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
         <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl"/>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl" scale="5 5 5"/>
+        </geometry>
+        <material name="gray">
+          <color rgba="0.5 0.5 0.5 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl" scale="5 5 5"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name="bathymetry_seafloor">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/hawaii.stl" scale="0.4 0.4 0.4"/>
         </geometry>
         <material name="gray">
           <color rgba="0.5 0.5 0.5 1.0"/>
@@ -35,17 +46,29 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/Manhomansett.stl"/>
+          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/hawaii.stl" scale="0.4 0.4 0.4"/>
         </geometry>
       </collision>
     </link>
-    
-    <joint name="bathymetry_joint" type="fixed">
-      <child link="bathymetry" />
-      <parent link="world_bottom" />
-      <origin xyz="0.0 0.0 -0.3" rpy="0 0 0"/>
+
+
+    <joint name="world_bottom_joint" type="fixed">
+      <child link="world_bottom" />
+      <parent link="world" />
+      <origin xyz="0.0 0.0 -8.0" rpy="0 0 0"/>
     </joint>
 
+    <joint name="bathymetry_seafloor_joint" type="fixed">
+      <child link="bathymetry_seafloor" />
+      <parent link="world_bottom" />
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+    </joint>
+
+   <joint name="bathymetry_shipwreck_joint" type="fixed">
+      <child link="bathymetry_shipwreck" />
+      <parent link="bathymetry_seafloor" />
+      <origin xyz="-15.0 -6.0 -1.0" rpy="0 0 0"/>
+    </joint>
 
     <!-- Robot body origin -->
     <link name="base_link"/>    

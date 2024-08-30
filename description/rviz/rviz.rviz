@@ -4,8 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1
-        - /TF1/Frames1
+        - /Grid1
+        - /Grid1/Offset1
       Splitter Ratio: 0.6844444274902344
     Tree Height: 787
   - Class: rviz_common/Selection
@@ -28,7 +28,7 @@ Visualization Manager:
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz_default_plugins/Grid
-      Color: 38; 162; 105
+      Color: 154; 153; 150
       Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
@@ -40,7 +40,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 20
+      Plane Cell Count: 50
       Reference Frame: world
       Value: true
     - Alpha: 1
@@ -180,7 +180,12 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        bathymetry:
+        bathymetry_seafloor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        bathymetry_shipwreck:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -277,8 +282,10 @@ Visualization Manager:
           Value: false
         base_link:
           Value: true
-        bathymetry:
-          Value: false
+        bathymetry_seafloor:
+          Value: true
+        bathymetry_shipwreck:
+          Value: true
         world:
           Value: true
         world_bottom:
@@ -329,7 +336,9 @@ Visualization Manager:
               alphathruster8:
                 {}
           world_bottom:
-            bathymetry:
+            bathymetry_seafloor:
+              {}
+            bathymetry_shipwreck:
               {}
       Update Interval: 0
       Value: true
@@ -425,7 +434,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 18.35854148864746
+      Distance: 23.891958236694336
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -440,10 +449,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1152043491601944
+      Pitch: 0.21520449221134186
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 2.890444040298462
+      Yaw: 1.6317882537841797
     Saved: ~
 Window Geometry:
   Displays:
@@ -460,4 +469,4 @@ Window Geometry:
     collapsed: false
   Width: 1850
   X: 70
-  Y: 357
+  Y: 27
