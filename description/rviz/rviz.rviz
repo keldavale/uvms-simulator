@@ -7,7 +7,6 @@ Panels:
         - /Grid1/Offset1
         - /RobotModel1
         - /RobotModel1/Links1
-        - /Grid_bottom1
       Splitter Ratio: 0.6844444274902344
     Tree Height: 787
   - Class: rviz_common/Selection
@@ -191,7 +190,7 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: false
+          Value: true
         world:
           Alpha: 1
           Show Axes: false
@@ -435,7 +434,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 32.142120361328125
+      Distance: 71.05598449707031
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -450,10 +449,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.010205032303929329
+      Pitch: 0.4152050316333771
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 5.006292343139648
+      Yaw: 0.09628947824239731
     Saved: ~
 Window Geometry:
   Displays:

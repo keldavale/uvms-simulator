@@ -266,8 +266,6 @@ namespace ros2_control_blue_reach_5
         std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
         if (key == full_name)
         {
-          if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
-          {
             if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
             {
               new_modes.push_back(mode_level_t::MODE_POSITION);
@@ -280,50 +278,16 @@ namespace ros2_control_blue_reach_5
             {
               new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
             }
-          }
         }
       }
     };
 
     //  criteria: All joints must be given new command mode at the same time
-    if (new_modes.size() != 6)
+    if (new_modes.size() != 19)
     {
       return hardware_interface::return_type::ERROR;
     };
 
-    // //  criteria: All joints must have the same command mode
-    // if (!std::all_of(
-    //         new_modes.begin() + 1, new_modes.end(),
-    //         [&](mode_level_t mode)
-    //         { return mode == new_modes[0]; }))
-    // {
-    //   return hardware_interface::return_type::ERROR;
-    // }
-
-    // // Stop motion on all relevant joints that are stopping
-    // for (std::string key : stop_interfaces)
-    // {
-    //   for (std::size_t i = 0; i < info_.joints.size(); i++)
-    //   {
-    //     if (key.find(info_.joints[i].name) != std::string::npos)
-    //     {
-    //       robot_structs_.hw_joint_struct_[i].command_state_.velocity = 0;
-    //       robot_structs_.hw_joint_struct_[i].command_state_.current = 0;
-    //       control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
-    //     }
-    //   }
-    // }
-
-    // // Set the new command modes
-    // for (std::size_t i = 0; i < info_.joints.size(); i++)
-    // {
-    //   if (control_level_[i] != mode_level_t::MODE_DISABLE)
-    //   {
-    //     // Something else is using the joint! Abort!
-    //     return hardware_interface::return_type::ERROR;
-    //   }
-    //   control_level_[i] = new_modes[i];
-    // }
     RCLCPP_INFO(
         rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
