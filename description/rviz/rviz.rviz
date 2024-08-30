@@ -4,8 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Grid1
         - /Grid1/Offset1
+        - /RobotModel1
+        - /RobotModel1/Links1
+        - /Grid_bottom1
       Splitter Ratio: 0.6844444274902344
     Tree Height: 787
   - Class: rviz_common/Selection
@@ -56,7 +58,7 @@ Visualization Manager:
         Value: /robot_description
       Enabled: true
       Links:
-        All Links Enabled: true
+        All Links Enabled: false
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -184,12 +186,12 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         bathymetry_shipwreck:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         world:
           Alpha: 1
           Show Axes: false
@@ -337,9 +339,8 @@ Visualization Manager:
                 {}
           world_bottom:
             bathymetry_seafloor:
-              {}
-            bathymetry_shipwreck:
-              {}
+              bathymetry_shipwreck:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -385,7 +386,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 20
+      Plane Cell Count: 50
       Reference Frame: world_bottom
       Value: true
   Enabled: true
@@ -434,7 +435,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 23.891958236694336
+      Distance: 32.142120361328125
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -449,10 +450,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.21520449221134186
+      Pitch: 0.010205032303929329
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 1.6317882537841797
+      Yaw: 5.006292343139648
     Saved: ~
 Window Geometry:
   Displays:

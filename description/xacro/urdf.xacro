@@ -59,7 +59,7 @@
     </joint>
 
     <joint name="bathymetry_seafloor_joint" type="fixed">
-      <child link="bathymetry_seafloor" />
+      <child link="bathymetry_seafloor"/>
       <parent link="world_bottom" />
       <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     </joint>
