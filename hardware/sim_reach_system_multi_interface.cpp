@@ -29,7 +29,7 @@ namespace ros2_control_blue_reach_5
     RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "CasADi computer from manipulator system: %s", casadi_version.c_str());
     RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
-    dynamics_service.usage_cplusplus_checks("test", "libtest.so", "rrbot system");
+    // dynamics_service.usage_cplusplus_checks("test", "libtest.so", "rrbot system");
 
     robot_structs_.hw_joint_struct_.reserve(info_.joints.size());
     control_level_.resize(info_.joints.size(), mode_level_t::MODE_DISABLE);

@@ -52,8 +52,8 @@ namespace ros2_control_blue_reach_5
 
     dynamics_service.inverse_dynamics = dynamics_service.load_casadi_fun("tau_eval", "libTau_MEval.so");
 
-    dynamics_service.forward_dynamics = dynamics_service.load_casadi_fun("stochastic_model", "libAFnext.so");
-    dynamics_service.pd_controller = dynamics_service.load_casadi_fun("pid", "libPD.so");
+    // dynamics_service.forward_dynamics = dynamics_service.load_casadi_fun("stochastic_model", "libAFnext.so");
+    // dynamics_service.pd_controller = dynamics_service.load_casadi_fun("pid", "libPD.so");
 
     cfg_.serial_port_ = info_.hardware_parameters["serial_port"];
     cfg_.state_update_freq_ = std::stoi(info_.hardware_parameters["state_update_frequency"]);
@@ -449,7 +449,7 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::read(
-      const rclcpp::Time &time, const rclcpp::Duration &period)
+      const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
     // Get access to the real-time states
     const std::lock_guard<std::mutex> lock(access_async_states_);

@@ -253,8 +253,8 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type VehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
-      const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
+      const std::vector<std::string> & start_interfaces,
+      const std::vector<std::string> & /*stop_interfaces*/)
   {
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};

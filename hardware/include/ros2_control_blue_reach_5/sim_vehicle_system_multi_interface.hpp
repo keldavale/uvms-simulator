@@ -50,15 +50,14 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <sensor_msgs/Imu.h>
-#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/msg/imu.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+
 
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
 {
-
-    using RefType = std_msgs::msg::Float64MultiArray;
 
     class SimVehicleSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
     {

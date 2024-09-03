@@ -56,16 +56,12 @@ namespace ros2_control_blue_reach_5
     RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
     RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
-    dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
-    dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
-    // dynamics_service.uvms_dynamics = dynamics_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
+    // dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
+    // dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
 
     blue::dynamics::Vehicle::Pose_vel initial_state{0.0, 0.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // // blue::dynamics::Vehicle rov{, initial_state};
-    robot_structs_.hw_vehicle_struct_.set_vehicle_name("blue ROV heavy 0", initial_state);
 
-    // robot_structs_.hw_vehicle_struct_.world_frame = info_.hardware_parameters["world_frame"];
-    // robot_structs_.hw_vehicle_struct_.body_frame = info_.hardware_parameters["body_frame"];
+    robot_structs_.hw_vehicle_struct_.set_vehicle_name("blue ROV heavy 0", initial_state);
 
     robot_structs_.hw_vehicle_struct_.thrustSizeAllocation(info_.joints.size());
 
@@ -267,7 +263,7 @@ namespace ros2_control_blue_reach_5
 
   hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
       const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
+      const std::vector<std::string> & /*stop_interfaces*/)
   {
     // Prepare for new command modes
     std::vector<mode_level_t> new_modes = {};
@@ -374,67 +370,12 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
-      const rclcpp::Time &time, const rclcpp::Duration &period)
+      const rclcpp::Time &time, const rclcpp::Duration & /*period*/)
   {
-    double delta_seconds = period.seconds();
-
-    std::vector<double> x0 = {
-        robot_structs_.hw_vehicle_struct_.current_state_.position_x,
-        robot_structs_.hw_vehicle_struct_.current_state_.position_y,
-        robot_structs_.hw_vehicle_struct_.current_state_.position_z,
-        robot_structs_.hw_vehicle_struct_.current_state_.orientation_w,
-        robot_structs_.hw_vehicle_struct_.current_state_.orientation_x,
-        robot_structs_.hw_vehicle_struct_.current_state_.orientation_y,
-        robot_structs_.hw_vehicle_struct_.current_state_.orientation_z,
-        robot_structs_.hw_vehicle_struct_.current_state_.u,
-        robot_structs_.hw_vehicle_struct_.current_state_.v,
-        robot_structs_.hw_vehicle_struct_.current_state_.w,
-        robot_structs_.hw_vehicle_struct_.current_state_.p,
-        robot_structs_.hw_vehicle_struct_.current_state_.q,
-        robot_structs_.hw_vehicle_struct_.current_state_.r};
-
-    std::vector<double> u0 = {robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[0].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[1].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[2].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[3].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[4].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[5].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[6].command_state_.effort,
-                              robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[7].command_state_.effort};
-    std::vector<double> vc = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<DM> dynamic_arg = {DM(x0), DM(u0), DM(delta_seconds), DM(vc)};
-    RCLCPP_DEBUG(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Got states: %.5f second interval, %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
-                 delta_seconds,
-                 robot_structs_.hw_vehicle_struct_.current_state_.position_x,
-                 robot_structs_.hw_vehicle_struct_.current_state_.position_y,
-                 robot_structs_.hw_vehicle_struct_.current_state_.position_z,
-                 robot_structs_.hw_vehicle_struct_.current_state_.orientation_w,
-                 robot_structs_.hw_vehicle_struct_.current_state_.orientation_x,
-                 robot_structs_.hw_vehicle_struct_.current_state_.orientation_y,
-                 robot_structs_.hw_vehicle_struct_.current_state_.orientation_z,
-                 robot_structs_.hw_vehicle_struct_.current_state_.u);
-
-    std::vector<DM> dynamic_response = dynamics_service.vehicle_dynamics(dynamic_arg);
-    forward_dynamics_res = std::vector<double>(dynamic_response.at(0));
-
-    robot_structs_.hw_vehicle_struct_.current_state_.position_x = forward_dynamics_res[0];
-    robot_structs_.hw_vehicle_struct_.current_state_.position_y = forward_dynamics_res[1];
-    robot_structs_.hw_vehicle_struct_.current_state_.position_z = forward_dynamics_res[2];
-    robot_structs_.hw_vehicle_struct_.current_state_.orientation_w = forward_dynamics_res[3];
-    robot_structs_.hw_vehicle_struct_.current_state_.orientation_x = forward_dynamics_res[4];
-    robot_structs_.hw_vehicle_struct_.current_state_.orientation_y = forward_dynamics_res[5];
-    robot_structs_.hw_vehicle_struct_.current_state_.orientation_z = forward_dynamics_res[6];
-    robot_structs_.hw_vehicle_struct_.current_state_.u = forward_dynamics_res[7];
-    robot_structs_.hw_vehicle_struct_.current_state_.v = forward_dynamics_res[8];
-    robot_structs_.hw_vehicle_struct_.current_state_.w = forward_dynamics_res[9];
-    robot_structs_.hw_vehicle_struct_.current_state_.p = forward_dynamics_res[10];
-    robot_structs_.hw_vehicle_struct_.current_state_.q = forward_dynamics_res[11];
-    robot_structs_.hw_vehicle_struct_.current_state_.r = forward_dynamics_res[12];
-
     if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
     {
       // original pose in NED
-      // RBIZ USES NWU
+      // RVIZ USES NWU
       tf2::Quaternion q_orig, q_rot, q_new;
 
       q_orig.setW(robot_structs_.hw_vehicle_struct_.current_state_.orientation_w);
@@ -460,12 +401,10 @@ namespace ros2_control_blue_reach_5
       transform.transform.rotation.z = q_new.z();
       transform.transform.rotation.w = q_new.w();
       realtime_odometry_transform_publisher_->unlockAndPublish();
-    }
+    };
 
     if (realtime_uv_imu_publisher_ && realtime_uv_imu_publisher_->trylock())
     {
-      // original pose in NED
-      // RBIZ USES NWU
       tf2::Quaternion q_orig, q_rot, q_new;
 
       q_orig.setW(robot_structs_.hw_vehicle_struct_.current_state_.orientation_w);
@@ -473,33 +412,32 @@ namespace ros2_control_blue_reach_5
       q_orig.setY(robot_structs_.hw_vehicle_struct_.current_state_.orientation_y);
       q_orig.setZ(robot_structs_.hw_vehicle_struct_.current_state_.orientation_z);
 
-      auto & imu_message = realtime_uv_imu_publisher_->msg_;
+      auto &imu_message = realtime_uv_imu_publisher_->msg_;
       imu_message.header.stamp = time;
-      // imu_message.orientation.x = q_orig.x();
-      // imu_message.orientation.y = q_orig.y();
-      // imu_message.orientation.z = q_orig.z();
-      // imu_message.orientation.w = q_orig.w();
-      // imu_message.angular_velocity.x = robot_structs_.hw_vehicle_struct_.current_state_.u;
-      // imu_message.angular_velocity.y = robot_structs_.hw_vehicle_struct_.current_state_.v;
-      // imu_message.angular_velocity.z = robot_structs_.hw_vehicle_struct_.current_state_.w;
-      // imu_message.linear_acceleration.x = imu_linear_acceleration.x();
-      // imu_message.linear_acceleration.y = imu_linear_acceleration.y();
-      // imu_message.linear_acceleration.z = imu_linear_acceleration.z();
+      imu_message.orientation.x = q_orig.x();
+      imu_message.orientation.y = q_orig.y();
+      imu_message.orientation.z = q_orig.z();
+      imu_message.orientation.w = q_orig.w();
+      imu_message.angular_velocity.x = robot_structs_.hw_vehicle_struct_.current_state_.u;
+      imu_message.angular_velocity.y = robot_structs_.hw_vehicle_struct_.current_state_.v;
+      imu_message.angular_velocity.z = robot_structs_.hw_vehicle_struct_.current_state_.w;
+      imu_message.linear_acceleration.x = 0;
+      imu_message.linear_acceleration.y = 0;
+      imu_message.linear_acceleration.z = 0;
       realtime_uv_imu_publisher_->unlockAndPublish();
-    }
+    };
 
     if (realtime_uv_dvl_publisher_ && realtime_uv_dvl_publisher_->trylock())
     {
-      auto & dvl_message = realtime_uv_dvl_publisher_->msg_;
-      dvl_message.header.stamp = time;
-      // dvl_message.linear.x = dvl_velocity.x();
-      // dvl_message.linear.y = dvl_velocity.y();
-      // dvl_message.linear.z = dvl_velocity.z();
-      // dvl_message.angular.x = dvl_angular_velocity.x();
-      // dvl_message.angular.y = dvl_angular_velocity.y();
-      // dvl_message.angular.z = dvl_angular_velocity.z();
+      auto &dvl_message = realtime_uv_dvl_publisher_->msg_;
+      dvl_message.linear.x = robot_structs_.hw_vehicle_struct_.current_state_.u;
+      dvl_message.linear.y = robot_structs_.hw_vehicle_struct_.current_state_.v;
+      dvl_message.linear.z = robot_structs_.hw_vehicle_struct_.current_state_.w;
+      dvl_message.angular.x = robot_structs_.hw_vehicle_struct_.current_state_.p;
+      dvl_message.angular.y = robot_structs_.hw_vehicle_struct_.current_state_.q;
+      dvl_message.angular.z = robot_structs_.hw_vehicle_struct_.current_state_.r;
       realtime_uv_dvl_publisher_->unlockAndPublish();
-    }
+    };
 
     return hardware_interface::return_type::OK;
   }
