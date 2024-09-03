@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Grid1/Offset1
         - /RobotModel1
-        - /RobotModel1/Links1
       Splitter Ratio: 0.6844444274902344
     Tree Height: 787
   - Class: rviz_common/Selection
@@ -44,7 +43,7 @@ Visualization Manager:
       Plane Cell Count: 50
       Reference Frame: world
       Value: true
-    - Alpha: 1
+    - Alpha: 0.699999988079071
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Description File: ""
@@ -57,7 +56,7 @@ Visualization Manager:
         Value: /robot_description
       Enabled: true
       Links:
-        All Links Enabled: false
+        All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -181,11 +180,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        bathymetry_seafloor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: false
         bathymetry_shipwreck:
           Alpha: 1
           Show Axes: false
@@ -283,8 +277,6 @@ Visualization Manager:
           Value: false
         base_link:
           Value: true
-        bathymetry_seafloor:
-          Value: true
         bathymetry_shipwreck:
           Value: true
         world:
@@ -337,9 +329,8 @@ Visualization Manager:
               alphathruster8:
                 {}
           world_bottom:
-            bathymetry_seafloor:
-              bathymetry_shipwreck:
-                {}
+            bathymetry_shipwreck:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -434,7 +425,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.78464
+      Distance: 2.784640073776245
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -449,11 +440,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4152050316333771
+      Pitch: 0.31520509719848633
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 0.431289
-      Pitch: 0.390205
+      Yaw: 0.4712892174720764
     Saved: ~
 Window Geometry:
   Displays:
@@ -470,4 +460,4 @@ Window Geometry:
     collapsed: false
   Width: 1850
   X: 70
-  Y: 27
+  Y: 357
