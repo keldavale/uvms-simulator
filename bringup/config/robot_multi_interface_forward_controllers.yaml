@@ -30,7 +30,11 @@ controller_manager:
     
 uvms_controller:
   ros__parameters:
-    dof:
+    agents:
+      - alpha
+      - beta
+
+    joints:
       - floating_base
       - joint0
       - joint1
@@ -38,7 +42,18 @@ uvms_controller:
       - joint3 
       - endeffector
 
+    alpha:
+      name_space: alpha
+      base_TF_translation: [0.140, 0.000, -0.120]
+      base_TF_rotation: [3.142, 0.000, 0.000]
+
+    beta:
+      name_space: beta
+      base_TF_translation: [0.150, 0.001, -0.140]
+      base_TF_rotation: [3.146, 0.006, 0.002]
+
     floating_base:
+      name : "{namespace}_IOs"
       pose_topic_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
       velocity_topic_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
       pose_command_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
@@ -46,6 +61,7 @@ uvms_controller:
       effort_command_interface: [effort.x, effort.y, effort.z, effort.roll, effort.pitch, effort.yaw]
 
     joint0:
+      name : "{namespace}_axis_e"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
       pose_command_interface: ["position"]
@@ -53,6 +69,7 @@ uvms_controller:
       effort_command_interface: [effort]
 
     joint1:
+      name : "{namespace}_axis_d"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
       pose_command_interface: ["position"]
@@ -60,6 +77,7 @@ uvms_controller:
       effort_command_interface: [effort]
 
     joint2:
+      name : "{namespace}_axis_c"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
       pose_command_interface: ["position"]
@@ -67,6 +85,7 @@ uvms_controller:
       effort_command_interface: [effort]
 
     joint3:
+      name : "{namespace}_axis_b"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
       pose_command_interface: ["position"]
@@ -74,37 +93,12 @@ uvms_controller:
       effort_command_interface: [effort]
       
     endeffector:
+      name : "{namespace}_axis_a"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       effort_command_interface: [effort]
-
-    agent:
-      - alpha
-      - beta
-
-    # alpha:
-    #   base_TF_translation: [0.140, 0.000, -0.120]
-    #   base_TF_rotation: [3.142, 0.000, 0.000]
-    #   joints:
-    #     - alpha_IOs
-    #     - alpha_axis_e
-    #     - alpha_axis_d
-    #     - alpha_axis_c
-    #     - alpha_axis_b 
-    #     - alpha_axis_a
-
-    # beta:
-    #   base_TF_translation: [0.140, 0.000, -0.120]
-    #   base_TF_rotation: [3.142, 0.000, 0.000]
-    #   joints:
-    #     - beta_IOs
-    #     - beta_axis_e
-    #     - beta_axis_d
-    #     - beta_axis_c
-    #     - beta_axis_b 
-    #     - beta_axis_a
 
 
 joint_state_broadcaster:
