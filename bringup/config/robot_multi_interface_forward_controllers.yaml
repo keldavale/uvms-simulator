@@ -32,7 +32,6 @@ uvms_controller:
   ros__parameters:
     agents:
       - alpha
-      - beta
 
     joints:
       - floating_base
@@ -46,11 +45,6 @@ uvms_controller:
       name_space: alpha
       base_TF_translation: [0.140, 0.000, -0.120]
       base_TF_rotation: [3.142, 0.000, 0.000]
-
-    beta:
-      name_space: beta
-      base_TF_translation: [0.150, 0.001, -0.140]
-      base_TF_rotation: [3.146, 0.006, 0.002]
 
     floating_base:
       name : "{namespace}_IOs"
