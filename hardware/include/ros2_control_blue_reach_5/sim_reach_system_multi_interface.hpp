@@ -43,81 +43,77 @@
 
 namespace ros2_control_blue_reach_5
 {
-  class SimReachSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
-  {
-
-  public:
-    RCLCPP_SHARED_PTR_DEFINITIONS(SimReachSystemMultiInterfaceHardware);
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::CallbackReturn on_init(
-        const hardware_interface::HardwareInfo &info) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::CallbackReturn on_configure(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::CallbackReturn on_cleanup(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::return_type prepare_command_mode_switch(
-        const std::vector<std::string> &start_interfaces,
-        const std::vector<std::string> &stop_interfaces) override;
-
-    // ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    // hardware_interface::return_type perform_command_mode_switch(
-    //     const std::vector<std::string> &start_interfaces,
-    //     const std::vector<std::string> &stop_interfaces) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::CallbackReturn on_activate(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::CallbackReturn on_deactivate(
-        const rclcpp_lifecycle::State &previous_state) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::return_type read(
-        const rclcpp::Time &time, const rclcpp::Duration &period) override;
-
-    ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-    hardware_interface::return_type write(
-        const rclcpp::Time &time, const rclcpp::Duration &period) override;
-
-  private:
-
-   enum class mode_level_t
+    class SimReachSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
     {
-      MODE_STANDBY,
-      MODE_DISABLE,
-      MODE_POSITION,
-      MODE_VELOCITY,
-      MODE_CURRENT,
-      MODE_EFFORT,
-      MODE_CARTESIAN
+
+    public:
+        RCLCPP_SHARED_PTR_DEFINITIONS(SimReachSystemMultiInterfaceHardware);
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_init(
+            const hardware_interface::HardwareInfo &info) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_configure(
+            const rclcpp_lifecycle::State &previous_state) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_cleanup(
+            const rclcpp_lifecycle::State &previous_state) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::return_type prepare_command_mode_switch(
+            const std::vector<std::string> &start_interfaces,
+            const std::vector<std::string> &stop_interfaces) override;
+
+        // ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        // hardware_interface::return_type perform_command_mode_switch(
+        //     const std::vector<std::string> &start_interfaces,
+        //     const std::vector<std::string> &stop_interfaces) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_activate(
+            const rclcpp_lifecycle::State &previous_state) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_deactivate(
+            const rclcpp_lifecycle::State &previous_state) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::return_type read(
+            const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::return_type write(
+            const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+    private:
+        enum class mode_level_t
+        {
+            MODE_STANDBY,
+            MODE_DISABLE,
+            MODE_POSITION,
+            MODE_VELOCITY,
+            MODE_CURRENT,
+            MODE_EFFORT,
+            MODE_CARTESIAN
+        };
+
+        // Active control mode for each actuator
+        std::vector<mode_level_t> control_level_;
+        
+        // Store the state & commands for the robot joints
+        std::vector<Joint> hw_joint_struct_;
+
+        // stores the dynamic response from the forward dynamics simulator
+        std::vector<double> forward_dynamics_res;
     };
-
-    // Active control mode for each actuator
-    std::vector<mode_level_t> control_level_;
-
-    // Store the state & commands for the whole body robot
-    uvms::State robot_structs_;
-
-    // Store the dynamics function for the robot joints
-    casadi_reach_alpha_5::Dynamics dynamics_service;
-
-    // stores the dynamic response from the forward dynamics simulator
-    std::vector<double> forward_dynamics_res;
-  };
 
 } // namespace ros2_control_blue_reach_5
 #endif // ROS2_CONTROL_BLUE_REACH_5__SIM_REACH_SYSTEM_MULTI_INTERFACE_HPP_

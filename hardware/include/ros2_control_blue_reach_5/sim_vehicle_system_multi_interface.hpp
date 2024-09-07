@@ -128,8 +128,8 @@ namespace ros2_control_blue_reach_5
         // Store the dynamics function for the robot joints
         casadi_reach_alpha_5::Dynamics dynamics_service;
 
-        // Store the state & commands for the whole body robot
-        uvms::State robot_structs_;
+        // Store the state & commands for the robot vehicle
+        blue::dynamics::Vehicle hw_vehicle_struct_;
 
         // stores the dynamic response from the forward dynamics simulator
         std::vector<double> forward_dynamics_res;

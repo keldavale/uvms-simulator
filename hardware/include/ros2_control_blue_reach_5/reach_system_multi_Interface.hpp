@@ -128,8 +128,8 @@ namespace ros2_control_blue_reach_5
 
     double predictor_i = 0;
 
-    // Store the state & commands for the whole body robot
-    uvms::State robot_structs_;
+    // Store the state & commands for the robot joints
+    std::vector<Joint> hw_joint_struct_;
 
     // Declare the vectors before the if-else block
     std::vector<DM> q_prev;
@@ -146,11 +146,11 @@ namespace ros2_control_blue_reach_5
     std::vector<DM> FD_param_Selector_arg;
     std::vector<DM> FD_selected_p0;
 
-    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05,   3, 2.3, 2.2, 0.3,   3, 1.8, 1.0, 1.15};
+    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2.3, 2.2, 0.3, 3, 1.8, 1.0, 1.15};
     // std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05,  1.0, 1.0, 1.0, 1.0,   1.0, 1.0, 1.0, 1.0};
 
     // std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.8, 1.5};
-    std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05,  1.0, 1.0, 1.0, 1.0,   1.0, 1.0, 1.0, 1.0};
+    std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
     // std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 4, 1.6, 2.8, 0.7, 3.4, 2.2, 1.2, 1.8};
 
     std::vector<double> drag;

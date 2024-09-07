@@ -58,7 +58,7 @@ namespace ros2_control_blue_reach_5
     cfg_.serial_port_ = info_.hardware_parameters["serial_port"];
     cfg_.state_update_freq_ = std::stoi(info_.hardware_parameters["state_update_frequency"]);
 
-    robot_structs_.hw_joint_struct_.reserve(info_.joints.size());
+    hw_joint_struct_.reserve(info_.joints.size());
 
     // hw_joint_struct_.reserve(info_.joints.size());
     control_level_.resize(info_.joints.size(), mode_level_t::MODE_DISABLE);
@@ -90,7 +90,7 @@ namespace ros2_control_blue_reach_5
       Joint::Limits jointLimits{.position_min = min_position, .position_max = max_position, .velocity_max = max_velocity, .effort_max = max_effort};
       Joint::SoftLimits jointSoftLimits{.position_k = soft_k_position, .velocity_k = soft_k_velocity, .position_min = soft_min_position, .position_max = soft_max_position};
       Joint::MotorInfo actuatorProp{.kt = kt, .forward_I_static = forward_I_static, .backward_I_static = backward_I_static};
-      robot_structs_.hw_joint_struct_.emplace_back(joint.name, device_id, initialState, jointLimits, positionLimitsFlag, jointSoftLimits, actuatorProp);
+      hw_joint_struct_.emplace_back(joint.name, device_id, initialState, jointLimits, positionLimitsFlag, jointSoftLimits, actuatorProp);
       // ReachSystemMultiInterface has exactly 13 state interfaces
       // and 4 command interfaces on each joint
 
@@ -112,26 +112,6 @@ namespace ros2_control_blue_reach_5
             joint.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
-    };
-
-    hardware_interface::ComponentInfo endeffector_IO = info_.gpios[0];
-    if (endeffector_IO.state_interfaces.size() != 7)
-    {
-      RCLCPP_FATAL(
-          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-          "GPIO '%s'has %zu state interfaces. 7 expected.", endeffector_IO.name.c_str(),
-          endeffector_IO.state_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
-    };
-
-    hardware_interface::ComponentInfo step_IO = info_.gpios[1];
-    if (step_IO.state_interfaces.size() != 17)
-    {
-      RCLCPP_FATAL(
-          rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-          "GPIO '%s'has %zu state interfaces. 17 expected.", step_IO.name.c_str(),
-          step_IO.state_interfaces.size());
-      return hardware_interface::CallbackReturn::ERROR;
     };
 
     // Add random ID to prevent warnings about multiple publishers within the same node
@@ -165,17 +145,17 @@ namespace ros2_control_blue_reach_5
     driver_.subscribe(
         alpha::driver::PacketId::PacketID_POSITION,
         [this](const alpha::driver::Packet &packet) -> void
-        { updatePositionCb(packet, robot_structs_.hw_joint_struct_); });
+        { updatePositionCb(packet, hw_joint_struct_); });
 
     driver_.subscribe(
         alpha::driver::PacketId::PacketID_VELOCITY,
         [this](const alpha::driver::Packet &packet) -> void
-        { updateVelocityCb(packet, robot_structs_.hw_joint_struct_); });
+        { updateVelocityCb(packet, hw_joint_struct_); });
 
     driver_.subscribe(
         alpha::driver::PacketId::PacketID_CURRENT,
         [this](const alpha::driver::Packet &packet) -> void
-        { updateCurrentCb(packet, robot_structs_.hw_joint_struct_); });
+        { updateCurrentCb(packet, hw_joint_struct_); });
 
     // Start a thread to request state updates
     running_.store(true);
@@ -255,8 +235,8 @@ namespace ros2_control_blue_reach_5
       {
         if (key.find(info_.joints[i].name) != std::string::npos)
         {
-          robot_structs_.hw_joint_struct_[i].command_state_.velocity = 0;
-          robot_structs_.hw_joint_struct_[i].command_state_.current = 0;
+          hw_joint_struct_[i].command_state_.velocity = 0;
+          hw_joint_struct_[i].command_state_.current = 0;
           control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
         }
       }
@@ -284,108 +264,59 @@ namespace ros2_control_blue_reach_5
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_POSITION, &robot_structs_.hw_joint_struct_[i].current_state_.position));
+          info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_joint_struct_[i].current_state_.position));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_FILTERED_POSITION, &robot_structs_.hw_joint_struct_[i].current_state_.filtered_position));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_FILTERED_POSITION, &hw_joint_struct_[i].current_state_.filtered_position));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &robot_structs_.hw_joint_struct_[i].current_state_.velocity));
+          info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_joint_struct_[i].current_state_.velocity));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_FILTERED_VELOCITY, &robot_structs_.hw_joint_struct_[i].current_state_.filtered_velocity));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_FILTERED_VELOCITY, &hw_joint_struct_[i].current_state_.filtered_velocity));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &robot_structs_.hw_joint_struct_[i].current_state_.acceleration));
+          info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_joint_struct_[i].current_state_.acceleration));
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_ESTIMATED_ACCELERATION, &robot_structs_.hw_joint_struct_[i].current_state_.estimated_acceleration));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ESTIMATED_ACCELERATION, &hw_joint_struct_[i].current_state_.estimated_acceleration));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_joint_struct_[i].current_state_.current));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_joint_struct_[i].current_state_.current));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].current_state_.effort));
+          info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_joint_struct_[i].current_state_.effort));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT, &robot_structs_.hw_joint_struct_[i].current_state_.computed_effort));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT, &hw_joint_struct_[i].current_state_.computed_effort));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.computed_effort_uncertainty));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT_UNCERTAINTY, &hw_joint_struct_[i].current_state_.computed_effort_uncertainty));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_POSITION, &robot_structs_.hw_joint_struct_[i].current_state_.predicted_position));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_POSITION, &hw_joint_struct_[i].current_state_.predicted_position));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_POSITION_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.predicted_position_uncertainty));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_POSITION_UNCERTAINTY, &hw_joint_struct_[i].current_state_.predicted_position_uncertainty));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_VELOCITY, &robot_structs_.hw_joint_struct_[i].current_state_.predicted_velocity));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_VELOCITY, &hw_joint_struct_[i].current_state_.predicted_velocity));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_VELOCITY_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.predicted_velocity_uncertainty));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_PREDICTED_VELOCITY_UNCERTAINTY, &hw_joint_struct_[i].current_state_.predicted_velocity_uncertainty));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_position));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION, &hw_joint_struct_[i].current_state_.adaptive_predicted_position));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_position_uncertainty));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_POSITION_UNCERTAINTY, &hw_joint_struct_[i].current_state_.adaptive_predicted_position_uncertainty));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_velocity));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY, &hw_joint_struct_[i].current_state_.adaptive_predicted_velocity));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY, &robot_structs_.hw_joint_struct_[i].current_state_.adaptive_predicted_velocity_uncertainty));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY, &hw_joint_struct_[i].current_state_.adaptive_predicted_velocity_uncertainty));
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_STATE_ID, &robot_structs_.hw_joint_struct_[i].current_state_.state_id));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_STATE_ID, &hw_joint_struct_[i].current_state_.state_id));
     };
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[0].name, &robot_structs_.current_state_.position_x));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[1].name, &robot_structs_.current_state_.position_y));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &robot_structs_.current_state_.position_z));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &robot_structs_.current_state_.orientation_w));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[4].name, &robot_structs_.current_state_.orientation_x));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &robot_structs_.current_state_.orientation_y));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &robot_structs_.current_state_.orientation_z));
-
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[0].name, &robot_structs_.mhe_data.time));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[1].name, &robot_structs_.mhe_data.t_step));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[2].name, &robot_structs_.mhe_data.je_ic_position));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[3].name, &robot_structs_.mhe_data.je_ic_velocity));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[4].name, &robot_structs_.mhe_data.je_ic_effort));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[5].name, &robot_structs_.mhe_data.jd_ic_position));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[6].name, &robot_structs_.mhe_data.jd_ic_velocity));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[7].name, &robot_structs_.mhe_data.jd_ic_effort));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[8].name, &robot_structs_.mhe_data.jc_ic_position));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[9].name, &robot_structs_.mhe_data.jc_ic_velocity));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[10].name, &robot_structs_.mhe_data.jc_ic_effort));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[11].name, &robot_structs_.mhe_data.jb_ic_position));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[12].name, &robot_structs_.mhe_data.jb_ic_velocity));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[13].name, &robot_structs_.mhe_data.jb_ic_effort));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[14].name, &robot_structs_.mhe_data.ja_ic_position));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[15].name, &robot_structs_.mhe_data.ja_ic_velocity));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[1].name, info_.gpios[1].state_interfaces[16].name, &robot_structs_.mhe_data.ja_ic_effort));
     return state_interfaces;
   }
 
@@ -397,13 +328,13 @@ namespace ros2_control_blue_reach_5
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_POSITION, &robot_structs_.hw_joint_struct_[i].command_state_.position));
+          info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_joint_struct_[i].command_state_.position));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &robot_structs_.hw_joint_struct_[i].command_state_.velocity));
+          info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_joint_struct_[i].command_state_.velocity));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &robot_structs_.hw_joint_struct_[i].command_state_.current));
+          info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_joint_struct_[i].command_state_.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
-          info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &robot_structs_.hw_joint_struct_[i].command_state_.effort));
+          info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_joint_struct_[i].command_state_.effort));
     }
 
     return command_interfaces;
@@ -478,43 +409,43 @@ namespace ros2_control_blue_reach_5
       switch (control_level_[i])
       {
       case mode_level_t::MODE_POSITION:
-        if (!std::isnan(robot_structs_.hw_joint_struct_[i].command_state_.position))
+        if (!std::isnan(hw_joint_struct_[i].command_state_.position))
         {
           // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id);
+          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
           // Get the target position; if the command is for the jaws, then convert from m to mm
           const double target_position =
-              static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
-                  ? robot_structs_.hw_joint_struct_[i].command_state_.position * 1000
-                  : robot_structs_.hw_joint_struct_[i].command_state_.position;
+              static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
+                  ? hw_joint_struct_[i].command_state_.position * 1000
+                  : hw_joint_struct_[i].command_state_.position;
           driver_.setPosition(target_position, target_device);
         }
         break;
       case mode_level_t::MODE_VELOCITY:
-        if (!std::isnan(robot_structs_.hw_joint_struct_[i].command_state_.velocity))
+        if (!std::isnan(hw_joint_struct_[i].command_state_.velocity))
         {
           // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id);
+          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
           // Get the target velocity; if the command is for the jaws, then convert from m/s to mm/s
           const double target_velocity =
-              static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
-                  ? robot_structs_.hw_joint_struct_[i].command_state_.velocity * 1000
-                  : robot_structs_.hw_joint_struct_[i].command_state_.velocity;
+              static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
+                  ? hw_joint_struct_[i].command_state_.velocity * 1000
+                  : hw_joint_struct_[i].command_state_.velocity;
           // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%d size is %f", static_cast<int>(target_device), target_velocity);
 
           driver_.setVelocity(target_velocity, target_device);
         }
         break;
       case mode_level_t::MODE_CURRENT:
-        if (!std::isnan(robot_structs_.hw_joint_struct_[i].command_state_.current))
+        if (!std::isnan(hw_joint_struct_[i].command_state_.current))
         {
           // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id);
+          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
           // enforce hard limit;
-          const double enforced_target_current = robot_structs_.hw_joint_struct_[i].enforce_hard_limits(robot_structs_.hw_joint_struct_[i].command_state_.current);
+          const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(hw_joint_struct_[i].command_state_.current);
 
           driver_.setCurrent(enforced_target_current, target_device);
           if (enforced_target_current == 0.0)
@@ -524,28 +455,28 @@ namespace ros2_control_blue_reach_5
         }
         break;
       case mode_level_t::MODE_EFFORT:
-        if (!std::isnan(robot_structs_.hw_joint_struct_[i].command_state_.effort))
+        if (!std::isnan(hw_joint_struct_[i].command_state_.effort))
         {
-          if (robot_structs_.hw_joint_struct_[i].command_state_.effort > 0)
+          if (hw_joint_struct_[i].command_state_.effort > 0)
           {
-            T2C_arg = {DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.kt),
-                       DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.forward_I_static),
-                       DM(robot_structs_.hw_joint_struct_[i].command_state_.effort)};
+            T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
+                       DM(hw_joint_struct_[i].actuator_Properties_.forward_I_static),
+                       DM(hw_joint_struct_[i].command_state_.effort)};
           }
           else
           {
-            T2C_arg = {DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.kt),
-                       DM(robot_structs_.hw_joint_struct_[i].actuator_Properties_.backward_I_static),
-                       DM(robot_structs_.hw_joint_struct_[i].command_state_.effort)};
+            T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
+                       DM(hw_joint_struct_[i].actuator_Properties_.backward_I_static),
+                       DM(hw_joint_struct_[i].command_state_.effort)};
           }
 
           std::vector<DM> currentMap = dynamics_service.torque2currentMap(T2C_arg);
 
           // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(robot_structs_.hw_joint_struct_[i].device_id);
+          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
           // enforce hard limit;
-          const double enforced_target_current = robot_structs_.hw_joint_struct_[i].enforce_hard_limits(currentMap.at(0).scalar());
+          const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(currentMap.at(0).scalar());
           // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "current from torque :::%f ", enforced_target_current);
           driver_.setCurrent(enforced_target_current, target_device);
           if (enforced_target_current == 0.0)
