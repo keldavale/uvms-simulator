@@ -170,79 +170,12 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type SimReachSystemMultiInterfaceHardware::prepare_command_mode_switch(
-      const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
+      const std::vector<std::string> & /*start_interfaces*/,
+      const std::vector<std::string> & /*stop_interfaces*/)
   {
     RCLCPP_INFO( // NOLINT
         rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "preparing command mode switch");
-    // Prepare for new command modes
-    std::vector<mode_level_t> new_modes = {};
 
-    for (std::string key : start_interfaces)
-    {
-      for (std::size_t i = 0; i < info_.joints.size(); i++)
-      {
-        if (key == info_.joints[i].name + "/" + "effort")
-        {
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
-          {
-            new_modes.push_back(mode_level_t::MODE_POSITION);
-          }
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
-          {
-            new_modes.push_back(mode_level_t::MODE_VELOCITY);
-          }
-          if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
-          {
-            new_modes.push_back(mode_level_t::MODE_CURRENT);
-          }
-          if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
-          {
-            new_modes.push_back(mode_level_t::MODE_EFFORT);
-          }
-        }
-      }
-    };
-
-    //  criteria: All joints must be given new command mode at the same time
-    if (new_modes.size() != info_.joints.size())
-    {
-      return hardware_interface::return_type::ERROR;
-    };
-
-    //  criteria: All joints must have the same command mode
-    if (!std::all_of(
-            new_modes.begin() + 1, new_modes.end(),
-            [&](mode_level_t mode)
-            { return mode == new_modes[0]; }))
-    {
-      return hardware_interface::return_type::ERROR;
-    }
-
-    // Stop motion on all relevant joints that are stopping
-    for (std::string key : stop_interfaces)
-    {
-      for (std::size_t i = 0; i < info_.joints.size(); i++)
-      {
-        if (key.find(info_.joints[i].name) != std::string::npos)
-        {
-          hw_joint_struct_[i].command_state_.velocity = 0;
-          hw_joint_struct_[i].command_state_.current = 0;
-          control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
-        }
-      }
-    }
-
-    // Set the new command modes
-    for (std::size_t i = 0; i < info_.joints.size(); i++)
-    {
-      if (control_level_[i] != mode_level_t::MODE_DISABLE)
-      {
-        // Something else is using the joint! Abort!
-        return hardware_interface::return_type::ERROR;
-      }
-      control_level_[i] = new_modes[i];
-    }
     RCLCPP_INFO(
         rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;
@@ -314,6 +247,36 @@ namespace ros2_control_blue_reach_5
   hardware_interface::return_type SimReachSystemMultiInterfaceHardware::write(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
+    hw_joint_struct_[0].current_state_.filtered_position = hw_joint_struct_[0].command_state_.position;
+    hw_joint_struct_[1].current_state_.filtered_position = hw_joint_struct_[1].command_state_.position;
+    hw_joint_struct_[2].current_state_.filtered_position = hw_joint_struct_[2].command_state_.position;
+    hw_joint_struct_[3].current_state_.filtered_position = hw_joint_struct_[3].command_state_.position;
+
+    hw_joint_struct_[0].current_state_.position = hw_joint_struct_[0].command_state_.position;
+    hw_joint_struct_[1].current_state_.position = hw_joint_struct_[1].command_state_.position;
+    hw_joint_struct_[2].current_state_.position = hw_joint_struct_[2].command_state_.position;
+    hw_joint_struct_[3].current_state_.position = hw_joint_struct_[3].command_state_.position;
+
+    hw_joint_struct_[0].current_state_.velocity = hw_joint_struct_[0].command_state_.velocity;
+    hw_joint_struct_[1].current_state_.velocity = hw_joint_struct_[1].command_state_.velocity;
+    hw_joint_struct_[2].current_state_.velocity = hw_joint_struct_[2].command_state_.velocity;
+    hw_joint_struct_[3].current_state_.velocity = hw_joint_struct_[3].command_state_.velocity;
+
+    hw_joint_struct_[0].current_state_.filtered_velocity = hw_joint_struct_[0].command_state_.velocity;
+    hw_joint_struct_[1].current_state_.filtered_velocity = hw_joint_struct_[1].command_state_.velocity;
+    hw_joint_struct_[2].current_state_.filtered_velocity = hw_joint_struct_[2].command_state_.velocity;
+    hw_joint_struct_[3].current_state_.filtered_velocity = hw_joint_struct_[3].command_state_.velocity;
+
+    hw_joint_struct_[0].current_state_.effort = hw_joint_struct_[0].command_state_.effort;
+    hw_joint_struct_[1].current_state_.effort = hw_joint_struct_[1].command_state_.effort;
+    hw_joint_struct_[2].current_state_.effort = hw_joint_struct_[2].command_state_.effort;
+    hw_joint_struct_[3].current_state_.effort = hw_joint_struct_[3].command_state_.effort;
+
+    hw_joint_struct_[0].current_state_.computed_effort = hw_joint_struct_[0].command_state_.effort;
+    hw_joint_struct_[1].current_state_.computed_effort = hw_joint_struct_[1].command_state_.effort;
+    hw_joint_struct_[2].current_state_.computed_effort = hw_joint_struct_[2].command_state_.effort;
+    hw_joint_struct_[3].current_state_.computed_effort = hw_joint_struct_[3].command_state_.effort;
+
     return hardware_interface::return_type::OK;
   }
 

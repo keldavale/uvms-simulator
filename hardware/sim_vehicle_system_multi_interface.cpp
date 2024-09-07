@@ -372,6 +372,28 @@ namespace ros2_control_blue_reach_5
   hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
       const rclcpp::Time &time, const rclcpp::Duration & /*period*/)
   {
+    hw_vehicle_struct_.current_state_.position_x = hw_vehicle_struct_.command_state_.position_x;
+    hw_vehicle_struct_.current_state_.position_y = hw_vehicle_struct_.command_state_.position_y;
+    hw_vehicle_struct_.current_state_.position_z = hw_vehicle_struct_.command_state_.position_z;
+    hw_vehicle_struct_.current_state_.orientation_w = hw_vehicle_struct_.command_state_.orientation_w;
+    hw_vehicle_struct_.current_state_.orientation_x = hw_vehicle_struct_.command_state_.orientation_x;
+    hw_vehicle_struct_.current_state_.orientation_y = hw_vehicle_struct_.command_state_.orientation_y;
+    hw_vehicle_struct_.current_state_.orientation_z = hw_vehicle_struct_.command_state_.orientation_z;
+
+    // hw_vehicle_struct_.current_state_.u = hw_vehicle_struct_.command_state_.u;
+    // hw_vehicle_struct_.current_state_.v = hw_vehicle_struct_.command_state_.v;
+    // hw_vehicle_struct_.current_state_.w = hw_vehicle_struct_.command_state_.w;
+    // hw_vehicle_struct_.current_state_.p = hw_vehicle_struct_.command_state_.p;
+    // hw_vehicle_struct_.current_state_.q = hw_vehicle_struct_.command_state_.q;
+    // hw_vehicle_struct_.current_state_.r = hw_vehicle_struct_.command_state_.r;
+
+    // hw_vehicle_struct_.current_state_.Fx = hw_vehicle_struct_.command_state_.Fx;
+    // hw_vehicle_struct_.current_state_.Fy = hw_vehicle_struct_.command_state_.Fy;
+    // hw_vehicle_struct_.current_state_.Fz = hw_vehicle_struct_.command_state_.Fz;
+    // hw_vehicle_struct_.current_state_.Tx = hw_vehicle_struct_.command_state_.Tx;
+    // hw_vehicle_struct_.current_state_.Ty = hw_vehicle_struct_.command_state_.Ty;
+    // hw_vehicle_struct_.current_state_.Tz = hw_vehicle_struct_.command_state_.Tz;
+
     if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
     {
       // original pose in NED

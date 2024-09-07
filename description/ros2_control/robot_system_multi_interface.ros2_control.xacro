@@ -19,21 +19,22 @@
         </xacro:unless>
       </hardware>
 
-      <joint name="${prefix}_axis_a">
-        <param name="device_id">0x01</param>
-        <param name="home">0.0</param>
+
+      <joint name="${prefix}_axis_e">
+        <param name="device_id">0x05</param>
+        <param name="home">1.92466658e-02</param>
 
         <!-- limit constraints -->
-        <param name="max_effort">200</param>
+        <param name="max_effort">300</param>
         <param name="has_position_limits">1</param>
-        <param name="min_position">0.0004</param>
-        <param name="max_position">0.0137</param>
-        <param name="max_velocity">3.0</param>
+        <param name="min_position">1.0</param>
+        <param name="max_position">5.5</param>
+        <param name="max_velocity">4.0</param>
         <param name="soft_k_position">100</param>
         <param name="soft_k_velocity">10</param>
-        <param name="soft_min_position">0.0004</param>
-        <param name="soft_max_position">0.0137</param>
-        <param name="kt">50</param>  <!-- static friction current -->
+        <param name="soft_min_position">1.0</param>
+        <param name="soft_max_position">5.5</param>
+        <param name="kt">90.6</param>  <!-- static friction current -->
         <param name="forward_I_static">43</param> <!-- static friction torque -->
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
@@ -54,6 +55,7 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
+
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
@@ -76,25 +78,24 @@
         <state_interface name="stateId"/>
       </joint>
 
-      <joint name="${prefix}_axis_b">
-        <param name="device_id">0x02</param>
-        <param name="home">5.690</param>
+    <joint name="${prefix}_axis_d">
+        <param name="device_id">0x04</param>
+        <param name="home">1.45291960e+00</param>
 
         <!-- limit constraints -->
         <param name="max_effort">200</param>
         <param name="has_position_limits">1</param>
         <param name="min_position">0.01</param>
-        <param name="max_position">5.70</param>
+        <param name="max_position">3.400</param>
         <param name="max_velocity">4.0</param>
         <param name="soft_k_position">100</param>
-        <param name="soft_k_velocity">15</param>
+        <param name="soft_k_velocity">10</param>
         <param name="soft_min_position">0.01</param>
-        <param name="soft_max_position">5.70</param>
-        <param name="kt">50</param>  <!-- static friction current -->
-        <param name="forward_I_static">10</param> <!-- static friction torque -->
-        <param name="backward_I_static">20</param> <!-- static friction torque -->
+        <param name="soft_max_position">3.400</param>
+        <param name="kt">90.6</param>  <!-- static friction current -->
+        <param name="forward_I_static">43</param> <!-- static friction torque -->
+        <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
-
 
           <command_interface name="position">
             <param name="min">-1</param>
@@ -133,7 +134,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
-      </joint>
+      </joint>     
+
 
       <joint name="${prefix}_axis_c">
         <param name="device_id">0x03</param>
@@ -193,24 +195,25 @@
         <state_interface name="stateId"/>
       </joint>   
 
-      <joint name="${prefix}_axis_d">
-        <param name="device_id">0x04</param>
-        <param name="home">1.45291960e+00</param>
+  <joint name="${prefix}_axis_b">
+        <param name="device_id">0x02</param>
+        <param name="home">5.690</param>
 
         <!-- limit constraints -->
         <param name="max_effort">200</param>
         <param name="has_position_limits">1</param>
         <param name="min_position">0.01</param>
-        <param name="max_position">3.400</param>
+        <param name="max_position">5.70</param>
         <param name="max_velocity">4.0</param>
         <param name="soft_k_position">100</param>
-        <param name="soft_k_velocity">10</param>
+        <param name="soft_k_velocity">15</param>
         <param name="soft_min_position">0.01</param>
-        <param name="soft_max_position">3.400</param>
-        <param name="kt">90.6</param>  <!-- static friction current -->
-        <param name="forward_I_static">43</param> <!-- static friction torque -->
-        <param name="backward_I_static">43</param> <!-- static friction torque -->
+        <param name="soft_max_position">5.70</param>
+        <param name="kt">50</param>  <!-- static friction current -->
+        <param name="forward_I_static">10</param> <!-- static friction torque -->
+        <param name="backward_I_static">20</param> <!-- static friction torque -->
         <!-- limit constraints -->
+
 
           <command_interface name="position">
             <param name="min">-1</param>
@@ -249,23 +252,24 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
-      </joint>     
-      
-      <joint name="${prefix}_axis_e">
-        <param name="device_id">0x05</param>
-        <param name="home">1.92466658e-02</param>
+      </joint>
+
+
+      <joint name="${prefix}_axis_a">
+        <param name="device_id">0x01</param>
+        <param name="home">0.0</param>
 
         <!-- limit constraints -->
-        <param name="max_effort">300</param>
+        <param name="max_effort">200</param>
         <param name="has_position_limits">1</param>
-        <param name="min_position">1.0</param>
-        <param name="max_position">5.5</param>
-        <param name="max_velocity">4.0</param>
+        <param name="min_position">0.0004</param>
+        <param name="max_position">0.0137</param>
+        <param name="max_velocity">3.0</param>
         <param name="soft_k_position">100</param>
         <param name="soft_k_velocity">10</param>
-        <param name="soft_min_position">1.0</param>
-        <param name="soft_max_position">5.5</param>
-        <param name="kt">90.6</param>  <!-- static friction current -->
+        <param name="soft_min_position">0.0004</param>
+        <param name="soft_max_position">0.0137</param>
+        <param name="kt">50</param>  <!-- static friction current -->
         <param name="forward_I_static">43</param> <!-- static friction torque -->
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
@@ -286,7 +290,6 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
-
         <state_interface name="position"/>
         <state_interface name="filtered_position"/>
         <state_interface name="velocity"/>
