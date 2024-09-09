@@ -32,5 +32,8 @@ namespace blue::dynamics
   {
     name = vehicle_name;
     current_state_ = default_state;
+    command_state_ = default_state;
+    default_state_ = default_state;
+    async_state_ = default_state;
   }
 } // namespace blue::dynamics

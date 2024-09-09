@@ -37,13 +37,13 @@ namespace blue::dynamics
   {
 
   public:
-    std::string name;  // Name of the device or component
-    uint8_t device_id; // Unique identifier for the device
+    std::string name;        // Name of the device or component
+    uint8_t device_id;       // Unique identifier for the device
     std::string world_frame; // origin frame
-    std::string body_frame; // body frame
+    std::string body_frame;  // body frame
 
-
-    struct Pose_vel {
+    struct Pose_vel
+    {
       double position_x, position_y, position_z;
       double orientation_w, orientation_x, orientation_y, orientation_z;
       double u, v, w, p, q, r;
@@ -51,11 +51,9 @@ namespace blue::dynamics
     };
 
     Pose_vel default_state_, command_state_, current_state_, async_state_;
-    std::vector<Thruster> hw_thrust_structs_;  // Store the state & commands for the uv thruster
-    
+    std::vector<Thruster> hw_thrust_structs_; // Store the state & commands for the uv thruster
+
     Vehicle() = default;
-    Vehicle(std::string vehicle_name, Pose_vel default_state)
-        : name(std::move(vehicle_name)), current_state_(default_state) {};
 
     void set_vehicle_name(const std::string &vehicle_name, const Pose_vel &default_state);
 
