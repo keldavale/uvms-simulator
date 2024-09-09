@@ -111,8 +111,8 @@ namespace ros2_control_blue_reach_5
         // Store the state & commands for the robot joints
         std::vector<Joint> hw_joint_struct_;
 
-        // stores the dynamic response from the forward dynamics simulator
-        std::vector<double> forward_dynamics_res;
+        // Store the state & commands for the robot agent
+        std::vector<std::vector<Joint>> hw_robot_arm_struct_;
     };
 
 } // namespace ros2_control_blue_reach_5
