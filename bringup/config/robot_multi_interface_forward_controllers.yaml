@@ -24,6 +24,9 @@ controller_manager:
     imu_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    range_broadcaster:
+      type: range_sensor_broadcaster/RangeSensorBroadcaster
+
     uvms_controller:
       type: uvms_controller/UvmsController
 
