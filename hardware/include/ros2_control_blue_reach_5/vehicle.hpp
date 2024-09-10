@@ -47,6 +47,7 @@ namespace blue::dynamics
       double position_x, position_y, position_z;
       double orientation_w, orientation_x, orientation_y, orientation_z;
       double u, v, w, p, q, r;
+      double du, dv, dw, dp, dq, dr;
       double Fx, Fy, Fz, Tx, Ty, Tz;
     };
 

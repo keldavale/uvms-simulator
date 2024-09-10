@@ -39,11 +39,16 @@
         <param name="backward_I_static">43</param> <!-- static friction torque -->
         <!-- limit constraints -->
 
+
           <command_interface name="position">
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
           <command_interface name="velocity">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="acceleration">
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
@@ -102,6 +107,10 @@
             <param name="max">1</param>
           </command_interface>
           <command_interface name="velocity">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="acceleration">
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
@@ -164,6 +173,10 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
+          <command_interface name="acceleration">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
           <command_interface name="current">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -223,6 +236,10 @@
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>
+          <command_interface name="acceleration">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
           <command_interface name="current">
             <param name="min">-1</param>
             <param name="max">1</param>
@@ -279,6 +296,10 @@
             <param name="max">1</param>
           </command_interface>
           <command_interface name="velocity">
+            <param name="min">-1</param>
+            <param name="max">1</param>
+          </command_interface>
+          <command_interface name="acceleration">
             <param name="min">-1</param>
             <param name="max">1</param>
           </command_interface>

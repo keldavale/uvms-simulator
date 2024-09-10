@@ -21,6 +21,9 @@ controller_manager:
     fts_broadcaster:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
+    imu_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
     uvms_controller:
       type: uvms_controller/UvmsController
 
@@ -48,51 +51,82 @@ uvms_controller:
 
     floating_base:
       name : "{namespace}_IOs"
-      pose_topic_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
-      velocity_topic_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
-      pose_command_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
-      velocity_command_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
-      effort_command_interface: [effort.x, effort.y, effort.z, effort.roll, effort.pitch, effort.yaw]
+      pose_topic_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
+      velocity_topic_interface: ["velocity.x","velocity.y","velocity.z","angular_velocity.x","angular_velocity.y","angular_velocity.z"]
+      acceleration_topic_interface: ["linear_acceleration.x","linear_acceleration.y","linear_acceleration.z","angular_acceleration.x","angular_acceleration.y","angular_acceleration.z"]
+      pose_command_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
+      velocity_command_interface: ["velocity.x","velocity.y","velocity.z","angular_velocity.x","angular_velocity.y","angular_velocity.z"]
+      acceleration_command_interface: ["linear_acceleration.x","linear_acceleration.y","linear_acceleration.z","angular_acceleration.x","angular_acceleration.y","angular_acceleration.z"]
+      effort_command_interface: ["force.x", "force.y", "force.z", "torque.x", "torque.y", "torque.z"]
 
     joint0:
       name : "{namespace}_axis_e"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
+      acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
+      acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
 
     joint1:
       name : "{namespace}_axis_d"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
+      acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
+      acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
 
     joint2:
       name : "{namespace}_axis_c"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
+      acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
+      acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
 
     joint3:
       name : "{namespace}_axis_b"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
+      acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
+      acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
       
     endeffector:
       name : "{namespace}_axis_a"
       pose_topic_interface: ["filtered_position"]
       velocity_topic_interface: ["filtered_velocity"]
+      acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
+      acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
+
+fts_broadcaster:
+  ros__parameters:
+    frame_id: base_link
+    interface_names:
+      force:
+        x: "alpha_IOs/force.x"
+        y: "alpha_IOs/force.y"
+        z: "alpha_IOs/force.z"
+      torque:
+        x: "alpha_IOs/torque.x"
+        y: "alpha_IOs/torque.y"
+        z: "alpha_IOs/torque.z"
+
+imu_broadcaster:
+  ros__parameters:
+    frame_id: base_link
+    sensor_name: "alpha_IOs"
+
 
 
 joint_state_broadcaster:

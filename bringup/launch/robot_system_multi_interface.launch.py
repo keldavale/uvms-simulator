@@ -163,6 +163,21 @@ def generate_launch_description():
         condition=UnlessCondition(use_mock_hardware)
     )
 
+    force_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["fts_broadcaster",
+                   "--controller-manager", "/controller_manager"]
+    )
+
+    imu_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster",
+                   "--controller-manager", "/controller_manager"]
+    )
+
+
     run_plotjuggler = ExecuteProcess(
         cmd=['ros2', 'run', 'plotjuggler', 'plotjuggler > /dev/null 2>&1'],
         output='screen',
@@ -217,6 +232,8 @@ def generate_launch_description():
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         uvms_spawner,
+        force_controller_spawner,
+        imu_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner
     ]

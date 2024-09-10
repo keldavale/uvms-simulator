@@ -57,11 +57,11 @@ namespace ros2_control_blue_reach_5
       // RRBotSystemMultiInterface has exactly 3 state interfaces
       // and 3 command interfaces on each joint
 
-      if (joint.command_interfaces.size() != 4)
+      if (joint.command_interfaces.size() != 5)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
-            "Joint '%s' has %zu command interfaces. 4 expected.", joint.name.c_str(),
+            "Joint '%s' has %zu command interfaces. 5 expected.", joint.name.c_str(),
             joint.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -115,6 +115,7 @@ namespace ros2_control_blue_reach_5
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_robot_arm_struct_[0][i].current_state_.acceleration));
+
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_ESTIMATED_ACCELERATION, &hw_robot_arm_struct_[0][i].current_state_.estimated_acceleration));
 
@@ -166,10 +167,13 @@ namespace ros2_control_blue_reach_5
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
+      
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_robot_arm_struct_[0][i].command_state_.position));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_robot_arm_struct_[0][i].command_state_.velocity));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_robot_arm_struct_[0][i].command_state_.acceleration));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_robot_arm_struct_[0][i].command_state_.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(

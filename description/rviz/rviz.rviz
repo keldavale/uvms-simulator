@@ -1,13 +1,13 @@
 Panels:
   - Class: rviz_common/Displays
-    Help Height: 78
+    Help Height: 131
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
         - /RobotModel1
       Splitter Ratio: 0.6844444274902344
-    Tree Height: 787
+    Tree Height: 734
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -43,7 +43,7 @@ Visualization Manager:
       Plane Cell Count: 50
       Reference Frame: world
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
       Description File: ""
@@ -379,6 +379,25 @@ Visualization Manager:
       Plane Cell Count: 50
       Reference Frame: world_bottom
       Value: true
+    - Accept NaN Values: false
+      Alpha: 1
+      Arrow Width: 0.30000001192092896
+      Class: rviz_default_plugins/Wrench
+      Enabled: true
+      Force Arrow Scale: 0.699999988079071
+      Force Color: 204; 51; 51
+      History Length: 1
+      Name: Wrench
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /fts_broadcaster/wrench
+      Torque Arrow Scale: 0.699999988079071
+      Torque Color: 204; 204; 51
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 134; 94; 60
@@ -425,7 +444,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.784640073776245
+      Distance: 3.443613052368164
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -440,10 +459,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.31520509719848633
+      Pitch: 0.2102052867412567
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 0.4712892174720764
+      Yaw: 6.16447114944458
     Saved: ~
 Window Geometry:
   Displays:
@@ -460,4 +479,4 @@ Window Geometry:
     collapsed: false
   Width: 1850
   X: 70
-  Y: 357
+  Y: 27

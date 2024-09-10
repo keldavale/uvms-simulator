@@ -35,7 +35,6 @@ using namespace casadi;
 namespace
 {
   constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
-  constexpr auto DEFAULT_IMU_TOPIC = "/uvms/imu";
   constexpr auto DEFAULT_DVL_TOPIC = "/uvms/dvl";
 } // namespace
 
@@ -59,7 +58,7 @@ namespace ros2_control_blue_reach_5
     // dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
     // dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
     hw_vehicle_struct_.resize(1);
-    blue::dynamics::Vehicle::Pose_vel initial_state{0.0, 0.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    blue::dynamics::Vehicle::Pose_vel initial_state{0.0, 0.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     hw_vehicle_struct_[0].set_vehicle_name("blue ROV heavy 0", initial_state);
 
@@ -84,21 +83,21 @@ namespace ros2_control_blue_reach_5
 
     for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
     {
-      // RRBotSystemMultiInterface has exactly 19 gpio state interfaces
-      if (gpio.state_interfaces.size() != 19)
+      // RRBotSystemMultiInterface has exactly 25 gpio state interfaces
+      if (gpio.state_interfaces.size() != 25)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-            "GPIO '%s'has %zu state interfaces. 19 expected.", gpio.name.c_str(),
+            "GPIO '%s'has %zu state interfaces. 25 expected.", gpio.name.c_str(),
             gpio.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
-      // RRBotSystemMultiInterface has exactly 19 gpio command interfaces
-      if (gpio.command_interfaces.size() != 19)
+      // RRBotSystemMultiInterface has exactly 25 gpio command interfaces
+      if (gpio.command_interfaces.size() != 25)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-            "GPIO '%s'has %zu command interfaces. 19 expected.", gpio.name.c_str(),
+            "GPIO '%s'has %zu command interfaces. 25 expected.", gpio.name.c_str(),
             gpio.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -122,12 +121,6 @@ namespace ros2_control_blue_reach_5
       realtime_odometry_transform_publisher_ =
           std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
               odometry_transform_publisher_);
-
-      uv_imu_publisher_ = rclcpp::create_publisher<sensor_msgs::msg::Imu>(node_topics_interface,
-                                                                          DEFAULT_IMU_TOPIC, rclcpp::SystemDefaultsQoS());
-      realtime_uv_imu_publisher_ =
-          std::make_shared<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>(
-              uv_imu_publisher_);
 
       uv_dvl_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::Twist>(node_topics_interface,
                                                                               DEFAULT_DVL_TOPIC, rclcpp::SystemDefaultsQoS());
@@ -199,17 +192,30 @@ namespace ros2_control_blue_reach_5
         info_.gpios[0].name, info_.gpios[0].state_interfaces[12].name, &hw_vehicle_struct_[0].current_state_.r));
 
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct_[0].current_state_.Fx));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct_[0].current_state_.du));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[14].name, &hw_vehicle_struct_[0].current_state_.Fy));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[14].name, &hw_vehicle_struct_[0].current_state_.dv));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct_[0].current_state_.Fz));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct_[0].current_state_.dw));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct_[0].current_state_.Tx));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct_[0].current_state_.dp));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct_[0].current_state_.Ty));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct_[0].current_state_.dq));
     state_interfaces.emplace_back(hardware_interface::StateInterface(
-        info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct_[0].current_state_.Tz));
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct_[0].current_state_.dr));
+
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[19].name, &hw_vehicle_struct_[0].current_state_.Fx));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[20].name, &hw_vehicle_struct_[0].current_state_.Fy));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[21].name, &hw_vehicle_struct_[0].current_state_.Fz));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[22].name, &hw_vehicle_struct_[0].current_state_.Tx));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[23].name, &hw_vehicle_struct_[0].current_state_.Ty));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+        info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct_[0].current_state_.Tz));
 
     return state_interfaces;
   }
@@ -246,17 +252,30 @@ namespace ros2_control_blue_reach_5
         info_.gpios[0].name, info_.gpios[0].command_interfaces[12].name, &hw_vehicle_struct_[0].command_state_.r));
 
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[13].name, &hw_vehicle_struct_[0].command_state_.Fx));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[13].name, &hw_vehicle_struct_[0].command_state_.du));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[14].name, &hw_vehicle_struct_[0].command_state_.Fy));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[14].name, &hw_vehicle_struct_[0].command_state_.dv));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[15].name, &hw_vehicle_struct_[0].command_state_.Fz));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[15].name, &hw_vehicle_struct_[0].command_state_.dw));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[16].name, &hw_vehicle_struct_[0].command_state_.Tx));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[16].name, &hw_vehicle_struct_[0].command_state_.dp));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[17].name, &hw_vehicle_struct_[0].command_state_.Ty));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[17].name, &hw_vehicle_struct_[0].command_state_.dq));
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
-        info_.gpios[0].name, info_.gpios[0].command_interfaces[18].name, &hw_vehicle_struct_[0].command_state_.Tz));
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[18].name, &hw_vehicle_struct_[0].command_state_.dr));
+
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[19].name, &hw_vehicle_struct_[0].command_state_.Fx));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[20].name, &hw_vehicle_struct_[0].command_state_.Fy));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[21].name, &hw_vehicle_struct_[0].command_state_.Fz));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[22].name, &hw_vehicle_struct_[0].command_state_.Tx));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[23].name, &hw_vehicle_struct_[0].command_state_.Ty));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+        info_.gpios[0].name, info_.gpios[0].command_interfaces[24].name, &hw_vehicle_struct_[0].command_state_.Tz));
 
     return command_interfaces;
   }
@@ -279,11 +298,23 @@ namespace ros2_control_blue_reach_5
           {
             new_modes.push_back(mode_level_t::MODE_POSITION);
           }
+          if (info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_POSITION);
+          }
           else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
           {
             new_modes.push_back(mode_level_t::MODE_VELOCITY);
           }
-          else if (info_.gpios[0].command_interfaces[j].name.find("effort") != std::string::npos)
+          else if (info_.gpios[0].command_interfaces[j].name.find("acceleration") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_ACCELERATION);
+          }
+          else if (info_.gpios[0].command_interfaces[j].name.find("force") != std::string::npos)
+          {
+            new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+          }
+          else if (info_.gpios[0].command_interfaces[j].name.find("torque") != std::string::npos)
           {
             new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
           }
@@ -292,7 +323,7 @@ namespace ros2_control_blue_reach_5
     };
 
     //  criteria: All joints must be given new command mode at the same time
-    if (new_modes.size() != 19)
+    if (new_modes.size() != 25)
     {
       return hardware_interface::return_type::ERROR;
     };
@@ -424,7 +455,7 @@ namespace ros2_control_blue_reach_5
       auto &transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
       transform.header.stamp = time;
       transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
-      transform.transform.translation.y = -hw_vehicle_struct_[0].current_state_.position_y;
+      transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;
       transform.transform.translation.z = -hw_vehicle_struct_[0].current_state_.position_z;
 
       transform.transform.rotation.x = q_new.x();
@@ -432,30 +463,6 @@ namespace ros2_control_blue_reach_5
       transform.transform.rotation.z = q_new.z();
       transform.transform.rotation.w = q_new.w();
       realtime_odometry_transform_publisher_->unlockAndPublish();
-    };
-
-    if (realtime_uv_imu_publisher_ && realtime_uv_imu_publisher_->trylock())
-    {
-      tf2::Quaternion q_orig, q_rot, q_new;
-
-      q_orig.setW(hw_vehicle_struct_[0].current_state_.orientation_w);
-      q_orig.setX(hw_vehicle_struct_[0].current_state_.orientation_x);
-      q_orig.setY(hw_vehicle_struct_[0].current_state_.orientation_y);
-      q_orig.setZ(hw_vehicle_struct_[0].current_state_.orientation_z);
-
-      auto &imu_message = realtime_uv_imu_publisher_->msg_;
-      imu_message.header.stamp = time;
-      imu_message.orientation.x = q_orig.x();
-      imu_message.orientation.y = q_orig.y();
-      imu_message.orientation.z = q_orig.z();
-      imu_message.orientation.w = q_orig.w();
-      imu_message.angular_velocity.x = hw_vehicle_struct_[0].current_state_.u;
-      imu_message.angular_velocity.y = hw_vehicle_struct_[0].current_state_.v;
-      imu_message.angular_velocity.z = hw_vehicle_struct_[0].current_state_.w;
-      imu_message.linear_acceleration.x = 0;
-      imu_message.linear_acceleration.y = 0;
-      imu_message.linear_acceleration.z = 0;
-      realtime_uv_imu_publisher_->unlockAndPublish();
     };
 
     if (realtime_uv_dvl_publisher_ && realtime_uv_dvl_publisher_->trylock())

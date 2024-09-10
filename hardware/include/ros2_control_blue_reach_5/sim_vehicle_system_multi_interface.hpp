@@ -50,7 +50,6 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <sensor_msgs/msg/imu.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
 
@@ -118,6 +117,7 @@ namespace ros2_control_blue_reach_5
             MODE_DISABLE = 0x01,
             MODE_POSITION = 0x02,
             MODE_VELOCITY = 0x03,
+            MODE_ACCELERATION = 0x08,
             MODE_CURRENT = 0x04,
             MODE_EFFORT_GENERALIZED = 0x05,
             MODE_EFFORT = 0x09,
@@ -137,10 +137,6 @@ namespace ros2_control_blue_reach_5
         std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
             realtime_odometry_transform_publisher_;
-
-        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> uv_imu_publisher_;
-        std::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>
-            realtime_uv_imu_publisher_;
 
         std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::Twist>> uv_dvl_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
