@@ -414,7 +414,7 @@ namespace ros2_control_blue_reach_5
 
     hw_vehicle_struct_[0].current_state_.position_x = hw_vehicle_struct_[0].command_state_.position_x;
     hw_vehicle_struct_[0].current_state_.position_y = hw_vehicle_struct_[0].command_state_.position_y;
-    hw_vehicle_struct_[0].current_state_.position_z = hw_vehicle_struct_[0].command_state_.position_z;
+    hw_vehicle_struct_[0].current_state_.position_z = -hw_vehicle_struct_[0].command_state_.position_z;
     hw_vehicle_struct_[0].current_state_.orientation_w = hw_vehicle_struct_[0].command_state_.orientation_w;
     hw_vehicle_struct_[0].current_state_.orientation_x = hw_vehicle_struct_[0].command_state_.orientation_x;
     hw_vehicle_struct_[0].current_state_.orientation_y = hw_vehicle_struct_[0].command_state_.orientation_y;
@@ -429,7 +429,7 @@ namespace ros2_control_blue_reach_5
 
     hw_vehicle_struct_[0].current_state_.Fx = hw_vehicle_struct_[0].command_state_.Fx;
     hw_vehicle_struct_[0].current_state_.Fy = hw_vehicle_struct_[0].command_state_.Fy;
-    hw_vehicle_struct_[0].current_state_.Fz = hw_vehicle_struct_[0].command_state_.Fz;
+    hw_vehicle_struct_[0].current_state_.Fz = -hw_vehicle_struct_[0].command_state_.Fz;
     hw_vehicle_struct_[0].current_state_.Tx = hw_vehicle_struct_[0].command_state_.Tx;
     hw_vehicle_struct_[0].current_state_.Ty = hw_vehicle_struct_[0].command_state_.Ty;
     hw_vehicle_struct_[0].current_state_.Tz = hw_vehicle_struct_[0].command_state_.Tz;
@@ -456,7 +456,7 @@ namespace ros2_control_blue_reach_5
       transform.header.stamp = time;
       transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
       transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;
-      transform.transform.translation.z = -hw_vehicle_struct_[0].current_state_.position_z;
+      transform.transform.translation.z = hw_vehicle_struct_[0].current_state_.position_z;
 
       transform.transform.rotation.x = q_new.x();
       transform.transform.rotation.y = q_new.y();
