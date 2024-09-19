@@ -48,7 +48,12 @@ namespace blue::dynamics
       double orientation_w, orientation_x, orientation_y, orientation_z;
       double u, v, w, p, q, r;
       double du, dv, dw, dp, dq, dr;
-      double Fx, Fy, Fz, Tx, Ty, Tz;
+      double Fx = 0;
+      double Fy = 0; 
+      double Fz = 0;  
+      double Tx = 0;  
+      double Ty = 0;  
+      double Tz = 0; 
     };
 
     Pose_vel default_state_, command_state_, current_state_, async_state_;

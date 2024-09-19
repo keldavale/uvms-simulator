@@ -58,7 +58,15 @@ namespace ros2_control_blue_reach_5
     // dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
     // dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
     hw_vehicle_struct_.resize(1);
-    blue::dynamics::Vehicle::Pose_vel initial_state{0.0, 0.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    blue::dynamics::Vehicle::Pose_vel initial_state{
+        0.0, 0.0, 2.5,      // Position: x, y, z
+        1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
+        0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
+        0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
+        0.0, 0.0, 0.0,      // Forces: Fx, Fy, Fz
+        0.0, 0.0, 0.0       // Torques: Tx, Ty, Tz
+    };
 
     hw_vehicle_struct_[0].set_vehicle_name("blue ROV heavy 0", initial_state);
 
@@ -409,12 +417,12 @@ namespace ros2_control_blue_reach_5
     //     hw_vehicle_struct_[0].command_state_.Fy,
     //     hw_vehicle_struct_[0].command_state_.Fz,
     //     hw_vehicle_struct_[0].command_state_.Tx,
-    //     hw_vehicle_struct_[0].command_state_.Ty, 
+    //     hw_vehicle_struct_[0].command_state_.Ty,
     //     hw_vehicle_struct_[0].command_state_.Tz);
 
     hw_vehicle_struct_[0].current_state_.position_x = hw_vehicle_struct_[0].command_state_.position_x;
     hw_vehicle_struct_[0].current_state_.position_y = hw_vehicle_struct_[0].command_state_.position_y;
-    hw_vehicle_struct_[0].current_state_.position_z = -hw_vehicle_struct_[0].command_state_.position_z;
+    hw_vehicle_struct_[0].current_state_.position_z = hw_vehicle_struct_[0].command_state_.position_z;
     hw_vehicle_struct_[0].current_state_.orientation_w = hw_vehicle_struct_[0].command_state_.orientation_w;
     hw_vehicle_struct_[0].current_state_.orientation_x = hw_vehicle_struct_[0].command_state_.orientation_x;
     hw_vehicle_struct_[0].current_state_.orientation_y = hw_vehicle_struct_[0].command_state_.orientation_y;
@@ -456,7 +464,7 @@ namespace ros2_control_blue_reach_5
       transform.header.stamp = time;
       transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
       transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;
-      transform.transform.translation.z = hw_vehicle_struct_[0].current_state_.position_z;
+      transform.transform.translation.z = -hw_vehicle_struct_[0].current_state_.position_z;
 
       transform.transform.rotation.x = q_new.x();
       transform.transform.rotation.y = q_new.y();
