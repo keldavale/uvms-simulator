@@ -71,7 +71,7 @@
         <state_interface name="current"/>
       </joint>
 
-      <gpio name="${prefix}_IOs">
+      <gpio name="${prefix}IOs">
         <command_interface name="position.x"/>
         <command_interface name="position.y"/>
         <command_interface name="position.z"/>

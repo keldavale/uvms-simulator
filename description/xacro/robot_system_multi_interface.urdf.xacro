@@ -3,35 +3,78 @@
 
   <!-- Enable setting arguments from the launch file -->
   <xacro:arg name="use_mock_hardware" default="true"/>
-  <xacro:arg name="prefix" default="alpha" />
+  <xacro:arg name="robot_count" default="1"/>
   <xacro:arg name="serial_port" default="/dev/ttyUSB0"/>
   <xacro:arg name="state_update_frequency" default="250"/>
-    <!-- Properties -->
-  <xacro:property name="description_package" value="ros2_control_blue_reach_5" />
-  <xacro:property name="prefix" value="$(arg prefix)" />
+  <xacro:arg name="description_package" default="ros2_control_blue_reach_5"/>
+  <!-- Properties -->
+  <xacro:property name="description_package" value="$(arg description_package)"/>
+  <xacro:property name="robot_count" value="$(arg robot_count)"/>
+  <xacro:property name="serial_port" value="$(arg serial_port)"/>
+  <xacro:property name="state_update_frequency" value="$(arg state_update_frequency)"/>
+  <xacro:property name="use_mock_hardware" value="$(arg use_mock_hardware)"/>
+
+  <!-- Define constants -->
+  <xacro:property name="d_min" value="1.0"/>
 
   <!-- Imports -->
- <xacro:include filename="$(find ${description_package})/xacro/urdf.xacro"/>
+  <xacro:include filename="$(find ros2_control_blue_reach_5)/xacro/world.xacro"/>
+  <xacro:include filename="$(find ${description_package})/xacro/urdf.xacro"/>
   <!-- Import RRBot ros2_control description -->
   <xacro:include filename="$(find ${description_package})/ros2_control/robot_system_multi_interface.ros2_control.xacro" />
   <!-- Import RRBot ros2_control description -->
   <xacro:include filename="$(find ${description_package})/ros2_control/vehicle_system_multi_interface.ros2_control.xacro" />
-  
-  <xacro:bluerov2_heavy_alpha_urdf
-    prefix="${prefix}"/>
 
-  <xacro:robot_system_multi_interface
-    name="ReachSystemMultiInterface"
-    prefix="$(arg prefix)"
-    serial_port="$(arg serial_port)"
-    state_update_frequency="$(arg state_update_frequency)"
-    use_mock_hardware="$(arg use_mock_hardware)"/>
+  <!-- Instantiate the world -->
+  <xacro:sim_world/>
 
-  <xacro:vehicle_system_multi_interface
-    name="BlueSystemMultiInterface"
-    prefix="$(arg prefix)"
-    serial_port="$(arg serial_port)"
-    state_update_frequency="$(arg state_update_frequency)"
-    use_mock_hardware="$(arg use_mock_hardware)"/>
+  <!-- Recursive Macro Definition -->
+  <xacro:macro name="instantiate_robots" params="index count">
+    <xacro:if value="${index &lt; count}">
+      <!-- Generate prefix for the current robot -->
+      <xacro:property name="prefix" value="robot_${index + 1}_"/>
+
+      <!-- Compute positions and orientations -->
+      <xacro:property name="angle" value="${2 * pi * index / count}"/>
+      <!-- Compute circumference and radius -->
+      <xacro:property name="circumference" value="${count * d_min}"/>
+      <xacro:property name="radius" value="${circumference / (2 * pi)}"/>
+      <xacro:property name="x_pos" value="${radius * cos(angle)}"/>
+      <xacro:property name="y_pos" value="${radius * sin(angle)}"/>
+
+      <!-- Instantiate the robot -->
+      <xacro:bluerov2_heavy_alpha_urdf
+        prefix="${prefix}"
+        x="${x_pos}"
+        y="${y_pos}"
+        z="0.0"
+        rot_r="0.0"
+        rot_p="0.0"
+        rot_y="${angle}"/>
+
+
+    <xacro:robot_system_multi_interface
+      name="ReachSystemMultiInterface"
+      prefix="${prefix}"
+      serial_port="${serial_port}"
+      state_update_frequency="${state_update_frequency}"
+      use_mock_hardware="${use_mock_hardware}"/>
+
+    <xacro:vehicle_system_multi_interface
+      name="BlueSystemMultiInterface"
+      prefix="${prefix}"
+      serial_port="${serial_port}"
+      state_update_frequency="${state_update_frequency}"
+      use_mock_hardware="${use_mock_hardware}"/>
+      
+      <!-- Recursively call the macro for the next robot -->
+      <xacro:instantiate_robots index="${index + 1}" count="${count}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <!-- Start the robot instantiation recursion -->
+  <xacro:instantiate_robots index="0" count="${int(robot_count)}"/>
+
+
 
 </robot>

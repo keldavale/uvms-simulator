@@ -1,85 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="bluerov2_heavy_alpha_urdf" params="prefix">
-
-    <!-- world origin -->
-    <link name="world">
-        <visual>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
-        <geometry>
-            <cylinder radius="0.06" length="0.09"/>
-        </geometry>
-        </visual>
-    </link>
-
-    <link name="world_bottom"/>
-
-    <link name="bathymetry_shipwreck">
-      <visual>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
-        <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/manhomansett.stl" scale="5 5 5"/>
-        </geometry>
-        <material name="gray">
-          <color rgba="0.5 0.5 0.5 1.0"/>
-        </material>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
-        <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/manhomansett.stl" scale="5 5 5"/>
-        </geometry>
-      </collision>
-    </link>
-
-    <!-- <link name="bathymetry_seafloor">
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/hawaii.stl" scale="0.4 0.4 0.4"/>
-        </geometry>
-        <material name="gray">
-          <color rgba="0.5 0.5 0.5 1.0"/>
-        </material>
-      </visual>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <geometry>
-          <mesh filename="file://$(find ros2_control_blue_reach_5)/Bathymetry/meshes/hawaii.stl" scale="0.4 0.4 0.4"/>
-        </geometry>
-      </collision>
-    </link> -->
-
-
-    <joint name="world_bottom_joint" type="fixed">
-      <child link="world_bottom" />
-      <parent link="world" />
-      <origin xyz="0.0 0.0 -8.0" rpy="0 0 0"/>
-    </joint>
-
-    <!-- <joint name="bathymetry_seafloor_joint" type="fixed">
-      <child link="bathymetry_seafloor"/>
-      <parent link="world_bottom" />
-      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
-    </joint> -->
-
-   <joint name="bathymetry_shipwreck_joint" type="fixed">
-      <child link="bathymetry_shipwreck" />
-      <parent link="world_bottom" />
-      <origin xyz="-15.0 -6.0 -1.0" rpy="0 0 0"/>
-    </joint>
-
-    <!-- Robot body origin -->
-    <link name="base_link"/>    
-
-    <joint name="world_joint" type="fixed">
-      <child link="base_link" />
-      <parent link="world" />
-      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
-    </joint>
-
-
+  <xacro:macro name="bluerov2_heavy_alpha_urdf" params="prefix x:=0.0 y:=0.0 z:=2.0 rot_r:=0.0 rot_p:=0.0 rot_y:=0.0">
 
     <link name="${prefix}manipulator_mount_link">
       <visual>
@@ -145,7 +67,7 @@
     <joint name="${prefix}base_joint" type="fixed">
       <child link="${prefix}base_link" />
       <parent link="base_link" />
-      <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+      <origin xyz="${x} ${y} ${z}" rpy="${rot_r} ${rot_p} ${rot_y}"/>
     </joint>
 
     <joint name="${prefix}manipulator_mount_joint" type="fixed">
@@ -166,12 +88,12 @@
 
 
     <!-- Instantiate the Alpha -->
-    <xacro:alpha_5 parent="${prefix}manipulator_mount_link" name="$(arg prefix)">
+    <xacro:alpha_5 parent="${prefix}manipulator_mount_link" name="${prefix}">
     <origin xyz="0 0 0" rpy="${pi} 0 0" />
     </xacro:alpha_5> 
 
     <!-- Instantiate the BlueROV2 -->
-    <xacro:bluerov2_heavy_reach_urdf prefix="$(arg prefix)" />
+    <xacro:bluerov2_heavy_reach_urdf prefix="${prefix}"/>
 
   </xacro:macro>
 

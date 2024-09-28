@@ -7,7 +7,7 @@
             <child link="${name}_base_link" />
         </joint>
         
-        <material name="alpha_black">
+        <material name="${name}_black">
             <color rgba="0.3 0.3 0.3 1"/>
         </material>
         <link name="${name}_base_link"/>
@@ -22,7 +22,7 @@
                     <mesh filename="file://$(find ros2_control_blue_reach_5)/alpha/meshes/M3-INLINE.stl"/>
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0"/>
-                <material name="alpha_black"/>
+                <material name="${name}_black"/>
             </visual>
             <collision>
                 <geometry>
@@ -57,12 +57,13 @@
                 <origin rpy="0 0 0" xyz="0 0 0.000" />
             </collision>
         </link>
+
         <joint name="${name}_axis_e" type="revolute">
             <parent link="${name}_m3_inline_link"/>
             <child link="${name}_m2_1_1_link"/>
             <origin xyz="0 0 0.014"/>
             <axis xyz="0 0 1"/>
-            <limit effort="9.0" lower="0.0" upper="6.3" velocity="0.5"/>
+            <limit effort="9.0" lower="0.0" upper="5.7" velocity="0.5"/>
         </joint>
         <link name="${name}_m2_joint_link">
             <inertial>
@@ -97,12 +98,13 @@
                 <origin rpy="1.5707 0 0" xyz="-0.040 0 -0.1453" />
             </collision>
         </link>
+
         <joint name="${name}_axis_d" type="revolute">
             <parent link="${name}_m2_1_1_link"/>
             <child link="${name}_m2_joint_link"/>
             <origin xyz="-0.02 0 0.033"/>
             <axis xyz="0 1 0"/>
-            <limit effort="9.0" lower="0.0" upper="3.8" velocity="0.5"/>
+            <limit effort="9.0" lower="1.5" upper="3.4" velocity="0.5"/>
         </joint>
         <link name="${name}_m2_1_2_link">
             <inertial>
@@ -125,12 +127,13 @@
                 <origin rpy="0 0 0" xyz="0.02 0 0.0165" />
             </collision>
         </link>
+
         <joint name="${name}_axis_c" type="revolute">
             <parent link="${name}_m2_joint_link"/>
             <child link="${name}_m2_1_2_link"/>
             <origin xyz="-0.04 0 -0.1453" rpy="0 0 3.14159"/>
             <axis xyz="0 1 0"/>
-            <limit effort="9.0" lower="0.0" upper="3.5" velocity="0.5"/>
+            <limit effort="9.0" lower="0.2" upper="3.4" velocity="0.5"/>
         </joint>
         <link name="${name}_m1_link">
             <inertial>
@@ -158,7 +161,7 @@
             <child link="${name}_m1_link"/>
             <origin xyz="0.02 0 0.033" rpy="0 0 2.09439"/>
             <axis xyz="0 0 -1"/>
-            <limit effort="9.0" lower="0.0" upper="6.2" velocity="0.5"/>
+            <limit effort="9.0" lower="0.0" upper="5.7" velocity="0.5"/>
         </joint>
         <material name="${name}_jaws_black">
             <color rgba="0.3 0.3 0.3 1"/>
