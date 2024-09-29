@@ -67,7 +67,7 @@
    <joint name="bathymetry_shipwreck_joint" type="fixed">
       <child link="bathymetry_shipwreck" />
       <parent link="world_bottom" />
-      <origin xyz="-15.0 -6.0 -1.0" rpy="0 0 0"/>
+      <origin xyz="15.0 -6.0 -1.0" rpy="0 0 0"/>
     </joint>
 
     <!-- Robot world origin -->

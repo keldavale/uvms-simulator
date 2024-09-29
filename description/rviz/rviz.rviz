@@ -5,8 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Grid1/Offset1
-        - /RobotModel1
-        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.6844444274902344
     Tree Height: 734
@@ -63,126 +61,126 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        alpha_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        alpha_jaws_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        alpha_m1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_m2_1_1_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_m2_1_2_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_m2_joint_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_m3_inline_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_push_rod:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        alpha_standard_jaws_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_standard_jaws_rs1_130_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alpha_standard_jaws_rs1_139_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphaballast_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphabase_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphacamera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        alphacamera_mount_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        alphamanipulator_mount_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster7:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        alphathruster8:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
         bathymetry_shipwreck:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_1__jaws_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_1__m1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__m2_1_1_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__m2_1_2_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__m2_joint_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__m3_inline_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__push_rod:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_1__standard_jaws_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__standard_jaws_rs1_130_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1__standard_jaws_rs1_139_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_ballast_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_1_camera_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        robot_1_manipulator_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robot_1_thruster8:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -229,57 +227,57 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        alpha_base_link:
-          Value: false
-        alpha_jaws_base_link:
-          Value: false
-        alpha_m1_link:
-          Value: false
-        alpha_m2_1_1_link:
-          Value: false
-        alpha_m2_1_2_link:
-          Value: false
-        alpha_m2_joint_link:
-          Value: false
-        alpha_m3_inline_link:
-          Value: false
-        alpha_push_rod:
-          Value: false
-        alpha_standard_jaws_base_link:
-          Value: true
-        alpha_standard_jaws_rs1_130_link:
-          Value: false
-        alpha_standard_jaws_rs1_139_link:
-          Value: false
-        alphaballast_link:
-          Value: false
-        alphabase_link:
-          Value: false
-        alphacamera_link:
-          Value: false
-        alphacamera_mount_link:
-          Value: false
-        alphamanipulator_mount_link:
-          Value: false
-        alphathruster1:
-          Value: false
-        alphathruster2:
-          Value: false
-        alphathruster3:
-          Value: false
-        alphathruster4:
-          Value: false
-        alphathruster5:
-          Value: false
-        alphathruster6:
-          Value: false
-        alphathruster7:
-          Value: false
-        alphathruster8:
-          Value: false
         base_link:
           Value: true
         bathymetry_shipwreck:
+          Value: true
+        robot_1__base_link:
+          Value: true
+        robot_1__jaws_base_link:
+          Value: true
+        robot_1__m1_link:
+          Value: true
+        robot_1__m2_1_1_link:
+          Value: true
+        robot_1__m2_1_2_link:
+          Value: true
+        robot_1__m2_joint_link:
+          Value: true
+        robot_1__m3_inline_link:
+          Value: true
+        robot_1__push_rod:
+          Value: true
+        robot_1__standard_jaws_base_link:
+          Value: true
+        robot_1__standard_jaws_rs1_130_link:
+          Value: true
+        robot_1__standard_jaws_rs1_139_link:
+          Value: true
+        robot_1_ballast_link:
+          Value: true
+        robot_1_base_link:
+          Value: true
+        robot_1_camera_link:
+          Value: true
+        robot_1_camera_mount_link:
+          Value: true
+        robot_1_manipulator_mount_link:
+          Value: true
+        robot_1_thruster1:
+          Value: true
+        robot_1_thruster2:
+          Value: true
+        robot_1_thruster3:
+          Value: true
+        robot_1_thruster4:
+          Value: true
+        robot_1_thruster5:
+          Value: true
+        robot_1_thruster6:
+          Value: true
+        robot_1_thruster7:
+          Value: true
+        robot_1_thruster8:
           Value: true
         world:
           Value: true
@@ -293,42 +291,42 @@ Visualization Manager:
       Tree:
         world:
           base_link:
-            alphabase_link:
-              alphaballast_link:
+            robot_1_base_link:
+              robot_1_ballast_link:
                 {}
-              alphacamera_mount_link:
-                alphacamera_link:
+              robot_1_camera_mount_link:
+                robot_1_camera_link:
                   {}
-              alphamanipulator_mount_link:
-                alpha_base_link:
-                  alpha_m3_inline_link:
-                    alpha_m2_1_1_link:
-                      alpha_m2_joint_link:
-                        alpha_m2_1_2_link:
-                          alpha_m1_link:
-                            alpha_jaws_base_link:
-                              alpha_push_rod:
+              robot_1_manipulator_mount_link:
+                robot_1__base_link:
+                  robot_1__m3_inline_link:
+                    robot_1__m2_1_1_link:
+                      robot_1__m2_joint_link:
+                        robot_1__m2_1_2_link:
+                          robot_1__m1_link:
+                            robot_1__jaws_base_link:
+                              robot_1__push_rod:
                                 {}
-                              alpha_standard_jaws_base_link:
-                                alpha_standard_jaws_rs1_130_link:
+                              robot_1__standard_jaws_base_link:
+                                robot_1__standard_jaws_rs1_130_link:
                                   {}
-                                alpha_standard_jaws_rs1_139_link:
+                                robot_1__standard_jaws_rs1_139_link:
                                   {}
-              alphathruster1:
+              robot_1_thruster1:
                 {}
-              alphathruster2:
+              robot_1_thruster2:
                 {}
-              alphathruster3:
+              robot_1_thruster3:
                 {}
-              alphathruster4:
+              robot_1_thruster4:
                 {}
-              alphathruster5:
+              robot_1_thruster5:
                 {}
-              alphathruster6:
+              robot_1_thruster6:
                 {}
-              alphathruster7:
+              robot_1_thruster7:
                 {}
-              alphathruster8:
+              robot_1_thruster8:
                 {}
           world_bottom:
             bathymetry_shipwreck:
@@ -446,7 +444,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.443613052368164
+      Distance: 18.63246726989746
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -461,10 +459,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1402052640914917
+      Pitch: 0.450204998254776
       Target Frame: base_link
       Value: Orbit (rviz)
-      Yaw: 0.43628621101379395
+      Yaw: 0.8944679498672485
     Saved: ~
 Window Geometry:
   Displays:

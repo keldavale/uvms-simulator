@@ -3,29 +3,14 @@ controller_manager:
     update_rate: 150  #Hz
     is_async: True
 
-    forward_position_controller:
-      type: position_controllers/JointGroupPositionController
-
-    forward_velocity_controller:
-      type: velocity_controllers/JointGroupVelocityController
-
-    forward_current_controller:
-      type: forward_command_controller/ForwardCommandController
-
-    forward_effort_controller:
-      type: forward_command_controller/ForwardCommandController
-
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    fts_broadcaster:
+    fts_broadcaster_1:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
-    imu_broadcaster:
+    imu_broadcaster_1:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
-
-    range_broadcaster:
-      type: range_sensor_broadcaster/RangeSensorBroadcaster
 
     uvms_controller:
       type: uvms_controller/UvmsController
@@ -38,9 +23,6 @@ uvms_controller:
   ros__parameters:
     agents:
       - bluerov_alpha_1
-      - bluerov_alpha_2
-      - bluerov_alpha_3
-      - bluerov_alpha_4
 
     joints:
       - floating_base
@@ -52,21 +34,6 @@ uvms_controller:
 
     bluerov_alpha_1:
       prefix: "robot_1_"
-      base_TF_translation: [0.140, 0.000, -0.120]
-      base_TF_rotation: [3.142, 0.000, 0.000]
-
-    bluerov_alpha_2:
-      prefix: "robot_2_"
-      base_TF_translation: [0.140, 0.000, -0.120]
-      base_TF_rotation: [3.142, 0.000, 0.000]
-
-    bluerov_alpha_3:
-      prefix: "robot_3_"
-      base_TF_translation: [0.140, 0.000, -0.120]
-      base_TF_rotation: [3.142, 0.000, 0.000]
-
-    bluerov_alpha_4:
-      prefix: "robot_4_"
       base_TF_translation: [0.140, 0.000, -0.120]
       base_TF_rotation: [3.142, 0.000, 0.000]
 
@@ -130,7 +97,7 @@ uvms_controller:
       acceleration_command_interface: ["acceleration"]
       effort_command_interface: [effort]
 
-fts_broadcaster:
+fts_broadcaster_1:
   ros__parameters:
     frame_id: "robot_1_base_link"
     interface_names:
@@ -143,11 +110,10 @@ fts_broadcaster:
         y: "robot_1_IOs/torque.y"
         z: "robot_1_IOs/torque.z"
 
-imu_broadcaster:
+imu_broadcaster_1:
   ros__parameters:
     frame_id: "robot_1_base_link"
     sensor_name: "robot_1_IOs"
-
 
 joint_state_broadcaster:
   ros__parameters:
