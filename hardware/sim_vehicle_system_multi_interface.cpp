@@ -29,6 +29,7 @@
 #include <cstring>
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include <random>
 
 using namespace casadi;
 
@@ -49,23 +50,35 @@ namespace ros2_control_blue_reach_5
     {
       return hardware_interface::CallbackReturn::ERROR;
     }
+    // Access the name from the HardwareInfo
+    system_name = info.name;
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "System name: %s", system_name.c_str());
+
+    cfg_.frame_id = info_.hardware_parameters["frame_id"];
+    cfg_.child_frame_id = info_.hardware_parameters["child_frame_id"];
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", cfg_.frame_id.c_str());
+    RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", cfg_.child_frame_id.c_str());
 
     // Print the CasADi version
     std::string casadi_version = CasadiMeta::version();
     RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
     RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
-    // Use CasADi's "external" to load the compiled dynamics functions
-    // dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
-    // dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
+
     hw_vehicle_struct_.resize(1);
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis_x(-5.0, 5.0);
+    std::uniform_real_distribution<> dis_y(-5.0, 5.0);
+    std::uniform_real_distribution<> dis_z(3.0, 7.0);
+
     blue::dynamics::Vehicle::Pose_vel initial_state{
-        0.0, 0.0, 2.5,      // Position: x, y, z
-        1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
-        0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
-        0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
-        0.0, 0.0, 0.0,      // Forces: Fx, Fy, Fz
-        0.0, 0.0, 0.0       // Torques: Tx, Ty, Tz
+        dis_x(gen), dis_y(gen), dis_z(gen), // Randomized position: x, y, z
+        1.0, 0.0, 0.0, 0.0,                 // Orientation: qw, qx, qy, qz
+        0.0, 0.0, 0.0,                      // Linear velocities: vx, vy, vz
+        0.0, 0.0, 0.0,                      // Angular velocities: wx, wy, wz
+        0.0, 0.0, 0.0,                      // Forces: Fx, Fy, Fz
+        0.0, 0.0, 0.0                       // Torques: Tx, Ty, Tz
     };
 
     hw_vehicle_struct_[0].set_vehicle_name("blue ROV heavy 0", initial_state);
@@ -121,7 +134,12 @@ namespace ros2_control_blue_reach_5
     // setup realtime buffers, ROS publishers ...
     try
     {
-      auto node_topics_interface = rclcpp::Node("SimVehicleSystemMultiInterfaceHardware");
+      // Create a shared pointer to the node
+      auto node_topics_interface = std::make_shared<rclcpp::Node>(system_name);
+
+      // Retrieve the node name and log it
+      RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
+                  "publisher node name: %s", node_topics_interface->get_name());
 
       // tf publisher
       odometry_transform_publisher_ = rclcpp::create_publisher<tf2_msgs::msg::TFMessage>(node_topics_interface,
@@ -138,8 +156,8 @@ namespace ros2_control_blue_reach_5
 
       auto &odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
       odometry_transform_message.transforms.resize(1);
-      odometry_transform_message.transforms.front().header.frame_id = "world";
-      odometry_transform_message.transforms.front().child_frame_id = "base_link";
+      odometry_transform_message.transforms.front().header.frame_id = cfg_.frame_id;
+      odometry_transform_message.transforms.front().child_frame_id = cfg_.child_frame_id;
     }
     catch (const std::exception &e)
     {

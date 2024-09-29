@@ -38,6 +38,9 @@ uvms_controller:
   ros__parameters:
     agents:
       - bluerov_alpha_1
+      - bluerov_alpha_2
+      - bluerov_alpha_3
+      - bluerov_alpha_4
 
     joints:
       - floating_base
@@ -49,6 +52,21 @@ uvms_controller:
 
     bluerov_alpha_1:
       prefix: "robot_1_"
+      base_TF_translation: [0.140, 0.000, -0.120]
+      base_TF_rotation: [3.142, 0.000, 0.000]
+
+    bluerov_alpha_2:
+      prefix: "robot_2_"
+      base_TF_translation: [0.140, 0.000, -0.120]
+      base_TF_rotation: [3.142, 0.000, 0.000]
+
+    bluerov_alpha_3:
+      prefix: "robot_3_"
+      base_TF_translation: [0.140, 0.000, -0.120]
+      base_TF_rotation: [3.142, 0.000, 0.000]
+
+    bluerov_alpha_4:
+      prefix: "robot_4_"
       base_TF_translation: [0.140, 0.000, -0.120]
       base_TF_rotation: [3.142, 0.000, 0.000]
 

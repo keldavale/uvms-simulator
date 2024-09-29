@@ -52,7 +52,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
-
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
@@ -60,6 +59,13 @@ namespace ros2_control_blue_reach_5
 
     class SimVehicleSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
     {
+
+        struct Config
+        {
+            // Parameters for the vehicle simulation
+            std::string frame_id;
+            std::string child_frame_id;
+        };
 
     public:
         RCLCPP_SHARED_PTR_DEFINITIONS(SimVehicleSystemMultiInterfaceHardware);
@@ -109,6 +115,7 @@ namespace ros2_control_blue_reach_5
             const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
     private:
+        Config cfg_;
         // Enum defining at which control level we are
         // maintaining the command_interface type per thruster.
         enum mode_level_t : std::uint8_t
@@ -130,6 +137,7 @@ namespace ros2_control_blue_reach_5
 
         // Store the state & commands for the robot vehicle
         std::vector<blue::dynamics::Vehicle> hw_vehicle_struct_;
+        std::string system_name;
 
         // stores the dynamic response from the forward dynamics simulator
         std::vector<double> forward_dynamics_res;

@@ -3,7 +3,7 @@
 
   <!-- Enable setting arguments from the launch file -->
   <xacro:arg name="use_mock_hardware" default="true"/>
-  <xacro:arg name="robot_count" default="1"/>
+  <xacro:arg name="robot_count" default="4"/>
   <xacro:arg name="serial_port" default="/dev/ttyUSB0"/>
   <xacro:arg name="state_update_frequency" default="250"/>
   <xacro:arg name="description_package" default="ros2_control_blue_reach_5"/>
@@ -54,18 +54,20 @@
 
 
     <xacro:robot_system_multi_interface
-      name="ReachSystemMultiInterface"
+      name="${prefix}ReachSystemMultiInterface"
       prefix="${prefix}"
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
       use_mock_hardware="${use_mock_hardware}"/>
 
     <xacro:vehicle_system_multi_interface
-      name="BlueSystemMultiInterface"
+      name="${prefix}BlueSystemMultiInterface"
       prefix="${prefix}"
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
-      use_mock_hardware="${use_mock_hardware}"/>
+      use_mock_hardware="${use_mock_hardware}"
+      frame_id="base_link"
+      child_frame_id="${prefix}base_link"/>
       
       <!-- Recursively call the macro for the next robot -->
       <xacro:instantiate_robots index="${index + 1}" count="${count}"/>
