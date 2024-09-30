@@ -387,14 +387,14 @@ Visualization Manager:
       Force Arrow Scale: 0.699999988079071
       Force Color: 204; 51; 51
       History Length: 1
-      Name: Wrench
+      Name: robot_Wrench_1
       Topic:
         Depth: 5
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /fts_broadcaster/wrench
+        Value: /fts_broadcaster_1/wrench
       Torque Arrow Scale: 0.699999988079071
       Torque Color: 204; 204; 51
       Value: true

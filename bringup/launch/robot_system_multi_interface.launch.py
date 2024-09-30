@@ -12,6 +12,49 @@ import os, yaml, xacro, copy
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
+
+
+def add_wrench_entries(rviz_config_path,new_rviz_config_path,robot_count:int=1)->None:
+    # Load the RViz configuration file
+    with open(rviz_config_path,'r') as file:
+        rviz_config = yaml.load(file,yaml.SafeLoader)
+    new_rviz_config = copy.deepcopy(rviz_config)
+
+    # The existing wrench configuration you want to replicate
+    original_wrench = {
+        'Accept NaN Values': False,
+        'Alpha': 1,
+        'Arrow Width': 0.3,
+        'Class': 'rviz_default_plugins/Wrench',
+        'Enabled': True,
+        'Force Arrow Scale': 0.7,
+        'Force Color': '204; 51; 51',
+        'History Length': 1,
+        'Name': 'Wrench',
+        'Torque Arrow Scale': 0.7,
+        'Torque Color': '204; 204; 51',
+        'Value': True
+    }
+    
+    # Add new Wrench entries with the incremented index in the 'Value' field
+    for i in range(2, robot_count + 1):  # Start index at 2 to avoid overwriting the original
+        new_wrench = original_wrench.copy()
+        new_wrench['Name'] = f'robot_Wrench_{i}'
+        new_wrench['Topic'] = {
+            'Depth': 5,
+            'Durability Policy': 'Volatile',
+            'Filter size': 10,
+            'History Policy': 'Keep Last',
+            'Reliability Policy': 'Reliable',
+            'Value': f'/fts_broadcaster_{i}/wrench'
+        }
+        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
+
+    with open(new_rviz_config_path,'w') as file:
+        yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
+
+
+
     
 def modify_controller_config(config_path,new_config_path,robot_count:int=1)->None:
         with open(config_path,'r') as file:
@@ -68,10 +111,8 @@ def modify_controller_config(config_path,new_config_path,robot_count:int=1)->Non
                 }
             }
 
-
-        new_controller_param = copy.deepcopy(new_param)
         with open(new_config_path,'w') as file:
-            yaml.dump(new_controller_param,file,Dumper=NoAliasDumper)
+            yaml.dump(new_param,file,Dumper=NoAliasDumper)
 
 
 
@@ -186,13 +227,28 @@ def launch_setup(context, *args, **kwargs):
         ]
     )
     # resolve PathJoinSubstitution to a string
-    robot_controllers_read_str = str(robot_controllers_read.perform(context))
-    robot_controllers_modified_str = str(robot_controllers_modified.perform(context))
-    modify_controller_config(robot_controllers_read_str, robot_controllers_modified_str, robot_count)
+    robot_controllers_read_file = str(robot_controllers_read.perform(context))
+    robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
+    modify_controller_config(robot_controllers_read_file, robot_controllers_modified_file, robot_count)
 
-    rviz_config_file = PathJoinSubstitution(
-        [FindPackageShare("ros2_control_blue_reach_5"), "rviz", "rviz.rviz"]
+    rviz_config_read = PathJoinSubstitution(
+        [
+            FindPackageShare("ros2_control_blue_reach_5"),
+            "rviz",
+            "rviz.rviz",
+        ]
     )
+    rviz_config_modified = PathJoinSubstitution(
+        [
+            FindPackageShare("ros2_control_blue_reach_5"),
+            "rviz",
+            "rviz_modified.rviz",
+        ]
+    )
+    # resolve PathJoinSubstitution to a string
+    rviz_config_read_file = str(rviz_config_read.perform(context))
+    rviz_config_modified_file = str(rviz_config_modified.perform(context))
+    add_wrench_entries(rviz_config_read_file, rviz_config_modified_file, robot_count)
 
     # Nodes Definitions
     robot_state_pub_node = Node(
@@ -207,7 +263,7 @@ def launch_setup(context, *args, **kwargs):
         executable="rviz2",
         name="rviz2",
         output="log",
-        arguments=["-d", rviz_config_file],
+        arguments=["-d", rviz_config_modified],
         condition=IfCondition(gui),
     )
 
@@ -296,7 +352,6 @@ def launch_setup(context, *args, **kwargs):
         run_plotjuggler,
         control_node,
         robot_state_pub_node,
-        # Removed individual additions of spawners
         delay_rviz_after_joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ] + spawner_nodes
