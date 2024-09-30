@@ -327,7 +327,7 @@ def launch_setup(context, *args, **kwargs):
     # Delay RViz start after `joint_state_broadcaster_spawner`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
+            target_action=fts_spawner,
             on_exit=[rviz_node],
         )
     )

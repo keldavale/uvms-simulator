@@ -426,7 +426,7 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
-      const rclcpp::Time &time, const rclcpp::Duration & /*period*/)
+      const rclcpp::Time &time, const rclcpp::Duration & period)
   {
     // RCLCPP_INFO(
     //     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
@@ -437,6 +437,12 @@ namespace ros2_control_blue_reach_5
     //     hw_vehicle_struct_[0].command_state_.Tx,
     //     hw_vehicle_struct_[0].command_state_.Ty,
     //     hw_vehicle_struct_[0].command_state_.Tz);
+    double dt = period.seconds();
+    for (std::size_t i = 0; i < info_.joints.size(); i++)
+    {
+      hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position = hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position + 60*dt;
+
+    }
 
     hw_vehicle_struct_[0].current_state_.position_x = hw_vehicle_struct_[0].command_state_.position_x;
     hw_vehicle_struct_[0].current_state_.position_y = hw_vehicle_struct_[0].command_state_.position_y;
