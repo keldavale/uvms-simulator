@@ -49,6 +49,7 @@
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
 
+#include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <casadi/casadi.hpp>
@@ -141,9 +142,16 @@ namespace ros2_control_blue_reach_5
         // stores the dynamic response from the forward dynamics simulator
         std::vector<double> forward_dynamics_res;
 
-        std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
-        std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
-            realtime_odometry_transform_publisher_;
+        using tf = tf2_msgs::msg::TFMessage;
+        using Odom = nav_msgs::msg::Odometry;
+
+        std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
+            realtime_transform_publisher_;
+
+        std::shared_ptr<rclcpp::Publisher<Odom>> odometry_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<Odom>>
+            realtime_transform_publisher_;
     };
 
 } // namespace ros2_control_blue

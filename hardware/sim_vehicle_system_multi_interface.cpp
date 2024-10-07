@@ -141,16 +141,16 @@ namespace ros2_control_blue_reach_5
                   "publisher node name: %s", node_topics_interface->get_name());
 
       // tf publisher
-      odometry_transform_publisher_ = rclcpp::create_publisher<tf2_msgs::msg::TFMessage>(node_topics_interface,
+      transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface,
                                                                                          DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-      realtime_odometry_transform_publisher_ =
-          std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
-              odometry_transform_publisher_);
+      realtime_transform_publisher_ =
+          std::make_shared<realtime_tools::RealtimePublisher<tf>>(
+              transform_publisher_);
 
-      auto &odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
-      odometry_transform_message.transforms.resize(1);
-      odometry_transform_message.transforms.front().header.frame_id = cfg_.frame_id;
-      odometry_transform_message.transforms.front().child_frame_id = cfg_.child_frame_id;
+      auto &transform_message = realtime_transform_publisher_->msg_;
+      transform_message.transforms.resize(1);
+      transform_message.transforms.front().header.frame_id = cfg_.frame_id;
+      transform_message.transforms.front().child_frame_id = cfg_.child_frame_id;
     }
     catch (const std::exception &e)
     {

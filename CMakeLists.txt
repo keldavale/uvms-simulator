@@ -20,6 +20,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_geometry_msgs
   sensor_msgs
   geometry_msgs
+  nav_msgs
+  nav2_msgs
 )
 
 # find dependencies
