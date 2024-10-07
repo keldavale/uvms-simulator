@@ -36,7 +36,6 @@ using namespace casadi;
 namespace
 {
   constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
-  constexpr auto DEFAULT_DVL_TOPIC = "/uvms/dvl";
 } // namespace
 
 namespace ros2_control_blue_reach_5
@@ -147,12 +146,6 @@ namespace ros2_control_blue_reach_5
       realtime_odometry_transform_publisher_ =
           std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
               odometry_transform_publisher_);
-
-      uv_dvl_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::Twist>(node_topics_interface,
-                                                                              DEFAULT_DVL_TOPIC, rclcpp::SystemDefaultsQoS());
-      realtime_uv_dvl_publisher_ =
-          std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>(
-              uv_dvl_publisher_);
 
       auto &odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
       odometry_transform_message.transforms.resize(1);
@@ -495,18 +488,6 @@ namespace ros2_control_blue_reach_5
       transform.transform.rotation.z = q_new.z();
       transform.transform.rotation.w = q_new.w();
       realtime_odometry_transform_publisher_->unlockAndPublish();
-    };
-
-    if (realtime_uv_dvl_publisher_ && realtime_uv_dvl_publisher_->trylock())
-    {
-      auto &dvl_message = realtime_uv_dvl_publisher_->msg_;
-      dvl_message.linear.x = hw_vehicle_struct_[0].current_state_.u;
-      dvl_message.linear.y = hw_vehicle_struct_[0].current_state_.v;
-      dvl_message.linear.z = hw_vehicle_struct_[0].current_state_.w;
-      dvl_message.angular.x = hw_vehicle_struct_[0].current_state_.p;
-      dvl_message.angular.y = hw_vehicle_struct_[0].current_state_.q;
-      dvl_message.angular.z = hw_vehicle_struct_[0].current_state_.r;
-      realtime_uv_dvl_publisher_->unlockAndPublish();
     };
 
     return hardware_interface::return_type::OK;
