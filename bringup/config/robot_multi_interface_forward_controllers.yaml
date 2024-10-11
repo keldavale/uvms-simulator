@@ -3,8 +3,17 @@ controller_manager:
     update_rate: 150  #Hz
     is_async: True
 
+    forward_effort_controller:
+      type: forward_command_controller/ForwardCommandController
+
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
+    fts_broadcaster_real:
+      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+
+    imu_broadcaster_real:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
     fts_broadcaster_1:
       type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
@@ -61,7 +70,7 @@ uvms_controller:
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       acceleration_command_interface: ["acceleration"]
-      effort_command_interface: [effort]
+      effort_command_interface: [current]
 
     joint1:
       name : "{prefix}_axis_d"
@@ -71,7 +80,7 @@ uvms_controller:
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       acceleration_command_interface: ["acceleration"]
-      effort_command_interface: [effort]
+      effort_command_interface: [current]
 
     joint2:
       name : "{prefix}_axis_c"
@@ -81,7 +90,7 @@ uvms_controller:
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       acceleration_command_interface: ["acceleration"]
-      effort_command_interface: [effort]
+      effort_command_interface: [current]
 
     joint3:
       name : "{prefix}_axis_b"
@@ -91,7 +100,7 @@ uvms_controller:
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       acceleration_command_interface: ["acceleration"]
-      effort_command_interface: [effort]
+      effort_command_interface: [current]
       
     endeffector:
       name : "{prefix}_axis_a"
@@ -101,7 +110,25 @@ uvms_controller:
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
       acceleration_command_interface: ["acceleration"]
-      effort_command_interface: [effort]
+      effort_command_interface: [current]
+
+fts_broadcaster_real:
+  ros__parameters:
+    frame_id: "real_base_link"
+    interface_names:
+      force:
+        x: "real_IOs/force.x"
+        y: "real_IOs/force.y"
+        z: "real_IOs/force.z"
+      torque:
+        x: "real_IOs/torque.x"
+        y: "real_IOs/torque.y"
+        z: "real_IOs/torque.z"
+
+imu_broadcaster_real:
+  ros__parameters:
+    frame_id: "real_base_link"
+    sensor_name: "real_IOs"
 
 fts_broadcaster_1:
   ros__parameters:
@@ -130,3 +157,13 @@ joint_state_broadcaster:
       acceleration: acceleration
       current: current
       stateId: stateId
+
+forward_effort_controller:
+  ros__parameters:
+    joints:
+      - real__axis_a
+      - real__axis_b
+      - real__axis_c
+      - real__axis_d
+      - real__axis_e
+    interface_name: effort

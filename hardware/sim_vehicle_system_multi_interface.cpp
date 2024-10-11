@@ -303,48 +303,48 @@ namespace ros2_control_blue_reach_5
       const std::vector<std::string> & /*stop_interfaces*/)
   {
     // Prepare for new command modes
-    std::vector<mode_level_t> new_modes = {};
+    // std::vector<mode_level_t> new_modes = {};
 
-    for (std::string key : start_interfaces)
-    {
-      for (std::size_t j = 0; j < info_.gpios[0].command_interfaces.size(); j++)
-      {
-        std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
-        if (key == full_name)
-        {
-          if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_POSITION);
-          }
-          if (info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_POSITION);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_VELOCITY);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("acceleration") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_ACCELERATION);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("force") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
-          }
-          else if (info_.gpios[0].command_interfaces[j].name.find("torque") != std::string::npos)
-          {
-            new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
-          }
-        }
-      }
-    };
+    // for (std::string key : start_interfaces)
+    // {
+    //   for (std::size_t j = 0; j < info_.gpios[0].command_interfaces.size(); j++)
+    //   {
+    //     std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
+    //     if (key == full_name)
+    //     {
+    //       if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_POSITION);
+    //       }
+    //       if (info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_POSITION);
+    //       }
+    //       else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_VELOCITY);
+    //       }
+    //       else if (info_.gpios[0].command_interfaces[j].name.find("acceleration") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_ACCELERATION);
+    //       }
+    //       else if (info_.gpios[0].command_interfaces[j].name.find("force") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+    //       }
+    //       else if (info_.gpios[0].command_interfaces[j].name.find("torque") != std::string::npos)
+    //       {
+    //         new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
+    //       }
+    //     }
+    //   }
+    // };
 
-    //  criteria: All joints must be given new command mode at the same time
-    if (new_modes.size() != 25)
-    {
-      return hardware_interface::return_type::ERROR;
-    };
+    // //  criteria: All joints must be given new command mode at the same time
+    // if (new_modes.size() != 25)
+    // {
+    //   return hardware_interface::return_type::ERROR;
+    // };
     RCLCPP_INFO(
         rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Command Mode Switch successful");
     return hardware_interface::return_type::OK;

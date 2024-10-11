@@ -74,7 +74,9 @@ def modify_controller_config(config_path,new_config_path,robot_count:int=1)->Non
             new_param['uvms_controller']['ros__parameters'][agent_name] = {
                 'prefix': prefix,
                 'base_TF_translation': [0.140, 0.000, -0.120],
-                'base_TF_rotation': [3.142, 0.000, 0.000]
+                'base_TF_rotation': [3.142, 0.000, 0.000],
+                'claim_vehicle_interface': True,
+                'claim_manipulator_interface': True
             }
 
             # Add IMU sensor broadcaster
@@ -277,6 +279,14 @@ def launch_setup(context, *args, **kwargs):
     # Spawner Nodes
     spawner_nodes = []
 
+    # real robot forward controller Spawner
+    real_arm_control_node = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["forward_effort_controller", "--controller-manager", "/controller_manager"],
+    )
+    spawner_nodes.append(real_arm_control_node)
+
     # Joint State Broadcaster Spawner
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
@@ -303,6 +313,23 @@ def launch_setup(context, *args, **kwargs):
     )
     spawner_nodes.append(robot_controller_spawner)
 
+
+    # real FTS Spawner
+    real_fts_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[f'fts_broadcaster_real', "--controller-manager", "/controller_manager"],
+    )
+    spawner_nodes.append(real_fts_spawner)
+
+    # real IMU Spawner
+    real_imu_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[f'imu_broadcaster_real', "--controller-manager", "/controller_manager"],
+    )
+    spawner_nodes.append(real_imu_spawner)
+    
     # Spawn fts and imu broadcasters for each robot
     for i in range(1, robot_count + 1):
         fts_broadcaster_name = f'fts_broadcaster_{i}'
@@ -347,8 +374,14 @@ def launch_setup(context, *args, **kwargs):
         shell=True
     )
 
+    mouse_control = Node(
+        package='namor',
+        executable='mouse_node_effort'
+    )
+
     # Collect all nodes
     nodes = [
+        mouse_control,
         run_plotjuggler,
         control_node,
         robot_state_pub_node,
