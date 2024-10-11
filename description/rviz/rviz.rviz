@@ -460,7 +460,7 @@ Visualization Manager:
       Name: Current View
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.625204861164093
-      Target Frame: robot_1_base_link
+      Target Frame: real_base_link
       Value: Orbit (rviz)
       Yaw: 3.707653522491455
     Saved: ~

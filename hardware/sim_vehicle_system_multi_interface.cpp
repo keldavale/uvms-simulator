@@ -141,8 +141,7 @@ namespace ros2_control_blue_reach_5
                   "publisher node name: %s", node_topics_interface->get_name());
 
       // tf publisher
-      transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface,
-                                                                                         DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+      transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
       realtime_transform_publisher_ =
           std::make_shared<realtime_tools::RealtimePublisher<tf>>(
               transform_publisher_);
@@ -459,7 +458,7 @@ namespace ros2_control_blue_reach_5
     hw_vehicle_struct_[0].current_state_.Ty = hw_vehicle_struct_[0].command_state_.Ty;
     hw_vehicle_struct_[0].current_state_.Tz = hw_vehicle_struct_[0].command_state_.Tz;
 
-    if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
+    if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
     {
       // original pose in NED
       // RVIZ USES NWU
@@ -477,7 +476,7 @@ namespace ros2_control_blue_reach_5
       q_new = q_rot * q_orig;
       q_new.normalize();
 
-      auto &transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
+      auto &transform = realtime_transform_publisher_->msg_.transforms.front();
       transform.header.stamp = time;
       transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
       transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;
@@ -487,7 +486,7 @@ namespace ros2_control_blue_reach_5
       transform.transform.rotation.y = q_new.y();
       transform.transform.rotation.z = q_new.z();
       transform.transform.rotation.w = q_new.w();
-      realtime_odometry_transform_publisher_->unlockAndPublish();
+      realtime_transform_publisher_->unlockAndPublish();
     };
 
     return hardware_interface::return_type::OK;

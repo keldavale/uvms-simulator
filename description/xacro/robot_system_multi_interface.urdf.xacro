@@ -77,6 +77,30 @@
   <!-- Start the robot instantiation recursion -->
   <xacro:instantiate_robots index="0" count="${int(robot_count)}"/>
 
+  <!-- Instantiate the real robot -->
+  <xacro:bluerov2_heavy_alpha_urdf
+    prefix="real_"
+    x="0.0"
+    y="0.0"
+    z="0.0"
+    rot_r="0.0"
+    rot_p="0.0"
+    rot_y="0.0"/>
 
+  <xacro:robot_system_multi_interface
+    name="$real_ReachSystemMultiInterface"
+    prefix="real_"
+    serial_port="${serial_port}"
+    state_update_frequency="${state_update_frequency}"
+    use_mock_hardware="false"/>
+
+  <xacro:vehicle_system_multi_interface
+    name="real_BlueSystemMultiInterface"
+    prefix="real_"
+    serial_port="${serial_port}"
+    state_update_frequency="${state_update_frequency}"
+    use_mock_hardware="${use_mock_hardware}"
+    frame_id="base_link"
+    child_frame_id="real_base_link"/>
 
 </robot>

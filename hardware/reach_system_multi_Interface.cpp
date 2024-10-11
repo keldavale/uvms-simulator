@@ -50,11 +50,6 @@ namespace ros2_control_blue_reach_5
     dynamics_service.current2torqueMap = dynamics_service.load_casadi_fun("current_to_torque_map", "libC2T.so");
     dynamics_service.torque2currentMap = dynamics_service.load_casadi_fun("torque_to_current_map", "libT2C.so");
 
-    dynamics_service.inverse_dynamics = dynamics_service.load_casadi_fun("tau_eval", "libTau_MEval.so");
-
-    // dynamics_service.forward_dynamics = dynamics_service.load_casadi_fun("stochastic_model", "libAFnext.so");
-    // dynamics_service.pd_controller = dynamics_service.load_casadi_fun("pid", "libPD.so");
-
     cfg_.serial_port_ = info_.hardware_parameters["serial_port"];
     cfg_.state_update_freq_ = std::stoi(info_.hardware_parameters["state_update_frequency"]);
 
@@ -94,11 +89,11 @@ namespace ros2_control_blue_reach_5
       // ReachSystemMultiInterface has exactly 13 state interfaces
       // and 4 command interfaces on each joint
 
-      if (joint.command_interfaces.size() != 4)
+      if (joint.command_interfaces.size() != 5)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "Joint '%s' has %zu command interfaces. 4 expected.", joint.name.c_str(),
+            "Joint '%s' has %zu command interfaces. 5 expected.", joint.name.c_str(),
             joint.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -115,12 +110,12 @@ namespace ros2_control_blue_reach_5
     };
 
     // Add random ID to prevent warnings about multiple publishers within the same node
-    rclcpp::NodeOptions options;
-    options.arguments({"--ros-args", "-r", "__node:=topic_based_ros2_control_" + info_.name});
-    node_ = rclcpp::Node::make_shared("_", options);
-    topic_based_parameter_subscriber_ = node_->create_subscription<RefType>("/viscous_drag", rclcpp::SensorDataQoS(),
-                                                                            [this](const RefType::SharedPtr joint_state)
-                                                                            { latest_parameter_state_ = *joint_state; });
+    // rclcpp::NodeOptions options;
+    // options.arguments({"--ros-args", "-r", "__node:=topic_based_ros2_control_" + info_.name});
+    // node_ = rclcpp::Node::make_shared("_", options);
+    // topic_based_parameter_subscriber_ = node_->create_subscription<RefType>("/viscous_drag", rclcpp::SensorDataQoS(),
+    //                                                                         [this](const RefType::SharedPtr joint_state)
+    //                                                                         { latest_parameter_state_ = *joint_state; });
 
     return hardware_interface::CallbackReturn::SUCCESS;
   }
@@ -178,83 +173,6 @@ namespace ros2_control_blue_reach_5
     driver_.stop();
 
     return hardware_interface::CallbackReturn::SUCCESS;
-  }
-
-  hardware_interface::return_type ReachSystemMultiInterfaceHardware::prepare_command_mode_switch(
-      const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
-  {
-    RCLCPP_INFO( // NOLINT
-        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "preparing command mode switch");
-    // Prepare for new command modes
-    std::vector<mode_level_t> new_modes = {};
-
-    for (std::string key : start_interfaces)
-    {
-      for (std::size_t i = 0; i < info_.joints.size(); i++)
-      {
-
-        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
-        {
-          new_modes.push_back(mode_level_t::MODE_POSITION);
-        }
-        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
-        {
-          new_modes.push_back(mode_level_t::MODE_VELOCITY);
-        }
-        if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
-        {
-          new_modes.push_back(mode_level_t::MODE_CURRENT);
-        }
-        if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
-        {
-          new_modes.push_back(mode_level_t::MODE_EFFORT);
-        }
-      }
-    };
-
-    //  criteria: All joints must be given new command mode at the same time
-    if (new_modes.size() != info_.joints.size())
-    {
-      return hardware_interface::return_type::ERROR;
-    };
-
-    //  criteria: All joints must have the same command mode
-    if (!std::all_of(
-            new_modes.begin() + 1, new_modes.end(),
-            [&](mode_level_t mode)
-            { return mode == new_modes[0]; }))
-    {
-      return hardware_interface::return_type::ERROR;
-    }
-
-    // Stop motion on all relevant joints that are stopping
-    for (std::string key : stop_interfaces)
-    {
-      for (std::size_t i = 0; i < info_.joints.size(); i++)
-      {
-        if (key.find(info_.joints[i].name) != std::string::npos)
-        {
-          hw_joint_struct_[i].command_state_.velocity = 0;
-          hw_joint_struct_[i].command_state_.current = 0;
-          control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
-        }
-      }
-    }
-
-    // Set the new command modes
-    for (std::size_t i = 0; i < info_.joints.size(); i++)
-    {
-      if (control_level_[i] != mode_level_t::MODE_DISABLE)
-      {
-        // Something else is using the joint! Abort!
-        return hardware_interface::return_type::ERROR;
-      }
-      control_level_[i] = new_modes[i];
-    }
-    RCLCPP_INFO(
-        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
-    return hardware_interface::return_type::OK;
   }
 
   std::vector<hardware_interface::StateInterface>
@@ -332,12 +250,91 @@ namespace ros2_control_blue_reach_5
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_joint_struct_[i].command_state_.velocity));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_joint_struct_[i].command_state_.acceleration));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_joint_struct_[i].command_state_.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_joint_struct_[i].command_state_.effort));
     }
 
     return command_interfaces;
+  }
+
+  hardware_interface::return_type ReachSystemMultiInterfaceHardware::prepare_command_mode_switch(
+      const std::vector<std::string> &start_interfaces,
+      const std::vector<std::string> &stop_interfaces)
+  {
+    // RCLCPP_INFO( // NOLINT
+    //     rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "preparing command mode switch");
+    // // Prepare for new command modes
+    // std::vector<mode_level_t> new_modes = {};
+
+    // for (std::string key : start_interfaces)
+    // {
+    //   for (std::size_t i = 0; i < info_.joints.size(); i++)
+    //   {
+
+    //     if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_POSITION)
+    //     {
+    //       new_modes.push_back(mode_level_t::MODE_POSITION);
+    //     }
+    //     if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_VELOCITY)
+    //     {
+    //       new_modes.push_back(mode_level_t::MODE_VELOCITY);
+    //     }
+    //     if (key == info_.joints[i].name + "/" + custom_hardware_interface::HW_IF_CURRENT)
+    //     {
+    //       new_modes.push_back(mode_level_t::MODE_CURRENT);
+    //     }
+    //     if (key == info_.joints[i].name + "/" + hardware_interface::HW_IF_EFFORT)
+    //     {
+    //       new_modes.push_back(mode_level_t::MODE_EFFORT);
+    //     }
+    //   }
+    // };
+
+    // //  criteria: All joints must be given new command mode at the same time
+    // if (new_modes.size() != info_.joints.size())
+    // {
+    //   return hardware_interface::return_type::ERROR;
+    // };
+
+    // //  criteria: All joints must have the same command mode
+    // if (!std::all_of(
+    //         new_modes.begin() + 1, new_modes.end(),
+    //         [&](mode_level_t mode)
+    //         { return mode == new_modes[0]; }))
+    // {
+    //   return hardware_interface::return_type::ERROR;
+    // }
+
+    // // Stop motion on all relevant joints that are stopping
+    // for (std::string key : stop_interfaces)
+    // {
+    //   for (std::size_t i = 0; i < info_.joints.size(); i++)
+    //   {
+    //     if (key.find(info_.joints[i].name) != std::string::npos)
+    //     {
+    //       hw_joint_struct_[i].command_state_.velocity = 0;
+    //       hw_joint_struct_[i].command_state_.current = 0;
+    //       control_level_[i] = mode_level_t::MODE_DISABLE; // Revert to undefined
+    //     }
+    //   }
+    // }
+
+    // // Set the new command modes
+    // for (std::size_t i = 0; i < info_.joints.size(); i++)
+    // {
+    //   if (control_level_[i] != mode_level_t::MODE_DISABLE)
+    //   {
+    //     // Something else is using the joint! Abort!
+    //     return hardware_interface::return_type::ERROR;
+    //   }
+    //   control_level_[i] = new_modes[i];
+    // }
+    RCLCPP_INFO(
+        rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Command Mode Switch successful");
+    return hardware_interface::return_type::OK;
   }
 
   hardware_interface::CallbackReturn ReachSystemMultiInterfaceHardware::on_activate(
@@ -380,23 +377,18 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::read(
-      const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+      const rclcpp::Time & /*time*/, const rclcpp::Duration &period)
   {
+    double delta_seconds = period.seconds();
     // Get access to the real-time states
     const std::lock_guard<std::mutex> lock(access_async_states_);
-
-    if (rclcpp::ok())
+    for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
-      rclcpp::spin_some(node_);
-    }
-
-    // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "mhe size is %zu", latest_parameter_state_.data.size());
-
-    // if (latest_parameter_state_.data.size() == 8)
-    // {
-    //   drag = latest_parameter_state_.data;
-    // };
-
+      double prev_velocity_ = hw_joint_struct_[i].current_state_.velocity;
+      hw_joint_struct_[i].current_state_.position = hw_joint_struct_[i].async_state_.position;
+      hw_joint_struct_[i].current_state_.velocity = hw_joint_struct_[i].async_state_.velocity;
+      hw_joint_struct_[i].current_state_.current = hw_joint_struct_[i].async_state_.current;
+    };
     return hardware_interface::return_type::OK;
   }
 
@@ -406,98 +398,95 @@ namespace ros2_control_blue_reach_5
     // Send the commands for each joint
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
-      switch (control_level_[i])
-      {
-      case mode_level_t::MODE_POSITION:
-        if (!std::isnan(hw_joint_struct_[i].command_state_.position))
-        {
-          // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
+      // switch (control_level_[i])
+      // {
+      // case mode_level_t::MODE_POSITION:
+      //   if (!std::isnan(hw_joint_struct_[i].command_state_.position))
+      //   {
+      //     // Get the target device
+      //     const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
-          // Get the target position; if the command is for the jaws, then convert from m to mm
-          const double target_position =
-              static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
-                  ? hw_joint_struct_[i].command_state_.position * 1000
-                  : hw_joint_struct_[i].command_state_.position;
-          driver_.setPosition(target_position, target_device);
-        }
-        break;
-      case mode_level_t::MODE_VELOCITY:
-        if (!std::isnan(hw_joint_struct_[i].command_state_.velocity))
-        {
-          // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
+      //     // Get the target position; if the command is for the jaws, then convert from m to mm
+      //     const double target_position =
+      //         static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
+      //             ? hw_joint_struct_[i].command_state_.position * 1000
+      //             : hw_joint_struct_[i].command_state_.position;
+      //     driver_.setPosition(target_position, target_device);
+      //   }
+      //   break;
+      // case mode_level_t::MODE_VELOCITY:
+      //   if (!std::isnan(hw_joint_struct_[i].command_state_.velocity))
+      //   {
+      //     // Get the target device
+      //     const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
-          // Get the target velocity; if the command is for the jaws, then convert from m/s to mm/s
-          const double target_velocity =
-              static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
-                  ? hw_joint_struct_[i].command_state_.velocity * 1000
-                  : hw_joint_struct_[i].command_state_.velocity;
-          // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%d size is %f", static_cast<int>(target_device), target_velocity);
+      //     // Get the target velocity; if the command is for the jaws, then convert from m/s to mm/s
+      //     const double target_velocity =
+      //         static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id) == alpha::driver::DeviceId::kLinearJaws
+      //             ? hw_joint_struct_[i].command_state_.velocity * 1000
+      //             : hw_joint_struct_[i].command_state_.velocity;
+      //     // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "%d size is %f", static_cast<int>(target_device), target_velocity);
 
-          driver_.setVelocity(target_velocity, target_device);
-        }
-        break;
-      case mode_level_t::MODE_CURRENT:
-        if (!std::isnan(hw_joint_struct_[i].command_state_.current))
-        {
-          // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
+      //     driver_.setVelocity(target_velocity, target_device);
+      //   }
+      //   break;
+      // case mode_level_t::MODE_CURRENT:
+      //   if (!std::isnan(hw_joint_struct_[i].command_state_.current))
+      //   {
+      //     // Get the target device
+      //     const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
-          // enforce hard limit;
-          const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(hw_joint_struct_[i].command_state_.current);
+      //     // enforce hard limit;
+      //     const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(hw_joint_struct_[i].command_state_.current);
 
-          driver_.setCurrent(enforced_target_current, target_device);
-          if (enforced_target_current == 0.0)
-          {
-            driver_.setVelocity(0.0, target_device); // incase of currents leak
-          };
-        }
-        break;
-      case mode_level_t::MODE_EFFORT:
-        if (!std::isnan(hw_joint_struct_[i].command_state_.effort))
-        {
-          if (hw_joint_struct_[i].command_state_.effort > 0)
-          {
-            T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
-                       DM(hw_joint_struct_[i].actuator_Properties_.forward_I_static),
-                       DM(hw_joint_struct_[i].command_state_.effort)};
-          }
-          else
-          {
-            T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
-                       DM(hw_joint_struct_[i].actuator_Properties_.backward_I_static),
-                       DM(hw_joint_struct_[i].command_state_.effort)};
-          }
+      //     driver_.setCurrent(enforced_target_current, target_device);
+      //     if (enforced_target_current == 0.0)
+      //     {
+      //       driver_.setVelocity(0.0, target_device); // incase of currents leak
+      //     };
+      //   }
+      //   break;
+      // case mode_level_t::MODE_EFFORT:
+      //   if (!std::isnan(hw_joint_struct_[i].command_state_.effort))
+      //   {
+      //     if (hw_joint_struct_[i].command_state_.effort > 0)
+      //     {
+      //       T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
+      //                  DM(hw_joint_struct_[i].actuator_Properties_.forward_I_static),
+      //                  DM(hw_joint_struct_[i].command_state_.effort)};
+      //     }
+      //     else
+      //     {
+      //       T2C_arg = {DM(hw_joint_struct_[i].actuator_Properties_.kt),
+      //                  DM(hw_joint_struct_[i].actuator_Properties_.backward_I_static),
+      //                  DM(hw_joint_struct_[i].command_state_.effort)};
+      //     }
 
-          std::vector<DM> currentMap = dynamics_service.torque2currentMap(T2C_arg);
+      //     std::vector<DM> currentMap = dynamics_service.torque2currentMap(T2C_arg);
 
-          // Get the target device
-          const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
+      //     // Get the target device
+      //     const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);
 
-          // enforce hard limit;
-          const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(currentMap.at(0).scalar());
-          // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "current from torque :::%f ", enforced_target_current);
-          driver_.setCurrent(enforced_target_current, target_device);
-          if (enforced_target_current == 0.0)
-          {
-            driver_.setVelocity(0.0, target_device); // incase of currents leak
-          };
-        }
-        break;
-      case mode_level_t::MODE_CARTESIAN:
-        RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "endeffector commanding");
-        break;
-      case mode_level_t::MODE_STANDBY:
-        // Handle standby mode if needed, or just break
-        break;
-      case mode_level_t::MODE_DISABLE:
-        // Handle disable mode if needed, or just break
-        break;
-      default:
-        // Existing code for default case...
-        break;
-      }
+      //     // enforce hard limit;
+      //     const double enforced_target_current = hw_joint_struct_[i].enforce_hard_limits(currentMap.at(0).scalar());
+      //     // RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "current from torque :::%f ", enforced_target_current);
+      //     driver_.setCurrent(enforced_target_current, target_device);
+      //     if (enforced_target_current == 0.0)
+      //     {
+      //       driver_.setVelocity(0.0, target_device); // incase of currents leak
+      //     };
+      //   }
+      //   break;
+      // case mode_level_t::MODE_STANDBY:
+      //   // Handle standby mode if needed, or just break
+      //   break;
+      // case mode_level_t::MODE_DISABLE:
+      //   // Handle disable mode if needed, or just break
+      //   break;
+      // default:
+      //   // Existing code for default case...
+      //   break;
+      // }
     }
     return hardware_interface::return_type::OK;
   }
