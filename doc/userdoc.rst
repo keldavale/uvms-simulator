@@ -57,7 +57,7 @@ Tutorial Steps
 
    - ``use_vehicle_hardware:=false``: Starts the simulator and connects to a real bluerov2 heavy underwater vehicle in the loop.
 
-   - ``sim_robot_count:=n``: Starts the simulator by spawning n number of underwater vehicle manipulator systems. Eg. ``sim_robot_count:=4``
+   - ``sim_robot_count:=n``: Starts the simulator by spawning n number of underwater vehicle manipulator systems. Example; ``sim_robot_count:=4``
 
    The launch file will load and start the robot hardware, controllers, and open *RViz*. You will see extensive output from the hardware implementation in the terminal, showing its internal states.
 
