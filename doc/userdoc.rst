@@ -56,9 +56,9 @@ Tutorial Steps
 
    Useful launch-file options:
 
-   - ``use_manipulator_hardware:=false``: Starts the simulator and connects to a real reach alpha hardware manipulator in the loop.
+   - ``use_manipulator_hardware:=false``: Starts the simulator and connects to a real reach alpha hardware manipulator in the loop. Default value is ``false``
 
-   - ``use_vehicle_hardware:=false``: Starts the simulator and connects to a real bluerov2 heavy underwater vehicle in the loop.
+   - ``use_vehicle_hardware:=false``: Starts the simulator and connects to a real bluerov2 heavy underwater vehicle in the loop. Default value is ``false``
 
    - ``sim_robot_count:=n``: Starts the simulator by spawning n number of underwater vehicle manipulator systems.
 
