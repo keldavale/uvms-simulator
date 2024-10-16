@@ -314,6 +314,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[f'fts_broadcaster_real', "--controller-manager", "/controller_manager"],
+        condition=IfCondition(use_manipulator_hardware or use_vehicle_hardware)
     )
     spawner_nodes.append(real_fts_spawner)
 
@@ -322,6 +323,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[f'imu_broadcaster_real', "--controller-manager", "/controller_manager"],
+        condition=IfCondition(use_manipulator_hardware or use_vehicle_hardware)
     )
     spawner_nodes.append(real_imu_spawner)
     
