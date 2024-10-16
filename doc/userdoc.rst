@@ -1,4 +1,4 @@
-:github_url: https://github.com/RKinDLab/Reach_alpha_Blue_heavy_Sim/blob/master/doc/userdoc.rst
+:github_url: https://github.com/edxmorgan/uvms-simulator/blob/main/doc/userdoc.rst
 
 .. _ros2_control_RA5BHS_userdoc:
 
