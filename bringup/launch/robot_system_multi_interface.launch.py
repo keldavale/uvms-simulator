@@ -14,7 +14,7 @@ class NoAliasDumper(yaml.SafeDumper):
         return True
 
 
-def add_wrench_entries(rviz_config_path,new_rviz_config_path,robot_count:int=1)->None:
+def add_wrench_entries(rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
     # Load the RViz configuration file
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
@@ -37,7 +37,7 @@ def add_wrench_entries(rviz_config_path,new_rviz_config_path,robot_count:int=1)-
     }
     
     # Add new Wrench entries with the incremented index in the 'Value' field
-    for i in range(2, robot_count + 1):  # Start index at 2 to avoid overwriting the original
+    for i in range(2, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
         new_wrench = original_wrench.copy()
         new_wrench['Name'] = f'robot_Wrench_{i}'
         new_wrench['Topic'] = {
@@ -56,12 +56,12 @@ def add_wrench_entries(rviz_config_path,new_rviz_config_path,robot_count:int=1)-
 
 
     
-def modify_controller_config(config_path,new_config_path,robot_count:int=1)->None:
+def modify_controller_config(config_path,new_config_path,sim_robot_count:int=1)->None:
         with open(config_path,'r') as file:
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
         
-        for i in range(2, robot_count + 1):
+        for i in range(2, sim_robot_count + 1):
             agent_name = f'bluerov_alpha_{i}'
             prefix = f'robot_{i}_'
             base_link = f'{prefix}base_link'
@@ -144,23 +144,25 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "use_mock_hardware",
-            default_value="true",
-            description="Start robot with mock hardware mirroring command to its states.",
+            "use_manipulator_hardware",
+            default_value="false",
+            description="Start simulation with a real manipulator hardware in the loop",
         )
     )
+
     declared_arguments.append(
         DeclareLaunchArgument(
-            "robot_count",
+            "use_vehicle_hardware",
+            default_value="false",
+            description="Start simulation with a real vehicle hardware in the loop",
+        )
+    )
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "sim_robot_count",
             default_value="1",
             description="Spawn with n numbers of robot agents",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "robot_controller",
-            default_value="forward_current_controller",
-            description="Robot controller to start.",
         )
     )
     declared_arguments.append(
@@ -176,12 +178,12 @@ def generate_launch_description():
 def launch_setup(context, *args, **kwargs):
     # Resolve LaunchConfigurations
     prefix = LaunchConfiguration("prefix").perform(context)
-    use_mock_hardware = LaunchConfiguration("use_mock_hardware").perform(context)
+    use_manipulator_hardware = LaunchConfiguration("use_manipulator_hardware").perform(context)
+    use_vehicle_hardware = LaunchConfiguration("use_vehicle_hardware").perform(context)
     serial_port = LaunchConfiguration("serial_port").perform(context)
     state_update_frequency = LaunchConfiguration("state_update_frequency").perform(context)
-    robot_controller = LaunchConfiguration("robot_controller").perform(context)
     gui = LaunchConfiguration("gui").perform(context)
-    robot_count = int(LaunchConfiguration("robot_count").perform(context))
+    sim_robot_count = int(LaunchConfiguration("sim_robot_count").perform(context))
 
     # Define the robot description command
     robot_description_content = Command(
@@ -205,11 +207,14 @@ def launch_setup(context, *args, **kwargs):
             "state_update_frequency:=",
             state_update_frequency,
             " ",
-            "use_mock_hardware:=",
-            use_mock_hardware,
+            "use_manipulator_hardware:=",
+            use_manipulator_hardware,
             " ",
-            "robot_count:=",
-            TextSubstitution(text=str(robot_count)),
+            "use_vehicle_hardware:=",
+            use_vehicle_hardware,
+            " ",
+            "sim_robot_count:=",
+            TextSubstitution(text=str(sim_robot_count)),
         ]
     )
 
@@ -231,7 +236,7 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     robot_controllers_read_file = str(robot_controllers_read.perform(context))
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
-    modify_controller_config(robot_controllers_read_file, robot_controllers_modified_file, robot_count)
+    modify_controller_config(robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
 
     rviz_config_read = PathJoinSubstitution(
         [
@@ -250,7 +255,7 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     rviz_config_read_file = str(rviz_config_read.perform(context))
     rviz_config_modified_file = str(rviz_config_modified.perform(context))
-    add_wrench_entries(rviz_config_read_file, rviz_config_modified_file, robot_count)
+    add_wrench_entries(rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
 
     # Nodes Definitions
     robot_state_pub_node = Node(
@@ -279,11 +284,12 @@ def launch_setup(context, *args, **kwargs):
     # Spawner Nodes
     spawner_nodes = []
 
-    # real robot forward controller Spawner
+    # real manipulator robot forward controller Spawner
     real_arm_control_node = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["forward_effort_controller", "--controller-manager", "/controller_manager"],
+        condition=IfCondition(use_manipulator_hardware)
     )
     spawner_nodes.append(real_arm_control_node)
 
@@ -299,20 +305,9 @@ def launch_setup(context, *args, **kwargs):
     uvms_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["uvms_controller", "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_mock_hardware),
+        arguments=["uvms_controller", "--controller-manager", "/controller_manager"]
     )
     spawner_nodes.append(uvms_spawner)
-
-    # Robot Controller Spawner (unless using mock hardware)
-    robot_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[robot_controller, "--controller-manager", "/controller_manager"],
-        condition=UnlessCondition(use_mock_hardware),
-    )
-    spawner_nodes.append(robot_controller_spawner)
-
 
     # real FTS Spawner
     real_fts_spawner = Node(
@@ -331,7 +326,7 @@ def launch_setup(context, *args, **kwargs):
     spawner_nodes.append(real_imu_spawner)
     
     # Spawn fts and imu broadcasters for each robot
-    for i in range(1, robot_count + 1):
+    for i in range(1, sim_robot_count + 1):
         fts_broadcaster_name = f'fts_broadcaster_{i}'
         imu_broadcaster_name = f'imu_broadcaster_{i}'
 
@@ -359,14 +354,6 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
-    # Delay start of robot_controller after `joint_state_broadcaster_spawner`
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[robot_controller_spawner],
-        )
-    )
-
     # Define other nodes if needed
     run_plotjuggler = ExecuteProcess(
         cmd=['ros2', 'run', 'plotjuggler', 'plotjuggler > /dev/null 2>&1'],
@@ -386,7 +373,6 @@ def launch_setup(context, *args, **kwargs):
         control_node,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ] + spawner_nodes
 
     return nodes
