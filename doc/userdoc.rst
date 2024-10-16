@@ -62,8 +62,10 @@ Tutorial Steps
 
    - ``sim_robot_count:=n``: Starts the simulator by spawning n number of underwater vehicle manipulator systems.
 
+   example launch command with options 
+
    .. code-block:: shell
-      
+
       ros2 launch ros2_control_blue_reach_5 robot_system_multi_interface.launch.py use_manipulator_hardware:=true use_vehicle_hardware:=true sim_robot_count:=4
 
    The launch file will load and start the robot hardware, controllers, and open *RViz*. You will see extensive output from the hardware implementation in the terminal, showing its internal states.
