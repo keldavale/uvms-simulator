@@ -43,9 +43,6 @@ Tutorial Steps
 
     ros2 launch ros2_control_blue_reach_5 view_robot.launch.py
 
-   .. note::
-    It is normal to see the message ``Warning: Invalid frame ID "odom" passed to canTransform argument target_frame - frame does not exist``. This warning appears because the ``joint_state_publisher_gui`` node needs a moment to start. The ``joint_state_publisher_gui`` provides a GUI to generate a random configuration for the robot, which will be displayed in *RViz*.
-
 2. **Start the Reach Alpha 5 Example**
 
    Open a terminal, source your ROS2 workspace, and execute the launch file with:
