@@ -7,14 +7,14 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import os, yaml, xacro, copy
-
+import ast
  
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
 
-def add_wrench_entries(rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
+def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
     # Load the RViz configuration file
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
@@ -35,9 +35,20 @@ def add_wrench_entries(rviz_config_path,new_rviz_config_path,sim_robot_count:int
         'Torque Color': '204; 204; 51',
         'Value': True
     }
-    
+    if any_real_hardware:
+        new_wrench = original_wrench.copy()
+        new_wrench['Name'] = f'robot_Wrench_real'
+        new_wrench['Topic'] = {
+            'Depth': 5,
+            'Durability Policy': 'Volatile',
+            'Filter size': 10,
+            'History Policy': 'Keep Last',
+            'Reliability Policy': 'Reliable',
+            'Value': f'/fts_broadcaster_real/wrench'
+        }
+        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
     # Add new Wrench entries with the incremented index in the 'Value' field
-    for i in range(2, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
+    for i in range(1, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
         new_wrench = original_wrench.copy()
         new_wrench['Name'] = f'robot_Wrench_{i}'
         new_wrench['Topic'] = {
@@ -56,12 +67,25 @@ def add_wrench_entries(rviz_config_path,new_rviz_config_path,sim_robot_count:int
 
 
     
-def modify_controller_config(config_path,new_config_path,sim_robot_count:int=1)->None:
+def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_robot_count:int=1)->None:
         with open(config_path,'r') as file:
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
-        
-        for i in range(2, sim_robot_count + 1):
+
+        new_param['uvms_controller']['ros__parameters']['agents'] = []
+        if any_real_hardware:
+            real_agent_name = 'bluerov_alpha_real'
+            # Add agent to the uvms_controller parameters
+            new_param['uvms_controller']['ros__parameters']['agents'].append(real_agent_name)
+
+            # Add agent-specific parameters under uvms_controller
+            new_param['uvms_controller']['ros__parameters'][real_agent_name] = {
+                'prefix': 'real_',
+                'base_TF_translation': [0.140, 0.000, -0.120],
+                'base_TF_rotation': [3.142, 0.000, 0.000],
+            }
+            
+        for i in range(1, sim_robot_count + 1):
             agent_name = f'bluerov_alpha_{i}'
             prefix = f'robot_{i}_'
             base_link = f'{prefix}base_link'
@@ -75,8 +99,6 @@ def modify_controller_config(config_path,new_config_path,sim_robot_count:int=1)-
                 'prefix': prefix,
                 'base_TF_translation': [0.140, 0.000, -0.120],
                 'base_TF_rotation': [3.142, 0.000, 0.000],
-                'claim_vehicle_interface': True,
-                'claim_manipulator_interface': True
             }
 
             # Add IMU sensor broadcaster
@@ -236,7 +258,9 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     robot_controllers_read_file = str(robot_controllers_read.perform(context))
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
-    modify_controller_config(robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
+    any_real_hardware = use_manipulator_hardware or use_vehicle_hardware
+    any_real_hardware_bool = IfCondition(any_real_hardware).evaluate(context)
+    modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
 
     rviz_config_read = PathJoinSubstitution(
         [
@@ -255,7 +279,7 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     rviz_config_read_file = str(rviz_config_read.perform(context))
     rviz_config_modified_file = str(rviz_config_modified.perform(context))
-    add_wrench_entries(rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
+    add_wrench_entries(any_real_hardware_bool, rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
 
     # Nodes Definitions
     robot_state_pub_node = Node(
@@ -314,7 +338,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[f'fts_broadcaster_real', "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_manipulator_hardware or use_vehicle_hardware)
+        condition=IfCondition(any_real_hardware)
     )
     spawner_nodes.append(real_fts_spawner)
 
@@ -323,7 +347,7 @@ def launch_setup(context, *args, **kwargs):
         package="controller_manager",
         executable="spawner",
         arguments=[f'imu_broadcaster_real', "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_manipulator_hardware or use_vehicle_hardware)
+        condition=IfCondition(any_real_hardware)
     )
     spawner_nodes.append(real_imu_spawner)
     

@@ -379,25 +379,6 @@ Visualization Manager:
       Plane Cell Count: 50
       Reference Frame: world_bottom
       Value: true
-    - Accept NaN Values: false
-      Alpha: 1
-      Arrow Width: 0.30000001192092896
-      Class: rviz_default_plugins/Wrench
-      Enabled: true
-      Force Arrow Scale: 0.699999988079071
-      Force Color: 204; 51; 51
-      History Length: 1
-      Name: robot_Wrench_1
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 40
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /fts_broadcaster_1/wrench
-      Torque Arrow Scale: 0.699999988079071
-      Torque Color: 204; 204; 51
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 135; 206; 235
