@@ -47,6 +47,16 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
             'Value': f'/fts_broadcaster_real/wrench'
         }
         new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
+    for i in range(5):
+        added_axes = {'Class': 'rviz_default_plugins/Axes',
+        'Enabled': True,
+        'Length': '0.10000000149011612',
+        'Name': f'Axes_joint{i}',
+        'Radius': '0.009999999776482582',
+        'Reference Frame': f'joint{i}_',
+        'Value': True}
+        new_rviz_config['Visualization Manager']['Displays'].append(added_axes)
+
     # Add new Wrench entries with the incremented index in the 'Value' field
     for i in range(1, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
         new_wrench = original_wrench.copy()
@@ -392,8 +402,15 @@ def launch_setup(context, *args, **kwargs):
         executable='mouse_node_effort'
     )
 
+    fkPublisher_node = Node(
+        package='namor',
+        executable='fkPublisher_node'
+    )
+
+
     # Collect all nodes
     nodes = [
+        fkPublisher_node,
         mouse_control,
         run_plotjuggler,
         control_node,
