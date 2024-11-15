@@ -19,7 +19,7 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
     new_rviz_config = copy.deepcopy(rviz_config)
-
+    new_rviz_config['Visualization Manager']['Views']['Saved'] = []
     # The existing wrench configuration you want to replicate
     original_wrench = {
         'Accept NaN Values': False,
@@ -35,30 +35,36 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
         'Torque Color': '204; 204; 51',
         'Value': True
     }
-    if any_real_hardware:
-        new_wrench = original_wrench.copy()
-        new_wrench['Name'] = f'robot_Wrench_real'
-        new_wrench['Topic'] = {
-            'Depth': 5,
-            'Durability Policy': 'Volatile',
-            'Filter size': 10,
-            'History Policy': 'Keep Last',
-            'Reliability Policy': 'Reliable',
-            'Value': f'/fts_broadcaster_real/wrench'
-        }
-        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
-    for i in range(5):
-        added_axes = {'Class': 'rviz_default_plugins/Axes',
-        'Enabled': True,
-        'Length': '0.10000000149011612',
-        'Name': f'Axes_joint{i}',
-        'Radius': '0.009999999776482582',
-        'Reference Frame': f'joint{i}_',
-        'Value': True}
-        new_rviz_config['Visualization Manager']['Displays'].append(added_axes)
+
+    original_view = {
+        'Class': 'rviz_default_plugins/Orbit',
+        'Distance': 8.755668640136719,
+        'Enable Stereo Rendering': {
+          'Stereo Eye Separation': 0.05999999865889549,
+          'Stereo Focal Distance': 1,
+          'Swap Stereo Eyes': False,
+          'Value': False},
+        'Focal Point': {
+          'X': 0,
+          'Y': 0,
+          'Z': 0},
+        'Focal Shape Fixed Size': True,
+        'Focal Shape Size': 0.05000000074505806,
+        'Invert Z Axis': False,
+        'Name': 'NED Origin',
+        'Near Clip Distance': 0.009999999776482582,
+        'Pitch': 0.44020360708236694,
+        'Target Frame': 'base_link',
+        'Value': 'Orbit (rviz)',
+        'Yaw': 3.3494811058044434
+    }
+    new_rviz_config['Visualization Manager']['Views']['Saved'].append(original_view)
 
     # Add new Wrench entries with the incremented index in the 'Value' field
     for i in range(1, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
+        prefix = f'robot_{i}_'
+        base_link = f'{prefix}base_link'
+
         new_wrench = original_wrench.copy()
         new_wrench['Name'] = f'robot_Wrench_{i}'
         new_wrench['Topic'] = {
@@ -71,11 +77,49 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
         }
         new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
 
+        new_view = original_view.copy()
+        new_view['Name'] = f'{prefix} view'
+        new_view['Target Frame'] = base_link
+        new_rviz_config['Visualization Manager']['Views']['Saved'].append(new_view)
+
+    real_configure(original_view, original_wrench, new_rviz_config, any_real_hardware)
+
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
 
 
+def real_configure(original_view, original_wrench, new_rviz_config, use_real = True):
+    if use_real:
+        prefix = 'real'
+        base_link = f'{prefix}_base_link'
 
+        for i in range(5):
+            added_axes = {'Class': 'rviz_default_plugins/Axes',
+            'Enabled': True,
+            'Length': '0.10000000149011612',
+            'Name': f'Axes_joint{i}',
+            'Radius': '0.009999999776482582',
+            'Reference Frame': f'joint{i}_',
+            'Value': True}
+            new_rviz_config['Visualization Manager']['Displays'].append(added_axes)
+        
+        new_view = original_view.copy()
+        new_view['Name'] = f'{prefix} view'
+        new_view['Target Frame'] = base_link
+        new_rviz_config['Visualization Manager']['Views']['Saved'].append(new_view)
+
+        new_wrench = original_wrench.copy()
+        new_wrench['Name'] = f'robot_Wrench_real'
+        new_wrench['Topic'] = {
+            'Depth': 5,
+            'Durability Policy': 'Volatile',
+            'Filter size': 10,
+            'History Policy': 'Keep Last',
+            'Reliability Policy': 'Reliable',
+            'Value': f'/fts_broadcaster_real/wrench'
+        }
+        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
+    return new_rviz_config
     
 def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_robot_count:int=1)->None:
         with open(config_path,'r') as file:
@@ -394,17 +438,20 @@ def launch_setup(context, *args, **kwargs):
     run_plotjuggler = ExecuteProcess(
         cmd=['ros2', 'run', 'plotjuggler', 'plotjuggler > /dev/null 2>&1'],
         output='screen',
-        shell=True
+        shell=True,
+        condition=IfCondition(any_real_hardware)
     )
 
     mouse_control = Node(
         package='namor',
-        executable='mouse_node_effort'
+        executable='mouse_node_effort',
+        condition=IfCondition(any_real_hardware)
     )
 
     fkPublisher_node = Node(
         package='namor',
-        executable='fkPublisher_node'
+        executable='fkPublisher_node',
+        condition=IfCondition(any_real_hardware)
     )
 
 
