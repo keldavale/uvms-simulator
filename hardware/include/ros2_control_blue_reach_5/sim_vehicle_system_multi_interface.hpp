@@ -152,6 +152,10 @@ namespace ros2_control_blue_reach_5
         std::shared_ptr<rclcpp::Publisher<Odom>> odometry_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<Odom>>
             realtime_odometry_publisher_;
+
+
+        void publishRealtimePoseTransform(const rclcpp::Time& time);
+
     };
 
 } // namespace ros2_control_blue
