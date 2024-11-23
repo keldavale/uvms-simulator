@@ -63,6 +63,9 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
 
+        // Use CasADi's "external" to load the compiled dynamics functions
+        dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
+
         hw_vehicle_struct_.resize(1);
 
         std::random_device rd;
@@ -148,8 +151,6 @@ namespace ros2_control_blue_reach_5
 
             auto &transform_message = realtime_transform_publisher_->msg_;
             transform_message.transforms.resize(1);
-            transform_message.transforms.front().header.frame_id = cfg_.frame_id;
-            transform_message.transforms.front().child_frame_id = cfg_.child_frame_id;
         }
         catch (const std::exception &e)
         {
@@ -302,49 +303,6 @@ namespace ros2_control_blue_reach_5
         const std::vector<std::string> &start_interfaces,
         const std::vector<std::string> & /*stop_interfaces*/)
     {
-        // Prepare for new command modes
-        // std::vector<mode_level_t> new_modes = {};
-
-        // for (std::string key : start_interfaces)
-        // {
-        //   for (std::size_t j = 0; j < info_.gpios[0].command_interfaces.size(); j++)
-        //   {
-        //     std::string full_name = info_.gpios[0].name + "/" + info_.gpios[0].command_interfaces[j].name;
-        //     if (key == full_name)
-        //     {
-        //       if (info_.gpios[0].command_interfaces[j].name.find("position") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_POSITION);
-        //       }
-        //       if (info_.gpios[0].command_interfaces[j].name.find("orientation") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_POSITION);
-        //       }
-        //       else if (info_.gpios[0].command_interfaces[j].name.find("velocity") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_VELOCITY);
-        //       }
-        //       else if (info_.gpios[0].command_interfaces[j].name.find("acceleration") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_ACCELERATION);
-        //       }
-        //       else if (info_.gpios[0].command_interfaces[j].name.find("force") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
-        //       }
-        //       else if (info_.gpios[0].command_interfaces[j].name.find("torque") != std::string::npos)
-        //       {
-        //         new_modes.push_back(mode_level_t::MODE_EFFORT_GENERALIZED);
-        //       }
-        //     }
-        //   }
-        // };
-
-        // //  criteria: All joints must be given new command mode at the same time
-        // if (new_modes.size() != 25)
-        // {
-        //   return hardware_interface::return_type::ERROR;
-        // };
         RCLCPP_INFO(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Command Mode Switch successful");
         return hardware_interface::return_type::OK;
@@ -403,17 +361,6 @@ namespace ros2_control_blue_reach_5
     hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::read(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
     {
-        // RCLCPP_DEBUG(
-        //     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-        //     "Got commands: %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[0].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[1].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[2].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[3].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[4].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[5].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[6].command_state_.effort,
-        //     hw_vehicle_struct_[0].hw_thrust_structs_[7].command_state_.effort);
         return hardware_interface::return_type::OK;
     }
 
@@ -481,6 +428,8 @@ namespace ros2_control_blue_reach_5
             q_new.normalize();
 
             auto &transform = realtime_transform_publisher_->msg_.transforms.front();
+            transform.header.frame_id = cfg_.frame_id;
+            transform.child_frame_id = cfg_.child_frame_id;
             transform.header.stamp = time;
             transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
             transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;

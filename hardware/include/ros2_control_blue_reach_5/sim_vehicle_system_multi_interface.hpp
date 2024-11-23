@@ -48,6 +48,7 @@
 #include "realtime_tools/realtime_publisher.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -138,9 +139,6 @@ namespace ros2_control_blue_reach_5
         // Store the state & commands for the robot vehicle
         std::vector<blue::dynamics::Vehicle> hw_vehicle_struct_;
         std::string system_name;
-
-        // stores the dynamic response from the forward dynamics simulator
-        std::vector<double> forward_dynamics_res;
 
         using tf = tf2_msgs::msg::TFMessage;
         using Odom = nav_msgs::msg::Odometry;

@@ -15,16 +15,8 @@ namespace casadi_reach_alpha_5
 
     public:
         uint8_t dynamics_id;       // Unique identifier for the dynamics
-        Function forward_dynamics; // forward dynamics of the robotic arm
-        Function forward_kinematics; // forward kinematics of the robotic arm
-        Function inverse_dynamics; // inverse dynamics of the robotic arm
-        Function inertia_matrix; // inertia/mass matrix of the robotic arm
-        Function kalman_filter; // kalman filter for robotic arm sensor
-        Function vehicle_dynamics; // forward dynamics of the vehicle
         Function torque2currentMap; // forward motor dynamics
         Function current2torqueMap; // inverse motor dynamics
-        Function uvms_dynamics;
-        Function pd_controller;
 
         Dynamics() = default;
         // Constructor with member initializer list

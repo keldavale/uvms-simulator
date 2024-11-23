@@ -46,7 +46,6 @@ namespace ros2_control_blue_reach_5
     RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
     dynamics_service.usage_cplusplus_checks("test", "libtest.so", "reach system");
-    dynamics_service.kalman_filter = dynamics_service.load_casadi_fun("KF_PREDICT", "libKFnext.so");
     dynamics_service.current2torqueMap = dynamics_service.load_casadi_fun("current_to_torque_map", "libC2T.so");
     dynamics_service.torque2currentMap = dynamics_service.load_casadi_fun("torque_to_current_map", "libT2C.so");
 

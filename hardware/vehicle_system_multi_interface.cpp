@@ -55,11 +55,8 @@ namespace ros2_control_blue_reach_5
     RCLCPP_INFO(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
     dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
-    dynamics_service.vehicle_dynamics = dynamics_service.load_casadi_fun("Vnext_Alloc", "libVnext.so");
-    // dynamics_service.uvms_dynamics = dynamics_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
 
     blue::dynamics::Vehicle::Pose_vel initial_state{0.0, 0.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // // blue::dynamics::Vehicle rov{, initial_state};
     hw_vehicle_struct_.set_vehicle_name("blue ROV heavy 0", initial_state);
 
     // hw_vehicle_struct_.world_frame = info_.hardware_parameters["world_frame"];
@@ -356,17 +353,6 @@ namespace ros2_control_blue_reach_5
   hardware_interface::return_type VehicleSystemMultiInterfaceHardware::read(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
-    // RCLCPP_DEBUG(
-    //     rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"),
-    //     "Got commands: %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
-    //     hw_vehicle_struct_.hw_thrust_structs_[0].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[1].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[2].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[3].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[4].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[5].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[6].command_state_.effort,
-    //     hw_vehicle_struct_.hw_thrust_structs_[7].command_state_.effort);
     return hardware_interface::return_type::OK;
   }
 
@@ -374,90 +360,6 @@ namespace ros2_control_blue_reach_5
       const rclcpp::Time &time, const rclcpp::Duration &period)
   {
     double delta_seconds = period.seconds();
-
-    std::vector<double> x0 = {
-        hw_vehicle_struct_.current_state_.position_x,
-        hw_vehicle_struct_.current_state_.position_y,
-        hw_vehicle_struct_.current_state_.position_z,
-        hw_vehicle_struct_.current_state_.orientation_w,
-        hw_vehicle_struct_.current_state_.orientation_x,
-        hw_vehicle_struct_.current_state_.orientation_y,
-        hw_vehicle_struct_.current_state_.orientation_z,
-        hw_vehicle_struct_.current_state_.u,
-        hw_vehicle_struct_.current_state_.v,
-        hw_vehicle_struct_.current_state_.w,
-        hw_vehicle_struct_.current_state_.p,
-        hw_vehicle_struct_.current_state_.q,
-        hw_vehicle_struct_.current_state_.r};
-
-    std::vector<double> u0 = {hw_vehicle_struct_.hw_thrust_structs_[0].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[1].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[2].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[3].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[4].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[5].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[6].command_state_.effort,
-                              hw_vehicle_struct_.hw_thrust_structs_[7].command_state_.effort};
-    std::vector<double> vc = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<DM> dynamic_arg = {DM(x0), DM(u0), DM(delta_seconds), DM(vc)};
-    RCLCPP_DEBUG(rclcpp::get_logger("VehicleSystemMultiInterfaceHardware"), "Got states: %.5f second interval, %.5f,  %.5f, %.5f, %.5f, %.5f,  %.5f, %.5f, %.5f ",
-                 delta_seconds,
-                 hw_vehicle_struct_.current_state_.position_x,
-                 hw_vehicle_struct_.current_state_.position_y,
-                 hw_vehicle_struct_.current_state_.position_z,
-                 hw_vehicle_struct_.current_state_.orientation_w,
-                 hw_vehicle_struct_.current_state_.orientation_x,
-                 hw_vehicle_struct_.current_state_.orientation_y,
-                 hw_vehicle_struct_.current_state_.orientation_z,
-                 hw_vehicle_struct_.current_state_.u);
-
-    std::vector<DM> dynamic_response = dynamics_service.vehicle_dynamics(dynamic_arg);
-    forward_dynamics_res = std::vector<double>(dynamic_response.at(0));
-
-    hw_vehicle_struct_.current_state_.position_x = forward_dynamics_res[0];
-    hw_vehicle_struct_.current_state_.position_y = forward_dynamics_res[1];
-    hw_vehicle_struct_.current_state_.position_z = forward_dynamics_res[2];
-    hw_vehicle_struct_.current_state_.orientation_w = forward_dynamics_res[3];
-    hw_vehicle_struct_.current_state_.orientation_x = forward_dynamics_res[4];
-    hw_vehicle_struct_.current_state_.orientation_y = forward_dynamics_res[5];
-    hw_vehicle_struct_.current_state_.orientation_z = forward_dynamics_res[6];
-    hw_vehicle_struct_.current_state_.u = forward_dynamics_res[7];
-    hw_vehicle_struct_.current_state_.v = forward_dynamics_res[8];
-    hw_vehicle_struct_.current_state_.w = forward_dynamics_res[9];
-    hw_vehicle_struct_.current_state_.p = forward_dynamics_res[10];
-    hw_vehicle_struct_.current_state_.q = forward_dynamics_res[11];
-    hw_vehicle_struct_.current_state_.r = forward_dynamics_res[12];
-
-    if (realtime_odometry_transform_publisher_->trylock())
-    {
-      // original pose in NED
-      // RBIZ USES NWU
-      tf2::Quaternion q_orig, q_rot, q_new;
-
-      q_orig.setW(hw_vehicle_struct_.current_state_.orientation_w);
-      q_orig.setX(hw_vehicle_struct_.current_state_.orientation_x);
-      q_orig.setY(hw_vehicle_struct_.current_state_.orientation_y);
-      q_orig.setZ(hw_vehicle_struct_.current_state_.orientation_z);
-      // Rotate the previous pose by 180* about X
-      // q_rot.setRPY(3.14159, 0.0, 0.0);
-
-      // Rotate the previous pose by 0* about X
-      q_rot.setRPY(0.0, 0.0, 0.0);
-      q_new = q_rot * q_orig;
-      q_new.normalize();
-
-      auto &transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
-      transform.header.stamp = time;
-      transform.transform.translation.x = hw_vehicle_struct_.current_state_.position_x;
-      transform.transform.translation.y = -hw_vehicle_struct_.current_state_.position_y;
-      transform.transform.translation.z = -hw_vehicle_struct_.current_state_.position_z;
-
-      transform.transform.rotation.x = q_new.x();
-      transform.transform.rotation.y = q_new.y();
-      transform.transform.rotation.z = q_new.z();
-      transform.transform.rotation.w = q_new.w();
-      realtime_odometry_transform_publisher_->unlockAndPublish();
-    }
 
     return hardware_interface::return_type::OK;
   }
