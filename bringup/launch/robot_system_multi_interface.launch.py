@@ -13,29 +13,32 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
-
-def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
+def rviz_file_configure(robot_prefixes, robot_base_links, ix, any_real_hardware, rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
     # Load the RViz configuration file
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
     new_rviz_config = copy.deepcopy(rviz_config)
-    new_rviz_config['Visualization Manager']['Views']['Saved'] = []
-    # The existing wrench configuration you want to replicate
-    original_wrench = {
-        'Accept NaN Values': False,
-        'Alpha': 1,
-        'Arrow Width': 0.3,
-        'Class': 'rviz_default_plugins/Wrench',
-        'Enabled': True,
-        'Force Arrow Scale': 0.7,
-        'Force Color': '204; 51; 51',
-        'History Length': 1,
-        'Name': 'Wrench',
-        'Torque Arrow Scale': 0.7,
-        'Torque Color': '204; 204; 51',
-        'Value': True
-    }
 
+    rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
+    rviz_axes_configure(robot_prefixes, new_rviz_config)
+    add_wrench_entries(ix, new_rviz_config)
+    with open(new_rviz_config_path,'w') as file:
+        yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
+
+def rviz_axes_configure(robot_prefixes, rviz_config):
+    for prefix in robot_prefixes:
+        for i in range(5):
+            added_axes = {'Class': 'rviz_default_plugins/Axes',
+            'Enabled': True,
+            'Length': '0.10000000149011612',
+            'Name': f'{prefix}joint_{i}',
+            'Radius': '0.009999999776482582',
+            'Reference Frame': f"{prefix}joint_{i}",
+            'Value': True}
+            rviz_config['Visualization Manager']['Displays'].append(added_axes)
+
+def rviz_view_configure(robot_prefixes, robot_base_links, rviz_config):
+    rviz_config['Visualization Manager']['Views']['Saved'] = []
     original_view = {
         'Class': 'rviz_default_plugins/Orbit',
         'Distance': 8.755668640136719,
@@ -58,13 +61,33 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
         'Value': 'Orbit (rviz)',
         'Yaw': 3.3494811058044434
     }
-    new_rviz_config['Visualization Manager']['Views']['Saved'].append(original_view)
+    rviz_config['Visualization Manager']['Views']['Saved'].append(original_view)
+    for i, prefix in enumerate(robot_prefixes):
+        new_view = original_view.copy()
+        new_view['Name'] = f'{prefix} view'
+        new_view['Target Frame'] = robot_base_links[i]
+        rviz_config['Visualization Manager']['Views']['Saved'].append(new_view)
+
+
+def add_wrench_entries(ix, rviz_config):
+    # The existing wrench configuration you want to replicate
+    original_wrench = {
+        'Accept NaN Values': False,
+        'Alpha': 1,
+        'Arrow Width': 0.3,
+        'Class': 'rviz_default_plugins/Wrench',
+        'Enabled': True,
+        'Force Arrow Scale': 0.7,
+        'Force Color': '204; 51; 51',
+        'History Length': 1,
+        'Name': 'Wrench',
+        'Torque Arrow Scale': 0.7,
+        'Torque Color': '204; 204; 51',
+        'Value': True
+    }
 
     # Add new Wrench entries with the incremented index in the 'Value' field
-    for i in range(1, sim_robot_count + 1):  # Start index at 2 to avoid overwriting the original
-        prefix = f'robot_{i}_'
-        base_link = f'{prefix}base_link'
-
+    for i in ix:
         new_wrench = original_wrench.copy()
         new_wrench['Name'] = f'robot_Wrench_{i}'
         new_wrench['Topic'] = {
@@ -75,124 +98,84 @@ def add_wrench_entries(any_real_hardware, rviz_config_path,new_rviz_config_path,
             'Reliability Policy': 'Reliable',
             'Value': f'/fts_broadcaster_{i}/wrench'
         }
-        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
+        rviz_config['Visualization Manager']['Displays'].append(new_wrench)
 
-        new_view = original_view.copy()
-        new_view['Name'] = f'{prefix} view'
-        new_view['Target Frame'] = base_link
-        new_rviz_config['Visualization Manager']['Views']['Saved'].append(new_view)
-
-    real_configure(original_view, original_wrench, new_rviz_config, any_real_hardware)
-
-    with open(new_rviz_config_path,'w') as file:
-        yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
-
-
-def real_configure(original_view, original_wrench, new_rviz_config, use_real = True):
-    if use_real:
-        prefix = 'real'
-        base_link = f'{prefix}_base_link'
-
-        for i in range(5):
-            added_axes = {'Class': 'rviz_default_plugins/Axes',
-            'Enabled': True,
-            'Length': '0.10000000149011612',
-            'Name': f'Axes_joint{i}',
-            'Radius': '0.009999999776482582',
-            'Reference Frame': f'joint{i}_',
-            'Value': True}
-            new_rviz_config['Visualization Manager']['Displays'].append(added_axes)
-        
-        new_view = original_view.copy()
-        new_view['Name'] = f'{prefix} view'
-        new_view['Target Frame'] = base_link
-        new_rviz_config['Visualization Manager']['Views']['Saved'].append(new_view)
-
-        new_wrench = original_wrench.copy()
-        new_wrench['Name'] = f'robot_Wrench_real'
-        new_wrench['Topic'] = {
-            'Depth': 5,
-            'Durability Policy': 'Volatile',
-            'Filter size': 10,
-            'History Policy': 'Keep Last',
-            'Reliability Policy': 'Reliable',
-            'Value': f'/fts_broadcaster_real/wrench'
-        }
-        new_rviz_config['Visualization Manager']['Displays'].append(new_wrench)
-    return new_rviz_config
-    
 def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_robot_count:int=1)->None:
         with open(config_path,'r') as file:
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
 
+        ix = []
+        robot_prefixes = []
+        robot_base_links = []
+
         new_param['uvms_controller']['ros__parameters']['agents'] = []
         if any_real_hardware:
-            real_agent_name = 'bluerov_alpha_real'
-            # Add agent to the uvms_controller parameters
-            new_param['uvms_controller']['ros__parameters']['agents'].append(real_agent_name)
-
-            # Add agent-specific parameters under uvms_controller
-            new_param['uvms_controller']['ros__parameters'][real_agent_name] = {
-                'prefix': 'real_',
-                'base_TF_translation': [0.140, 0.000, -0.120],
-                'base_TF_rotation': [3.142, 0.000, 0.000],
-            }
+            i = 'real'
+            new_param, robot_prefixes, robot_base_links, ix = add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix)
             
         for i in range(1, sim_robot_count + 1):
-            agent_name = f'bluerov_alpha_{i}'
-            prefix = f'robot_{i}_'
-            base_link = f'{prefix}base_link'
-            IOs = f'{prefix}IOs'
-
-            # Add agent to the uvms_controller parameters
-            new_param['uvms_controller']['ros__parameters']['agents'].append(agent_name)
-
-            # Add agent-specific parameters under uvms_controller
-            new_param['uvms_controller']['ros__parameters'][agent_name] = {
-                'prefix': prefix,
-                'base_TF_translation': [0.140, 0.000, -0.120],
-                'base_TF_rotation': [3.142, 0.000, 0.000],
-            }
-
-            # Add IMU sensor broadcaster
-            imu_broadcaster_name = f'imu_broadcaster_{i}'
-            new_param['controller_manager']['ros__parameters'][imu_broadcaster_name] = {
-                'type': 'imu_sensor_broadcaster/IMUSensorBroadcaster'
-            }
-
-            fts_broadcaster_name = f'fts_broadcaster_{i}'
-            new_param['controller_manager']['ros__parameters'][fts_broadcaster_name] = {
-                'type': 'force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster'
-            }
-
-            new_param[imu_broadcaster_name] = {'ros__parameters': {
-                    'frame_id': base_link,
-                    'sensor_name': IOs
-                }
-            }
-
-            new_param[fts_broadcaster_name] = {'ros__parameters': {
-                'frame_id': base_link,
-                'interface_names': {
-                    'force': {
-                        'x': f'{IOs}/force.x',
-                        'y': f'{IOs}/force.y',
-                        'z': f'{IOs}/force.z'
-                        },
-                    'torque': {
-                        'x': f'{IOs}/torque.x',
-                        'y': f'{IOs}/torque.y',
-                        'z': f'{IOs}/torque.z'
-                        }
-                    }
-                }
-            }
+            new_param, robot_prefixes, robot_base_links, ix = add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix)
 
         with open(new_config_path,'w') as file:
             yaml.dump(new_param,file,Dumper=NoAliasDumper)
+        return robot_prefixes, robot_base_links, ix
 
+def add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix):
+    ix.append(i)
+    agent_name = f'bluerov_alpha_{i}'
+    prefix = f'robot_{i}_'
 
+    robot_prefixes.append(prefix)
+
+    base_link = f'{prefix}base_link'
+    robot_base_links.append(base_link)
+
+    IOs = f'{prefix}IOs'
+        # Add agent to the uvms_controller parameters
+    new_param['uvms_controller']['ros__parameters']['agents'].append(agent_name)
+
+    # Add agent-specific parameters under uvms_controller
+    new_param['uvms_controller']['ros__parameters'][agent_name] = {
+        'prefix': prefix,
+        'base_TF_translation': [0.140, 0.000, -0.120],
+        'base_TF_rotation': [3.142, 0.000, 0.000],
+    }
+
+    # Add IMU sensor broadcaster
+    imu_broadcaster_name = f'imu_broadcaster_{i}'
+    new_param['controller_manager']['ros__parameters'][imu_broadcaster_name] = {
+        'type': 'imu_sensor_broadcaster/IMUSensorBroadcaster'
+    }
+
+    fts_broadcaster_name = f'fts_broadcaster_{i}'
+    new_param['controller_manager']['ros__parameters'][fts_broadcaster_name] = {
+        'type': 'force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster'
+    }
+
+    new_param[imu_broadcaster_name] = {'ros__parameters': {
+            'frame_id': base_link,
+            'sensor_name': IOs
+        }
+    }
+
+    new_param[fts_broadcaster_name] = {'ros__parameters': {
+        'frame_id': base_link,
+        'interface_names': {
+            'force': {
+                'x': f'{IOs}/force.x',
+                'y': f'{IOs}/force.y',
+                'z': f'{IOs}/force.z'
+                },
+            'torque': {
+                'x': f'{IOs}/torque.x',
+                'y': f'{IOs}/torque.y',
+                'z': f'{IOs}/torque.z'
+                }
+            }
+        }
+    }
+    return new_param, robot_prefixes, robot_base_links, ix
 
 def generate_launch_description():
     # Declare arguments
@@ -314,7 +297,7 @@ def launch_setup(context, *args, **kwargs):
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
     any_real_hardware = use_manipulator_hardware or use_vehicle_hardware
     any_real_hardware_bool = IfCondition(any_real_hardware).evaluate(context)
-    modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
+    robot_prefixes, robot_base_links, ix = modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
 
     rviz_config_read = PathJoinSubstitution(
         [
@@ -333,7 +316,8 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     rviz_config_read_file = str(rviz_config_read.perform(context))
     rviz_config_modified_file = str(rviz_config_modified.perform(context))
-    add_wrench_entries(any_real_hardware_bool, rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
+    
+    rviz_file_configure(robot_prefixes, robot_base_links, ix, any_real_hardware_bool, rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
 
     # Nodes Definitions
     robot_state_pub_node = Node(
@@ -386,27 +370,9 @@ def launch_setup(context, *args, **kwargs):
         arguments=["uvms_controller", "--controller-manager", "/controller_manager"]
     )
     spawner_nodes.append(uvms_spawner)
-
-    # real FTS Spawner
-    real_fts_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[f'fts_broadcaster_real', "--controller-manager", "/controller_manager"],
-        condition=IfCondition(any_real_hardware)
-    )
-    spawner_nodes.append(real_fts_spawner)
-
-    # real IMU Spawner
-    real_imu_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=[f'imu_broadcaster_real', "--controller-manager", "/controller_manager"],
-        condition=IfCondition(any_real_hardware)
-    )
-    spawner_nodes.append(real_imu_spawner)
     
     # Spawn fts and imu broadcasters for each robot
-    for i in range(1, sim_robot_count + 1):
+    for i in ix:
         fts_broadcaster_name = f'fts_broadcaster_{i}'
         imu_broadcaster_name = f'imu_broadcaster_{i}'
 
@@ -448,16 +414,8 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(any_real_hardware)
     )
 
-    fkPublisher_node = Node(
-        package='namor',
-        executable='fkPublisher_node',
-        condition=IfCondition(any_real_hardware)
-    )
-
-
     # Collect all nodes
     nodes = [
-        fkPublisher_node,
         mouse_control,
         run_plotjuggler,
         control_node,

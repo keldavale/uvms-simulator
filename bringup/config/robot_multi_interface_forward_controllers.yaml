@@ -98,24 +98,6 @@ uvms_controller:
       acceleration_command_interface: ["acceleration"]
       effort_command_interface: [current]
 
-fts_broadcaster_real:
-  ros__parameters:
-    frame_id: "real_base_link"
-    interface_names:
-      force:
-        x: "real_IOs/force.x"
-        y: "real_IOs/force.y"
-        z: "real_IOs/force.z"
-      torque:
-        x: "real_IOs/torque.x"
-        y: "real_IOs/torque.y"
-        z: "real_IOs/torque.z"
-
-imu_broadcaster_real:
-  ros__parameters:
-    frame_id: "real_base_link"
-    sensor_name: "real_IOs"
-
 joint_state_broadcaster:
   ros__parameters:
     map_interface_to_joint_state:
@@ -129,9 +111,9 @@ joint_state_broadcaster:
 forward_effort_controller:
   ros__parameters:
     joints:
-      - real__axis_a
-      - real__axis_b
-      - real__axis_c
-      - real__axis_d
-      - real__axis_e
+      - robot_real__axis_a
+      - robot_real__axis_b
+      - robot_real__axis_c
+      - robot_real__axis_d
+      - robot_real__axis_e
     interface_name: effort

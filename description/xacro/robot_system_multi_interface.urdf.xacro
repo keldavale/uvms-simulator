@@ -80,9 +80,10 @@
   <xacro:instantiate_robots index="0" count="${int(sim_robot_count)}"/>
 
   <xacro:if value="${use_manipulator_hardware or use_vehicle_hardware}">
+    <xacro:property name="prefix" value="robot_real_"/>
     <!-- Instantiate the real robot -->
     <xacro:bluerov2_heavy_alpha_urdf
-      prefix="real_"
+      prefix="${prefix}"
       x="0.0"
       y="0.0"
       z="0.0"
@@ -92,19 +93,19 @@
 
     <xacro:robot_system_multi_interface
       name="$real_ReachSystemMultiInterface"
-      prefix="real_"
+      prefix="${prefix}"
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
       use_hardware="${use_manipulator_hardware}"/>
 
     <xacro:vehicle_system_multi_interface
       name="real_BlueSystemMultiInterface"
-      prefix="real_"
+      prefix="${prefix}"
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
       use_hardware="${use_vehicle_hardware}"
       frame_id="base_link"
-      child_frame_id="real_base_link"/>
+      child_frame_id="${prefix}base_link"/>
   </xacro:if>
 
 </robot>
