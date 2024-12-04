@@ -54,14 +54,14 @@ namespace ros2_control_blue_reach_5
 
       Joint::State initialState{default_position, 0.0, 0.0};
       hw_robot_arm_struct_[0].emplace_back(joint.name, device_id, initialState);
-      // RRBotSystemMultiInterface has exactly 3 state interfaces
-      // and 3 command interfaces on each joint
+      // RRBotSystemMultiInterface has exactly 19 state interfaces
+      // and 6 command interfaces on each joint
 
-      if (joint.command_interfaces.size() != 5)
+      if (joint.command_interfaces.size() != 6)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
-            "Joint '%s' has %zu command interfaces. 5 expected.", joint.name.c_str(),
+            "Joint '%s' has %zu command interfaces. 6 expected.", joint.name.c_str(),
             joint.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -178,6 +178,8 @@ namespace ros2_control_blue_reach_5
           info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_robot_arm_struct_[0][i].command_state_.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_robot_arm_struct_[0][i].command_state_.effort));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT, &hw_robot_arm_struct_[0][i].command_state_.computed_effort));
     };
     return command_interfaces;
   }
@@ -280,15 +282,15 @@ namespace ros2_control_blue_reach_5
     hw_robot_arm_struct_[0][2].current_state_.filtered_velocity = hw_robot_arm_struct_[0][2].command_state_.velocity;
     hw_robot_arm_struct_[0][3].current_state_.filtered_velocity = hw_robot_arm_struct_[0][3].command_state_.velocity;
 
-    hw_robot_arm_struct_[0][0].current_state_.effort = hw_robot_arm_struct_[0][0].command_state_.effort;
-    hw_robot_arm_struct_[0][1].current_state_.effort = hw_robot_arm_struct_[0][1].command_state_.effort;
-    hw_robot_arm_struct_[0][2].current_state_.effort = hw_robot_arm_struct_[0][2].command_state_.effort;
-    hw_robot_arm_struct_[0][3].current_state_.effort = hw_robot_arm_struct_[0][3].command_state_.effort;
+    hw_robot_arm_struct_[0][0].current_state_.effort = hw_robot_arm_struct_[0][0].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][1].current_state_.effort = hw_robot_arm_struct_[0][1].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][2].current_state_.effort = hw_robot_arm_struct_[0][2].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][3].current_state_.effort = hw_robot_arm_struct_[0][3].command_state_.computed_effort;
 
-    hw_robot_arm_struct_[0][0].current_state_.computed_effort = hw_robot_arm_struct_[0][0].command_state_.effort;
-    hw_robot_arm_struct_[0][1].current_state_.computed_effort = hw_robot_arm_struct_[0][1].command_state_.effort;
-    hw_robot_arm_struct_[0][2].current_state_.computed_effort = hw_robot_arm_struct_[0][2].command_state_.effort;
-    hw_robot_arm_struct_[0][3].current_state_.computed_effort = hw_robot_arm_struct_[0][3].command_state_.effort;
+    hw_robot_arm_struct_[0][0].current_state_.computed_effort = hw_robot_arm_struct_[0][0].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][1].current_state_.computed_effort = hw_robot_arm_struct_[0][1].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][2].current_state_.computed_effort = hw_robot_arm_struct_[0][2].command_state_.computed_effort;
+    hw_robot_arm_struct_[0][3].current_state_.computed_effort = hw_robot_arm_struct_[0][3].command_state_.computed_effort;
 
     return hardware_interface::return_type::OK;
   }

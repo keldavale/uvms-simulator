@@ -85,14 +85,14 @@ namespace ros2_control_blue_reach_5
       Joint::SoftLimits jointSoftLimits{.position_k = soft_k_position, .velocity_k = soft_k_velocity, .position_min = soft_min_position, .position_max = soft_max_position};
       Joint::MotorInfo actuatorProp{.kt = kt, .forward_I_static = forward_I_static, .backward_I_static = backward_I_static};
       hw_joint_struct_.emplace_back(joint.name, device_id, initialState, jointLimits, positionLimitsFlag, jointSoftLimits, actuatorProp);
-      // ReachSystemMultiInterface has exactly 13 state interfaces
-      // and 4 command interfaces on each joint
+      // ReachSystemMultiInterface has exactly 19 state interfaces
+      // and 6 command interfaces on each joint
 
-      if (joint.command_interfaces.size() != 5)
+      if (joint.command_interfaces.size() != 6)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("ReachSystemMultiInterfaceHardware"),
-            "Joint '%s' has %zu command interfaces. 5 expected.", joint.name.c_str(),
+            "Joint '%s' has %zu command interfaces. 6 expected.", joint.name.c_str(),
             joint.command_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
       }
@@ -245,6 +245,8 @@ namespace ros2_control_blue_reach_5
           info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_joint_struct_[i].command_state_.current));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_joint_struct_[i].command_state_.effort));
+      command_interfaces.emplace_back(hardware_interface::CommandInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_COMPUTED_EFFORT, &hw_joint_struct_[i].command_state_.computed_effort));
     }
 
     return command_interfaces;
@@ -315,7 +317,9 @@ namespace ros2_control_blue_reach_5
     {
       double prev_velocity_ = hw_joint_struct_[i].current_state_.velocity;
       hw_joint_struct_[i].current_state_.position = hw_joint_struct_[i].async_state_.position;
+      hw_joint_struct_[i].current_state_.filtered_position = hw_joint_struct_[i].async_state_.position;
       hw_joint_struct_[i].current_state_.velocity = hw_joint_struct_[i].async_state_.velocity;
+      // hw_joint_struct_[i].current_state_.filtered_velocity = hw_joint_struct_[i].async_state_.position;
       hw_joint_struct_[i].current_state_.current = hw_joint_struct_[i].async_state_.current;
 
       if (hw_joint_struct_[i].current_state_.current > 0)

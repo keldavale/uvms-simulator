@@ -346,15 +346,6 @@ def launch_setup(context, *args, **kwargs):
     # Spawner Nodes
     spawner_nodes = []
 
-    # real manipulator robot forward controller Spawner
-    real_arm_control_node = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["forward_effort_controller", "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_manipulator_hardware)
-    )
-    spawner_nodes.append(real_arm_control_node)
-
     # Joint State Broadcaster Spawner
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
