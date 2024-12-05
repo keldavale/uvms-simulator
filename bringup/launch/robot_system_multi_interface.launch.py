@@ -405,8 +405,15 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(any_real_hardware)
     )
 
+    sensorPy_node = Node(
+        package='namor',
+        executable='sensor_py_node',
+        condition=IfCondition(any_real_hardware)
+    )
+
     # Collect all nodes
     nodes = [
+        sensorPy_node,
         mouse_control,
         run_plotjuggler,
         control_node,
