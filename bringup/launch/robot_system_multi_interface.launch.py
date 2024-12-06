@@ -13,7 +13,7 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
-def rviz_file_configure(robot_prefixes, robot_base_links, ix, any_real_hardware, rviz_config_path,new_rviz_config_path,sim_robot_count:int=1)->None:
+def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,new_rviz_config_path)->None:
     # Load the RViz configuration file
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
@@ -105,6 +105,15 @@ def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
 
+        controller_descriptor = new_param['uvms_controller']['ros__parameters']
+
+        dof_efforts = [
+                effort 
+                for joint in controller_descriptor['joints'] 
+                if joint in controller_descriptor 
+                for effort in controller_descriptor[joint].get('effort_command_interface', [])
+            ]
+
         ix = []
         robot_prefixes = []
         robot_base_links = []
@@ -119,7 +128,7 @@ def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_
 
         with open(new_config_path,'w') as file:
             yaml.dump(new_param,file,Dumper=NoAliasDumper)
-        return robot_prefixes, robot_base_links, ix
+        return robot_prefixes, robot_base_links, ix, dof_efforts
 
 def add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix):
     ix.append(i)
@@ -297,7 +306,7 @@ def launch_setup(context, *args, **kwargs):
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
     any_real_hardware = use_manipulator_hardware or use_vehicle_hardware
     any_real_hardware_bool = IfCondition(any_real_hardware).evaluate(context)
-    robot_prefixes, robot_base_links, ix = modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
+    robot_prefixes, robot_base_links, ix, dof_efforts = modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
 
     rviz_config_read = PathJoinSubstitution(
         [
@@ -317,7 +326,7 @@ def launch_setup(context, *args, **kwargs):
     rviz_config_read_file = str(rviz_config_read.perform(context))
     rviz_config_modified_file = str(rviz_config_modified.perform(context))
     
-    rviz_file_configure(robot_prefixes, robot_base_links, ix, any_real_hardware_bool, rviz_config_read_file, rviz_config_modified_file, sim_robot_count)
+    rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
     # Nodes Definitions
     robot_state_pub_node = Node(
@@ -402,7 +411,11 @@ def launch_setup(context, *args, **kwargs):
     mouse_control = Node(
         package='namor',
         executable='mouse_node_effort',
-        condition=IfCondition(any_real_hardware)
+        name='space_mouse_control',
+        parameters=[{
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
     )
 
     sensorPy_node = Node(
