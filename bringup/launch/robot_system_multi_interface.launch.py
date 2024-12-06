@@ -27,6 +27,15 @@ def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,n
 
 def rviz_axes_configure(robot_prefixes, rviz_config):
     for prefix in robot_prefixes:
+        added_axes = {'Class': 'rviz_default_plugins/Axes',
+        'Enabled': True,
+        'Length': '0.10000000149011612',
+        'Name': f'{prefix}vehicle_base',
+        'Radius': '0.009999999776482582',
+        'Reference Frame': f"{prefix}vehicle_base",
+        'Value': True}
+        rviz_config['Visualization Manager']['Displays'].append(added_axes)
+        
         for i in range(5):
             added_axes = {'Class': 'rviz_default_plugins/Axes',
             'Enabled': True,

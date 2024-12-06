@@ -75,7 +75,7 @@ namespace ros2_control_blue_reach_5
         std::uniform_real_distribution<> dis_z(3.0, 7.0);
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            dis_x(gen), dis_y(gen), 0.0, // Randomized position: x, y, z
+            dis_x(gen), dis_y(gen), 5.0, // Randomized position: x, y, z
             1.0, 0.0, 0.0, 0.0,          // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,               // Linear velocities: vx, vy, vz
             0.0, 0.0, 0.0,               // Angular velocities: wx, wy, wz
