@@ -1,6 +1,6 @@
 # Reach Alpha Blue Heavy Dynamics Simulator
 
-A simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipulator built using `ros2_control` framework. Integrates Thor Fossen’s underwater dynamics with Featherstone's manipulator dynamics algorithm for realistic simulations.
+A simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipulator based on `ros2_control` framework. Integrates Thor Fossen’s underwater dynamics with Featherstone's manipulator dynamics algorithm for realistic simulations.
 
 ---
 
