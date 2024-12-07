@@ -8,7 +8,6 @@ A simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipula
 
 - **Realistic Dynamics:** Accurate simulation of underwater vehicle and manipulator behaviors.
 - **Multi-Agent Support:** Simulate multiple agents within a shared environment.
-- **Open Source Extensions:** Built upon robust underwater dynamics and manipulator control libraries.
 - **Video Demonstration:** [![Watch the Video](https://img.youtube.com/vi/VRJUbpdvPIM/0.jpg)](https://www.youtube.com/watch?v=VRJUbpdvPIM)
 
 ---
