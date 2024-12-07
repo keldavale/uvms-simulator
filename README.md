@@ -37,7 +37,7 @@ git lfs install
 git lfs pull
 ```
 
-Add these additional repositories:
+Clone additional packages to ros2 workspace:
 
 - [uvms_dynamics_ros2_control](https://github.com/edxmorgan/uvms_dynamics_ros2_control)
 - [uvms_interfaces](https://github.com/edxmorgan/uvms_interfaces/tree/main)
