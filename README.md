@@ -40,7 +40,7 @@ git lfs pull
 Add these additional repositories:
 
 - [uvms_dynamics_ros2_control](https://github.com/edxmorgan/uvms_dynamics_ros2_control)
-- [uvms_interfaces](https://github.com/edxmorgan/uvms_interfaces/blob/main/msg/Command.msg)
+- [uvms_interfaces](https://github.com/edxmorgan/uvms_interfaces/tree/main)
 
 ### Installation
 
