@@ -2,16 +2,22 @@
 
 A `ros2_control` simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipulator. Integrates Thor Fossen’s underwater dynamics with Featherstone's manipulator dynamics algorithm for realistic simulations.
 
+---
+
 ## Features
-- **Realistic Dynamics:** Accurate simulation of underwater and manipulator behaviors.
+
+- **Realistic Dynamics:** Accurate simulation of underwater vehicle and manipulator behaviors.
 - **Multi-Agent Support:** Simulate multiple agents within a shared environment.
+- **Open Source Extensions:** Built upon robust underwater dynamics and manipulator control libraries.
 - **Video Demonstration:** [![Watch the Video](https://img.youtube.com/vi/VRJUbpdvPIM/0.jpg)](https://www.youtube.com/watch?v=VRJUbpdvPIM)
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-Before beginning the tutorial steps, ensure the following packages and dependencies are installed:
+Ensure the following dependencies are installed:
 
 ```bash
 sudo apt-get install git-lfs
@@ -31,6 +37,11 @@ sudo apt-get install ros-humble-ros2-control
 git lfs install
 git lfs pull
 ```
+
+Add these additional repositories:
+
+- [uvms_dynamics_ros2_control](https://github.com/edxmorgan/uvms_dynamics_ros2_control)
+- [uvms_interfaces](https://github.com/edxmorgan/uvms_interfaces/blob/main/msg/Command.msg)
 
 ### Installation
 
@@ -55,24 +66,39 @@ git lfs pull
     source install/setup.bash
     ```
 
+---
+
+## Dynamics Foundation
+
+This simulator incorporates and extends:
+
+- Vehicle dynamics from [diff_uv](https://github.com/edxmorgan/diff_uv).
+- Unified UVMS dynamics from [diff_uvms](https://github.com/edxmorgan/diff_uvms).
+
+---
+
 ## Documentation
 
 For detailed setup and usage instructions, refer to the [User Documentation](doc/userdoc.rst).
 
+---
+
 ## Online Resources
 
-Explore extended ROS2 control capabilities on [ROS Control](https://control.ros.org/rolling/index.html).
-
-## Disclaimer
-
-This project is independently developed and not affiliated with **Reach Robotics** or **Blue Robotics**. For official software and support, visit:
+- [ROS Control](https://control.ros.org/rolling/index.html)
 - [Reach Robotics SDK](https://github.com/Reach-Robotics/reach_robotics_sdk/tree/master)
 - [Blue Robotics](https://github.com/Bluerobotics)
 
+---
+
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
+Contributions are welcome! Please open an issue or submit a pull request for enhancements or bug fixes.
+
+---
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+---
