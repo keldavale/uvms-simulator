@@ -34,12 +34,12 @@ A `ros2_control` simulator for the **BlueROV Heavy** equipped with a **Reach Alp
     source install/setup.bash
     ```
 
-### Usage
+## Documentation
 For detailed setup and usage instructions, refer to the [User Documentation](doc/userdoc.rst).
 
-## Documentation
-- **In-Repository:** Comprehensive guides and references are available in the [`doc/`](doc/) directory.
-- **Online Resources:** Explore extended ROS2 control capabilities on [ROS Control](https://control.ros.org/rolling/index.html).
+## Online Resources
+Explore extended ROS2 control capabilities on [ROS Control](https://control.ros.org/rolling/index.html).
+
 
 ## Disclaimer
 This project is independently developed and not affiliated with **Reach Robotics** or **Blue Robotics**. For official software and support, visit:
