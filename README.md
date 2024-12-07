@@ -10,7 +10,7 @@ A `ros2_control` simulator for the **BlueROV Heavy** equipped with a **Reach Alp
 ## Getting Started
 
 ### Prerequisites
-- **ROS2**: Ensure you have ROS2 installed. [Installation Guide](https://docs.ros.org/en/rolling/Installation.html)
+- **ROS2**: Ensure you have ROS2 installed. [Installation Guide](https://docs.ros.org/en/humble/Installation.html)
 
 ### Installation
 1. Clone the repository:
