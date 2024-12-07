@@ -5,7 +5,8 @@ This repository provides a `ros2_control` simulator for the BlueROV Heavy equipp
 ## Features
 - **Realistic Dynamics:** Simulates accurate underwater and manipulator dynamics.
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/VRJUbpdvPIM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  [![Watch the YouTube Video](https://img.youtube.com/vi/VRJUbpdvPIM/0.jpg)](https://www.youtube.com/watch?v=VRJUbpdvPIM)
+
 - **Multi-Agent Support:** Simulate multiple agents in a shared environment.  
   ![Multiagent Support](./doc/multiagent.png?raw=true "Multiagent Support")
 
