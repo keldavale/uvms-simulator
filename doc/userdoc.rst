@@ -8,30 +8,6 @@ Reach Alpha Blue Heavy Dynamics Simulator
 
 The *Reach Alpha Blue Heavy Dynamics Simulator* includes an interface plugin that supports multiple state and command interfaces.
 
-Prerequisites
---------------------------
-
-Before beginning the tutorial steps, ensure you have installed the necessary packages and dependencies:
-
-.. code-block:: shell
-
-   sudo apt-get install git-lfs
-   sudo apt-get install ros-humble-hardware-interface
-   sudo apt-get install ros-humble-xacro
-   sudo apt-get install ros-humble-controller-manager
-   sudo apt-get install ros-humble-joint-state-broadcaster
-   sudo apt-get install ros-humble-joint-state-publisher-gui
-   sudo apt-get install ros-humble-forward-command-controller
-   sudo apt-get install ros-humble-ros2-control
-
-   # Install CasADi (required for dynamics and kinematics calculations)
-   # Follow the installation instructions on the CasADi wiki:
-   https://github.com/casadi/casadi/wiki/InstallationLinux
-
-   # Initialize Git LFS and pull the necessary files for dynamics and kinematics
-   git lfs install
-   git lfs pull
-
 Tutorial Steps
 --------------------------
 
