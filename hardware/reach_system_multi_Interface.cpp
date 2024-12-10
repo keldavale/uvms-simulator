@@ -314,9 +314,10 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::read(
-      const rclcpp::Time & /*time*/, const rclcpp::Duration &period)
+      const rclcpp::Time & time, const rclcpp::Duration &period)
   {
     double delta_seconds = period.seconds();
+    double time_seconds = time.seconds();
     // Get access to the real-time states
     const std::lock_guard<std::mutex> lock(access_async_states_);
     for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -343,6 +344,9 @@ namespace ros2_control_blue_reach_5
       std::vector<DM> torque = dynamics_service.current2torqueMap(T2C_arg);
       hw_joint_struct_[i].current_state_.effort = torque.at(0).scalar();
       hw_joint_struct_[i].calcAcceleration(hw_joint_struct_[i].current_state_.velocity, prev_velocity_, delta_seconds);
+
+      hw_joint_struct_[i].current_state_.sim_time = time_seconds;
+      hw_joint_struct_[i].current_state_.sim_period = delta_seconds;
     };
     return hardware_interface::return_type::OK;
   }

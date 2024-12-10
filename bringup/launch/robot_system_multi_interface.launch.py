@@ -418,7 +418,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     mouse_control = Node(
-        package='namor',
+        package='simlab',
         executable='mouse_node_effort',
         name='space_mouse_control',
         parameters=[{
@@ -428,7 +428,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     sensorPy_node = Node(
-        package='namor',
+        package='simlab',
         executable='sensor_py_node',
         condition=IfCondition(any_real_hardware)
     )
