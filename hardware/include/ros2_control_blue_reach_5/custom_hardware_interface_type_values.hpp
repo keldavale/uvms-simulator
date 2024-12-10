@@ -60,6 +60,12 @@ constexpr char HW_IF_ADAPTIVE_PREDICTED_POSITION_UNCERTAINTY[] = "adaptive_predi
 
 /// Constant defining predicted_position interface
 constexpr char HW_IF_ADAPTIVE_PREDICTED_VELOCITY_UNCERTAINTY[] = "adaptive_predicted_velocity_uncertainty";
+
+/// Constant defining sim_time interface
+constexpr char HW_IF_SIM_TIME[] = "sim_time";
+
+/// Constant defining sim_period interface
+constexpr char HW_IF_SIM_PERIOD[] = "sim_period";
 }  // namespace hardware_interface
 
 

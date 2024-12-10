@@ -84,6 +84,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
     <joint name="${prefix}_axis_d">
@@ -150,6 +152,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>     
 
 
@@ -217,6 +221,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>   
 
   <joint name="${prefix}_axis_b">
@@ -284,6 +290,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
 
@@ -351,6 +359,8 @@
         <state_interface name="adaptive_predicted_velocity"/>
         <state_interface name="adaptive_predicted_velocity_uncertainty"/>
         <state_interface name="stateId"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
     </ros2_control>
 

@@ -66,11 +66,11 @@ namespace ros2_control_blue_reach_5
         return hardware_interface::CallbackReturn::ERROR;
       }
 
-      if (joint.state_interfaces.size() != 19)
+      if (joint.state_interfaces.size() != 21)
       {
         RCLCPP_FATAL(
             rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"),
-            "Joint '%s'has %zu state interfaces. 19 expected.",
+            "Joint '%s'has %zu state interfaces. 21 expected.",
             joint.name.c_str(),
             joint.state_interfaces.size());
         return hardware_interface::CallbackReturn::ERROR;
@@ -157,6 +157,11 @@ namespace ros2_control_blue_reach_5
 
       state_interfaces.emplace_back(hardware_interface::StateInterface(
           info_.joints[i].name, custom_hardware_interface::HW_IF_STATE_ID, &hw_robot_arm_struct_[0][i].current_state_.state_id));
+
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_TIME, &hw_robot_arm_struct_[0][i].current_state_.sim_time));
+      state_interfaces.emplace_back(hardware_interface::StateInterface(
+          info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_PERIOD, &hw_robot_arm_struct_[0][i].current_state_.sim_period));
     };
     return state_interfaces;
   }

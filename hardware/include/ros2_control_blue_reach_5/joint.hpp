@@ -20,6 +20,8 @@ public:
 
     struct State
     {
+        double sim_time = 0;
+        double sim_period =0;
         double position = 0;
         double filtered_position = 0;
         double err_p = 0;
