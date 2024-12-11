@@ -153,7 +153,8 @@ namespace ros2_control_blue_reach_5
 
 
         void publishRealtimePoseTransform(const rclcpp::Time& time);
-
+        double delta_seconds;
+        double time_seconds;
     };
 
 } // namespace ros2_control_blue

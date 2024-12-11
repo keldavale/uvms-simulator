@@ -172,7 +172,7 @@ namespace ros2_control_blue_reach_5
     std::vector<hardware_interface::CommandInterface> command_interfaces;
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
-      
+
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
           info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_robot_arm_struct_[0][i].command_state_.position));
       command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -259,44 +259,35 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type SimReachSystemMultiInterfaceHardware::read(
-      const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+      const rclcpp::Time &time, const rclcpp::Duration &period)
   {
+    delta_seconds = period.seconds();
+    time_seconds = time.seconds();
+
+    for (std::size_t i = 0; i < info_.joints.size(); i++)
+    {
+      hw_robot_arm_struct_[0][i].current_state_.sim_time = time_seconds;
+      hw_robot_arm_struct_[0][i].current_state_.sim_period = delta_seconds;
+
+      hw_robot_arm_struct_[0][i].current_state_.filtered_position = hw_robot_arm_struct_[0][i].command_state_.position;
+
+      hw_robot_arm_struct_[0][i].current_state_.position = hw_robot_arm_struct_[0][i].command_state_.position;
+
+      hw_robot_arm_struct_[0][i].current_state_.velocity = hw_robot_arm_struct_[0][i].command_state_.velocity;
+
+      hw_robot_arm_struct_[0][i].current_state_.filtered_velocity = hw_robot_arm_struct_[0][i].command_state_.velocity;
+
+      hw_robot_arm_struct_[0][i].current_state_.effort = hw_robot_arm_struct_[0][i].command_state_.computed_effort;
+
+      hw_robot_arm_struct_[0][i].current_state_.computed_effort = hw_robot_arm_struct_[0][i].command_state_.computed_effort;
+    };
+
     return hardware_interface::return_type::OK;
   }
 
   hardware_interface::return_type SimReachSystemMultiInterfaceHardware::write(
-      const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+      const rclcpp::Time &/*time*/, const rclcpp::Duration &/*period*/)
   {
-    hw_robot_arm_struct_[0][0].current_state_.filtered_position = hw_robot_arm_struct_[0][0].command_state_.position;
-    hw_robot_arm_struct_[0][1].current_state_.filtered_position = hw_robot_arm_struct_[0][1].command_state_.position;
-    hw_robot_arm_struct_[0][2].current_state_.filtered_position = hw_robot_arm_struct_[0][2].command_state_.position;
-    hw_robot_arm_struct_[0][3].current_state_.filtered_position = hw_robot_arm_struct_[0][3].command_state_.position;
-
-    hw_robot_arm_struct_[0][0].current_state_.position = hw_robot_arm_struct_[0][0].command_state_.position;
-    hw_robot_arm_struct_[0][1].current_state_.position = hw_robot_arm_struct_[0][1].command_state_.position;
-    hw_robot_arm_struct_[0][2].current_state_.position = hw_robot_arm_struct_[0][2].command_state_.position;
-    hw_robot_arm_struct_[0][3].current_state_.position = hw_robot_arm_struct_[0][3].command_state_.position;
-
-    hw_robot_arm_struct_[0][0].current_state_.velocity = hw_robot_arm_struct_[0][0].command_state_.velocity;
-    hw_robot_arm_struct_[0][1].current_state_.velocity = hw_robot_arm_struct_[0][1].command_state_.velocity;
-    hw_robot_arm_struct_[0][2].current_state_.velocity = hw_robot_arm_struct_[0][2].command_state_.velocity;
-    hw_robot_arm_struct_[0][3].current_state_.velocity = hw_robot_arm_struct_[0][3].command_state_.velocity;
-
-    hw_robot_arm_struct_[0][0].current_state_.filtered_velocity = hw_robot_arm_struct_[0][0].command_state_.velocity;
-    hw_robot_arm_struct_[0][1].current_state_.filtered_velocity = hw_robot_arm_struct_[0][1].command_state_.velocity;
-    hw_robot_arm_struct_[0][2].current_state_.filtered_velocity = hw_robot_arm_struct_[0][2].command_state_.velocity;
-    hw_robot_arm_struct_[0][3].current_state_.filtered_velocity = hw_robot_arm_struct_[0][3].command_state_.velocity;
-
-    hw_robot_arm_struct_[0][0].current_state_.effort = hw_robot_arm_struct_[0][0].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][1].current_state_.effort = hw_robot_arm_struct_[0][1].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][2].current_state_.effort = hw_robot_arm_struct_[0][2].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][3].current_state_.effort = hw_robot_arm_struct_[0][3].command_state_.computed_effort;
-
-    hw_robot_arm_struct_[0][0].current_state_.computed_effort = hw_robot_arm_struct_[0][0].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][1].current_state_.computed_effort = hw_robot_arm_struct_[0][1].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][2].current_state_.computed_effort = hw_robot_arm_struct_[0][2].command_state_.computed_effort;
-    hw_robot_arm_struct_[0][3].current_state_.computed_effort = hw_robot_arm_struct_[0][3].command_state_.computed_effort;
-
     return hardware_interface::return_type::OK;
   }
 

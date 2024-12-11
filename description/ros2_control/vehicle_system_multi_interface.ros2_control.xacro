@@ -26,6 +26,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
       <joint name="${prefix}thruster2_joint">
@@ -33,6 +35,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
        <joint name="${prefix}thruster3_joint">
@@ -40,6 +44,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
        <joint name="${prefix}thruster4_joint">
@@ -47,6 +53,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
        <joint name="${prefix}thruster5_joint">
@@ -54,6 +62,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
        <joint name="${prefix}thruster6_joint">
@@ -61,12 +71,16 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
        <joint name="${prefix}thruster7_joint">
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
        <joint name="${prefix}thruster8_joint">
@@ -74,6 +88,8 @@
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
         <state_interface name="current"/>
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </joint>
 
       <gpio name="${prefix}IOs">
@@ -134,6 +150,9 @@
         <state_interface name="torque.x"/>
         <state_interface name="torque.y"/>
         <state_interface name="torque.z"/>
+        
+        <state_interface name="sim_time"/>
+        <state_interface name="sim_period"/>
       </gpio>
 
     </ros2_control>

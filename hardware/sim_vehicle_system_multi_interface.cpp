@@ -93,12 +93,12 @@ namespace ros2_control_blue_reach_5
         {
             Thruster::State defaultState{0.0, 0.0, 0.0, 0.0};
             hw_vehicle_struct_[0].hw_thrust_structs_.emplace_back(joint.name, defaultState);
-            // RRBotSystemMultiInterface has exactly 4 joint state interfaces
-            if (joint.state_interfaces.size() != 4)
+            // RRBotSystemMultiInterface has exactly 6 joint state interfaces
+            if (joint.state_interfaces.size() != 6)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "Thruster '%s'has %zu state interfaces. 4 expected.", joint.name.c_str(),
+                    "Thruster '%s'has %zu state interfaces. 6 expected.", joint.name.c_str(),
                     joint.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             };
@@ -107,11 +107,11 @@ namespace ros2_control_blue_reach_5
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
             // RRBotSystemMultiInterface has exactly 25 gpio state interfaces
-            if (gpio.state_interfaces.size() != 25)
+            if (gpio.state_interfaces.size() != 27)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 25 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 27 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -181,6 +181,11 @@ namespace ros2_control_blue_reach_5
                 info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.current));
             state_interfaces.emplace_back(hardware_interface::StateInterface(
                 info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.effort));
+
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_TIME, &hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.sim_time));
+            state_interfaces.emplace_back(hardware_interface::StateInterface(
+                info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_PERIOD, &hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.sim_period));
         }
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -236,6 +241,10 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct_[0].current_state_.Tz));
 
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct_[0].current_state_.sim_time));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct_[0].current_state_.sim_period));
         return state_interfaces;
     }
 
@@ -359,12 +368,6 @@ namespace ros2_control_blue_reach_5
     }
 
     hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::read(
-        const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
-    {
-        return hardware_interface::return_type::OK;
-    }
-
-    hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
         const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         // RCLCPP_INFO(
@@ -376,10 +379,13 @@ namespace ros2_control_blue_reach_5
         //     hw_vehicle_struct_[0].command_state_.Tx,
         //     hw_vehicle_struct_[0].command_state_.Ty,
         //     hw_vehicle_struct_[0].command_state_.Tz);
-        double dt = period.seconds();
+        delta_seconds = period.seconds();
+        time_seconds = time.seconds();
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
-            hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position = hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position + 60 * dt;
+            hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
+            hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.sim_period = delta_seconds;
+            hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position = hw_vehicle_struct_[0].hw_thrust_structs_[i].current_state_.position + 60 * delta_seconds;
         }
 
         hw_vehicle_struct_[0].current_state_.position_x = hw_vehicle_struct_[0].command_state_.position_x;
@@ -404,12 +410,20 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct_[0].current_state_.Ty = hw_vehicle_struct_[0].command_state_.Ty;
         hw_vehicle_struct_[0].current_state_.Tz = hw_vehicle_struct_[0].command_state_.Tz;
 
-        publishRealtimePoseTransform(time);
+        hw_vehicle_struct_[0].current_state_.sim_time = time_seconds;
+        hw_vehicle_struct_[0].current_state_.sim_period = delta_seconds;
 
+        publishRealtimePoseTransform(time);
         return hardware_interface::return_type::OK;
     }
 
-    void SimVehicleSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time& time)
+    hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::write(
+        const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+    {
+        return hardware_interface::return_type::OK;
+    }
+
+    void SimVehicleSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time)
     {
         if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
         {

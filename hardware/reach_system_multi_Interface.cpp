@@ -316,8 +316,8 @@ namespace ros2_control_blue_reach_5
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::read(
       const rclcpp::Time & time, const rclcpp::Duration &period)
   {
-    double delta_seconds = period.seconds();
-    double time_seconds = time.seconds();
+    delta_seconds = period.seconds();
+    time_seconds = time.seconds();
     // Get access to the real-time states
     const std::lock_guard<std::mutex> lock(access_async_states_);
     for (std::size_t i = 0; i < info_.joints.size(); i++)

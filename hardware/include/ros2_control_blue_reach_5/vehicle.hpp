@@ -43,7 +43,7 @@ namespace blue::dynamics
     std::string body_frame;  // body frame
 
     struct Pose_vel
-    {
+    {    
       double position_x, position_y, position_z;
       double orientation_w, orientation_x, orientation_y, orientation_z;
       double u, v, w, p, q, r;
@@ -53,7 +53,9 @@ namespace blue::dynamics
       double Fz = 0;  
       double Tx = 0;  
       double Ty = 0;  
-      double Tz = 0; 
+      double Tz = 0;
+      double sim_time = 0;
+      double sim_period = 0;   
     };
 
     Pose_vel default_state_, command_state_, current_state_, async_state_;

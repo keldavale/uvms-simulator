@@ -165,6 +165,8 @@ namespace ros2_control_blue_reach_5
     rclcpp::Node::SharedPtr node_;
     RefType latest_parameter_state_;
 
+    double delta_seconds;
+    double time_seconds;
     // Store the dynamics function for the robot joints
     casadi_reach_alpha_5::Dynamics dynamics_service;
 

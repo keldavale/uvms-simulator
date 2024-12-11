@@ -107,12 +107,15 @@ namespace ros2_control_blue_reach_5
 
         // Active control mode for each actuator
         std::vector<mode_level_t> control_level_;
-        
+
         // Store the state & commands for the robot joints
         std::vector<Joint> hw_joint_struct_;
 
         // Store the state & commands for the robot agent
         std::vector<std::vector<Joint>> hw_robot_arm_struct_;
+
+        double delta_seconds;
+        double time_seconds;
     };
 
 } // namespace ros2_control_blue_reach_5
