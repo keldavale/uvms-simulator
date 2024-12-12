@@ -53,18 +53,13 @@ namespace ros2_control_blue_reach_5
         system_name = info.name;
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "System name: %s", system_name.c_str());
 
-        cfg_.frame_id = info_.hardware_parameters["frame_id"];
-        cfg_.child_frame_id = info_.hardware_parameters["child_frame_id"];
-        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", cfg_.frame_id.c_str());
-        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", cfg_.child_frame_id.c_str());
-
         // Print the CasADi version
         std::string casadi_version = CasadiMeta::version();
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "CasADi computer from vehicle system: %s", casadi_version.c_str());
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
 
-        // Use CasADi's "external" to load the compiled dynamics functions
-        dynamics_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
+        // Use CasADi's "external" to load the compiled functions
+        utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
 
         hw_vehicle_struct_.resize(1);
 
@@ -87,7 +82,11 @@ namespace ros2_control_blue_reach_5
 
         hw_vehicle_struct_[0].thrustSizeAllocation(info_.joints.size());
 
-        control_level_.resize(info_.joints.size(), mode_level_t::MODE_DISABLE);
+        hw_vehicle_struct_[0].frame_id = info_.hardware_parameters["frame_id"];
+        hw_vehicle_struct_[0].child_frame_id = info_.hardware_parameters["child_frame_id"];
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct_[0].frame_id.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct_[0].child_frame_id.c_str());
+
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {
@@ -350,7 +349,6 @@ namespace ros2_control_blue_reach_5
             {
                 hw_vehicle_struct_[0].hw_thrust_structs_[i].command_state_.effort = 0.0;
             }
-            control_level_[i] = mode_level_t::MODE_DISABLE;
         }
 
         RCLCPP_INFO(
@@ -442,8 +440,8 @@ namespace ros2_control_blue_reach_5
             q_new.normalize();
 
             auto &transform = realtime_transform_publisher_->msg_.transforms.front();
-            transform.header.frame_id = cfg_.frame_id;
-            transform.child_frame_id = cfg_.child_frame_id;
+            transform.header.frame_id = hw_vehicle_struct_[0].frame_id;
+            transform.child_frame_id = hw_vehicle_struct_[0].child_frame_id;
             transform.header.stamp = time;
             transform.transform.translation.x = hw_vehicle_struct_[0].current_state_.position_x;
             transform.transform.translation.y = hw_vehicle_struct_[0].current_state_.position_y;

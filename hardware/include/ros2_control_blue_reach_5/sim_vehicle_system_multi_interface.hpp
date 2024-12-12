@@ -61,13 +61,6 @@ namespace ros2_control_blue_reach_5
     class SimVehicleSystemMultiInterfaceHardware : public hardware_interface::SystemInterface
     {
 
-        struct Config
-        {
-            // Parameters for the vehicle simulation
-            std::string frame_id;
-            std::string child_frame_id;
-        };
-
     public:
         RCLCPP_SHARED_PTR_DEFINITIONS(SimVehicleSystemMultiInterfaceHardware);
 
@@ -116,41 +109,18 @@ namespace ros2_control_blue_reach_5
             const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
     private:
-        Config cfg_;
-        // Enum defining at which control level we are
-        // maintaining the command_interface type per thruster.
-        enum mode_level_t : std::uint8_t
-        {
-            MODE_STANDBY = 0x00,
-            MODE_DISABLE = 0x01,
-            MODE_POSITION = 0x02,
-            MODE_VELOCITY = 0x03,
-            MODE_ACCELERATION = 0x08,
-            MODE_CURRENT = 0x04,
-            MODE_EFFORT_GENERALIZED = 0x05,
-            MODE_EFFORT = 0x09,
-        };
-
-        std::vector<mode_level_t> control_level_;
-
-        // Store the dynamics function for the robot joints
-        casadi_reach_alpha_5::Utils dynamics_service;
+        // Store the utils function for the robot joints
+        casadi_reach_alpha_5::Utils utils_service;
 
         // Store the state & commands for the robot vehicle
         std::vector<blue::dynamics::Vehicle> hw_vehicle_struct_;
         std::string system_name;
 
         using tf = tf2_msgs::msg::TFMessage;
-        using Odom = nav_msgs::msg::Odometry;
 
         std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
             realtime_transform_publisher_;
-
-        std::shared_ptr<rclcpp::Publisher<Odom>> odometry_publisher_;
-        std::shared_ptr<realtime_tools::RealtimePublisher<Odom>>
-            realtime_odometry_publisher_;
-
 
         void publishRealtimePoseTransform(const rclcpp::Time& time);
         double delta_seconds;
