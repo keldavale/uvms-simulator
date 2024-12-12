@@ -94,25 +94,8 @@ namespace ros2_control_blue_reach_5
             const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
     private:
-        enum class mode_level_t
-        {
-            MODE_STANDBY,
-            MODE_DISABLE,
-            MODE_POSITION,
-            MODE_VELOCITY,
-            MODE_CURRENT,
-            MODE_EFFORT,
-            MODE_CARTESIAN
-        };
-
-        // Active control mode for each actuator
-        std::vector<mode_level_t> control_level_;
-
         // Store the state & commands for the robot joints
         std::vector<Joint> hw_joint_struct_;
-
-        // Store the state & commands for the robot agent
-        std::vector<std::vector<Joint>> hw_robot_arm_struct_;
 
         double delta_seconds;
         double time_seconds;
