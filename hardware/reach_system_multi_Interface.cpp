@@ -19,17 +19,6 @@ using namespace casadi;
 
 namespace ros2_control_blue_reach_5
 {
-
-  std::string vectorToString(const std::vector<DM> &vec)
-  {
-    std::ostringstream oss;
-    for (const auto &elem : vec)
-    {
-      oss << elem << " "; // Adjust this to correctly format DM objects
-    }
-    return oss.str();
-  }
-
   hardware_interface::CallbackReturn ReachSystemMultiInterfaceHardware::on_init(
       const hardware_interface::HardwareInfo &info)
   {
@@ -45,16 +34,15 @@ namespace ros2_control_blue_reach_5
     RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "CasADi version: %s", casadi_version.c_str());
     RCLCPP_INFO(rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Testing casadi ready for operations");
     // Use CasADi's "external" to load the compiled dynamics functions
-    dynamics_service.usage_cplusplus_checks("test", "libtest.so", "reach system");
-    dynamics_service.current2torqueMap = dynamics_service.load_casadi_fun("current_to_torque_map", "libC2T.so");
-    dynamics_service.torque2currentMap = dynamics_service.load_casadi_fun("torque_to_current_map", "libT2C.so");
+    utils_service.usage_cplusplus_checks("test", "libtest.so", "reach system");
+    utils_service.current2torqueMap = utils_service.load_casadi_fun("current_to_torque_map", "libC2T.so");
+    utils_service.torque2currentMap = utils_service.load_casadi_fun("torque_to_current_map", "libT2C.so");
 
     cfg_.serial_port_ = info_.hardware_parameters["serial_port"];
     cfg_.state_update_freq_ = std::stoi(info_.hardware_parameters["state_update_frequency"]);
 
     hw_joint_struct_.reserve(info_.joints.size());
-
-    // hw_joint_struct_.reserve(info_.joints.size());
+    
     control_level_.resize(info_.joints.size(), mode_level_t::MODE_DISABLE);
     RCLCPP_INFO(
         rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "Hardware update rate is %u Hz", static_cast<int>(cfg_.state_update_freq_));
@@ -259,8 +247,8 @@ namespace ros2_control_blue_reach_5
   }
 
   hardware_interface::return_type ReachSystemMultiInterfaceHardware::prepare_command_mode_switch(
-      const std::vector<std::string> &start_interfaces,
-      const std::vector<std::string> &stop_interfaces)
+      const std::vector<std::string> &/*start_interfaces*/,
+      const std::vector<std::string> &/*stop_interfaces*/)
   {
     RCLCPP_INFO( // NOLINT
         rclcpp::get_logger("ReachSystemMultiInterfaceHardware"), "preparing command mode switch");
@@ -341,7 +329,7 @@ namespace ros2_control_blue_reach_5
                    DM(hw_joint_struct_[i].actuator_Properties_.backward_I_static),
                    DM(hw_joint_struct_[i].current_state_.current)};
       };
-      std::vector<DM> torque = dynamics_service.current2torqueMap(T2C_arg);
+      std::vector<DM> torque = utils_service.current2torqueMap(T2C_arg);
       hw_joint_struct_[i].current_state_.effort = torque.at(0).scalar();
       hw_joint_struct_[i].calcAcceleration(hw_joint_struct_[i].current_state_.velocity, prev_velocity_, delta_seconds);
 
@@ -421,7 +409,7 @@ namespace ros2_control_blue_reach_5
                        DM(hw_joint_struct_[i].command_state_.effort)};
           }
 
-          std::vector<DM> currentMap = dynamics_service.torque2currentMap(T2C_arg);
+          std::vector<DM> currentMap = utils_service.torque2currentMap(T2C_arg);
 
           // Get the target device
           const auto target_device = static_cast<alpha::driver::DeviceId>(hw_joint_struct_[i].device_id);

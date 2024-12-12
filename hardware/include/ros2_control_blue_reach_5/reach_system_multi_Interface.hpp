@@ -126,49 +126,16 @@ namespace ros2_control_blue_reach_5
     // Active control mode for each actuator
     std::vector<mode_level_t> control_level_;
 
-    double predictor_i = 0;
-
     // Store the state & commands for the robot joints
     std::vector<Joint> hw_joint_struct_;
-
-    // Declare the vectors before the if-else block
-    std::vector<DM> q_prev;
-    std::vector<DM> q_dot_prev;
-
-    std::vector<DM> q_prev_mhe;
-    std::vector<DM> q_dot_prev_mhe;
 
     std::vector<DM> C2T_arg;
     std::vector<DM> T2C_arg;
 
-    std::vector<DM> forward_p0;
-    std::vector<DM> backward_p0;
-    std::vector<DM> FD_param_Selector_arg;
-    std::vector<DM> FD_selected_p0;
-
-    std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05, 5.0, 2.3, 2.2, 0.3, 5.0, 1.8, 1.0, 1.15};
-    // std::vector<DM> p_mhe = {1e-05, 1e-05, 1e-05, 1e-05,  1.0, 1.0, 1.0, 1.0,   1.0, 1.0, 1.0, 1.0};
-
-    // std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 3, 1.6, 1.8, 0.3, 3, 2, 0.8, 1.5};
-    std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-    // std::vector<DM> FD_param_x = {1e-05, 1e-05, 1e-05, 1e-05, 4, 1.6, 2.8, 0.7, 3.4, 2.2, 1.2, 1.8};
-
-    std::vector<double> drag;
-
-    std::vector<DM> fd_arg;
-    std::vector<DM> FNEXT;
-
-    std::vector<DM> fd_arg_mhe;
-    std::vector<DM> FNEXT_mhe;
-
-    rclcpp::Subscription<RefType>::SharedPtr topic_based_parameter_subscriber_;
-    rclcpp::Node::SharedPtr node_;
-    RefType latest_parameter_state_;
-
     double delta_seconds;
     double time_seconds;
     // Store the utils function for the robot joints
-    casadi_reach_alpha_5::Utils dynamics_service;
+    casadi_reach_alpha_5::Utils utils_service;
 
     // std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
     // std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>

@@ -308,7 +308,7 @@ namespace ros2_control_blue_reach_5
     }
 
     hardware_interface::return_type SimVehicleSystemMultiInterfaceHardware::prepare_command_mode_switch(
-        const std::vector<std::string> &start_interfaces,
+        const std::vector<std::string> &/*start_interfaces*/,
         const std::vector<std::string> & /*stop_interfaces*/)
     {
         RCLCPP_INFO(
