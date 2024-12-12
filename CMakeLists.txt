@@ -37,7 +37,7 @@ add_library(
   SHARED
   hardware/sim_reach_system_multi_interface.cpp
   hardware/reach_system_multi_Interface.cpp
-  hardware/dynamics.cpp
+  hardware/utils.cpp
   hardware/cobs.cpp
   hardware/crc.cpp
   hardware/driver.cpp

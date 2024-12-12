@@ -42,7 +42,7 @@
 #include "ros2_control_blue_reach_5/packet.hpp"
 #include "ros2_control_blue_reach_5/joint.hpp"
 #include "ros2_control_blue_reach_5/state.hpp"
-#include "ros2_control_blue_reach_5/dynamics.hpp"
+#include "ros2_control_blue_reach_5/utils.hpp"
 #include "ros2_control_blue_reach_5/custom_hardware_interface_type_values.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include <casadi/casadi.hpp>
@@ -167,8 +167,8 @@ namespace ros2_control_blue_reach_5
 
     double delta_seconds;
     double time_seconds;
-    // Store the dynamics function for the robot joints
-    casadi_reach_alpha_5::Dynamics dynamics_service;
+    // Store the utils function for the robot joints
+    casadi_reach_alpha_5::Utils dynamics_service;
 
     // std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
     // std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>

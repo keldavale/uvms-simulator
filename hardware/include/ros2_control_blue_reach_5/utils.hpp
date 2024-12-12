@@ -1,5 +1,5 @@
-#ifndef ROS2_CONTROL_BLUE_REACH_5__DYNAMICS_HPP_
-#define ROS2_CONTROL_BLUE_REACH_5__DYNAMICS_HPP_
+#ifndef ROS2_CONTROL_BLUE_REACH_5__UTILS_HPP_
+#define ROS2_CONTROL_BLUE_REACH_5__UTILS_HPP_
 
 #include <string>
 #include <algorithm>
@@ -10,18 +10,18 @@ using namespace casadi;
 
 namespace casadi_reach_alpha_5
 {
-    class Dynamics
+    class Utils
     {
 
     public:
-        uint8_t dynamics_id;       // Unique identifier for the dynamics
-        Function torque2currentMap; // forward motor dynamics
-        Function current2torqueMap; // inverse motor dynamics
+        uint8_t utils_id;       // Unique identifier for the utils
+        Function torque2currentMap; // forward motor utils
+        Function current2torqueMap; // inverse motor utils
 
-        Dynamics() = default;
+        Utils() = default;
         // Constructor with member initializer list
-        Dynamics(uint8_t dyn_id)
-            : dynamics_id(dyn_id) {}
+        Utils(uint8_t dyn_id)
+            : utils_id(dyn_id) {}
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
         /**

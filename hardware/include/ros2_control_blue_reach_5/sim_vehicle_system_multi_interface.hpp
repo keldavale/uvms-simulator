@@ -42,7 +42,7 @@
 
 #include "ros2_control_blue_reach_5/state.hpp"
 #include "ros2_control_blue_reach_5/custom_hardware_interface_type_values.hpp"
-#include "ros2_control_blue_reach_5/dynamics.hpp"
+#include "ros2_control_blue_reach_5/utils.hpp"
 
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
@@ -134,7 +134,7 @@ namespace ros2_control_blue_reach_5
         std::vector<mode_level_t> control_level_;
 
         // Store the dynamics function for the robot joints
-        casadi_reach_alpha_5::Dynamics dynamics_service;
+        casadi_reach_alpha_5::Utils dynamics_service;
 
         // Store the state & commands for the robot vehicle
         std::vector<blue::dynamics::Vehicle> hw_vehicle_struct_;

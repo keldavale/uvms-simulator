@@ -37,7 +37,7 @@
 #include "ros2_control_blue_reach_5/packet.hpp"
 #include "ros2_control_blue_reach_5/state.hpp"
 #include "ros2_control_blue_reach_5/custom_hardware_interface_type_values.hpp"
-#include "ros2_control_blue_reach_5/dynamics.hpp"
+#include "ros2_control_blue_reach_5/utils.hpp"
 
 #include <casadi/casadi.hpp>
 
