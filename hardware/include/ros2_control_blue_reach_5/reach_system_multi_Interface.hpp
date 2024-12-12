@@ -137,10 +137,6 @@ namespace ros2_control_blue_reach_5
     // Store the utils function for the robot joints
     casadi_reach_alpha_5::Utils utils_service;
 
-    // std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> odometry_transform_publisher_;
-    // std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
-    //     realtime_odometry_transform_publisher_;
-
     /**
      * @brief Write the current position of the robot received from the serial client to the
      * respective asynchronous vector.
@@ -181,8 +177,6 @@ namespace ros2_control_blue_reach_5
     std::atomic<bool> running_{false};
 
     std::mutex access_async_states_;
-
-    bool excite = false;
   };
 
 } // namespace ros2_control_blue_reach_5
