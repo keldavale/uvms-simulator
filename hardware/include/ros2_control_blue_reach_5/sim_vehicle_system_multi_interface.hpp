@@ -113,7 +113,7 @@ namespace ros2_control_blue_reach_5
         casadi_reach_alpha_5::Utils utils_service;
 
         // Store the state & commands for the robot vehicle
-        std::vector<blue::dynamics::Vehicle> hw_vehicle_struct_;
+        blue::dynamics::Vehicle hw_vehicle_struct;
         std::string system_name;
 
         using tf = tf2_msgs::msg::TFMessage;
