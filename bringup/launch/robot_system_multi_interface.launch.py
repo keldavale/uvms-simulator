@@ -337,6 +337,23 @@ def launch_setup(context, *args, **kwargs):
     
     rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
+    mavros_config = PathJoinSubstitution(
+            [
+                FindPackageShare("ros2_control_blue_reach_5"),
+                "mavros",
+                "mavros.yaml",
+            ]
+        )
+    mavros_config_file = str(mavros_config.perform(context))
+    uv_hardware_node = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'mavros', 'mavros_node',
+            '--ros-args', '--params-file', f'{mavros_config_file}'
+        ],
+        shell=False,
+        condition=IfCondition(use_vehicle_hardware)
+    )
+
     # Nodes Definitions
     robot_state_pub_node = Node(
         package="robot_state_publisher",
@@ -416,7 +433,7 @@ def launch_setup(context, *args, **kwargs):
         shell=True,
         condition=IfCondition(any_real_hardware)
     )
-
+    
     mouse_control = Node(
         package='simlab',
         executable='mouse_node_effort',
@@ -445,6 +462,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Collect all nodes
     nodes = [
+        uv_hardware_node,
         sensorPy_node,
         mouse_control,
         run_plotjuggler,

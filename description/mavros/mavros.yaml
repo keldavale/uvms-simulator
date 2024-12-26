@@ -1,0 +1,30 @@
+/**:
+  ros__parameters:
+    fcu_url: "udp://:14770@192.168.2.1:14770"
+    plugin_denylist:
+      - ftp
+      - px4flow
+      - actuator_control
+      - debug_value
+      - global_position
+      - distance_sensor
+      - hil
+      - extras
+      - wheel_odometry
+      - image_pub
+      - vibration
+      - gps*
+      - setpoint*
+      - gimbal_control
+      - local_position
+      - geofence
+      - fake_gps
+      - camera
+      - mission
+      - trajectory
+      - wind_estimation
+
+
+    # plugin_allowlist:
+    #   - sys_status
+
