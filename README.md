@@ -13,7 +13,7 @@ A simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipula
 ---
 
 ## Getting Started
-
+- [ROS2 installation](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
 ### Prerequisites
 
 Ensure the following dependencies are installed:
