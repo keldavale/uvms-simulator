@@ -444,16 +444,6 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    excite_control = Node(
-        package='simlab',
-        executable='excite_py_node',
-        name='excite_py_node',
-        parameters=[{
-            'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
-        }]
-    )
-
     sensorPy_node = Node(
         package='simlab',
         executable='sensor_py_node',
@@ -464,7 +454,7 @@ def launch_setup(context, *args, **kwargs):
     nodes = [
         uv_hardware_node,
         sensorPy_node,
-        mouse_control,
+        # mouse_control,
         run_plotjuggler,
         control_node,
         robot_state_pub_node,
