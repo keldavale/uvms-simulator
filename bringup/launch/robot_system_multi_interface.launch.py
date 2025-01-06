@@ -450,10 +450,18 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(any_real_hardware)
     )
 
+    visualise_node = Node(
+        package='simlab',
+        executable='visualise_node',
+        condition=IfCondition(any_real_hardware)
+    )
+
+
     # Collect all nodes
     nodes = [
         uv_hardware_node,
-        sensorPy_node,
+        visualise_node,
+        # sensorPy_node,
         # mouse_control,
         run_plotjuggler,
         control_node,
