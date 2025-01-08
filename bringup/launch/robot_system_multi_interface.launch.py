@@ -109,7 +109,7 @@ def add_wrench_entries(ix, rviz_config):
         }
         rviz_config['Visualization Manager']['Displays'].append(new_wrench)
 
-def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_robot_count:int=1)->None:
+def modify_controller_config(use_vehicle_hardware, use_manipulator_hardware, config_path,new_config_path,sim_robot_count:int=1):
         with open(config_path,'r') as file:
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
@@ -128,10 +128,11 @@ def modify_controller_config(any_real_hardware, config_path,new_config_path,sim_
         robot_base_links = []
 
         new_param['uvms_controller']['ros__parameters']['agents'] = []
-        if any_real_hardware:
+
+        if use_manipulator_hardware or use_vehicle_hardware:
             i = 'real'
             new_param, robot_prefixes, robot_base_links, ix = add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix)
-            
+
         for i in range(1, sim_robot_count + 1):
             new_param, robot_prefixes, robot_base_links, ix = add_uvms_model_control(new_param, i, robot_prefixes, robot_base_links, ix)
 
@@ -313,9 +314,15 @@ def launch_setup(context, *args, **kwargs):
     # resolve PathJoinSubstitution to a string
     robot_controllers_read_file = str(robot_controllers_read.perform(context))
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
-    any_real_hardware = use_manipulator_hardware or use_vehicle_hardware
-    any_real_hardware_bool = IfCondition(any_real_hardware).evaluate(context)
-    robot_prefixes, robot_base_links, ix, dof_efforts = modify_controller_config(any_real_hardware_bool, robot_controllers_read_file, robot_controllers_modified_file, sim_robot_count)
+
+    use_manipulator_hardware_bool = IfCondition(use_manipulator_hardware).evaluate(context)
+    use_vehicle_hardware_bool = IfCondition(use_vehicle_hardware).evaluate(context)
+
+    robot_prefixes, robot_base_links, ix, dof_efforts = modify_controller_config(use_vehicle_hardware_bool,
+                                                                                 use_manipulator_hardware_bool,
+                                                                                  robot_controllers_read_file,
+                                                                                    robot_controllers_modified_file,
+                                                                                      sim_robot_count)
 
     rviz_config_read = PathJoinSubstitution(
         [
@@ -430,8 +437,7 @@ def launch_setup(context, *args, **kwargs):
     run_plotjuggler = ExecuteProcess(
         cmd=['ros2', 'run', 'plotjuggler', 'plotjuggler > /dev/null 2>&1'],
         output='screen',
-        shell=True,
-        condition=IfCondition(any_real_hardware)
+        shell=True
     )
     
     mouse_control = Node(
@@ -444,23 +450,23 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    sensorPy_node = Node(
-        package='simlab',
-        executable='sensor_py_node',
-        condition=IfCondition(any_real_hardware)
-    )
+    # sensorPy_node = Node(
+    #     package='simlab',
+    #     executable='sensor_py_node',
+    #     condition=IfCondition(any_real_hardware)
+    # )
 
-    visualise_node = Node(
-        package='simlab',
-        executable='visualise_node',
-        condition=IfCondition(any_real_hardware)
-    )
+    # visualise_node = Node(
+    #     package='simlab',
+    #     executable='visualise_node',
+    #     condition=IfCondition(any_real_hardware)
+    # )
 
 
     # Collect all nodes
     nodes = [
         uv_hardware_node,
-        visualise_node,
+        # visualise_node,
         # sensorPy_node,
         # mouse_control,
         run_plotjuggler,

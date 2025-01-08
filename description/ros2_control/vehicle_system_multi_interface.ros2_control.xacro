@@ -7,7 +7,7 @@
 
       <hardware>
         <xacro:if value="${use_hardware}">
-          <plugin>ros2_control_blue_reach_5/SimVehicleSystemMultiInterfaceHardware</plugin>
+          <plugin>ros2_control_blue_reach_5/BlueRovSystemMultiInterfaceHardware</plugin>
           <param name="prefix">${prefix}</param>
           <param name="frame_id">${frame_id}</param>
           <param name="child_frame_id">${child_frame_id}</param>
