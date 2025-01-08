@@ -46,7 +46,7 @@ Clone additional packages to ros2 workspace:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/blue-heavy-dynamics-simulator.git
+    git clone https://github.com/edxmorgan/uvms-simulator.git
     ```
 2. Navigate to the project directory:
     ```bash
