@@ -4,7 +4,7 @@
   <!-- Enable setting arguments from the launch file -->
   <xacro:arg name="use_manipulator_hardware" default="false"/>
   <xacro:arg name="use_vehicle_hardware" default="false"/>
-  <xacro:arg name="sim_robot_count" default="4"/>
+  <xacro:arg name="sim_robot_count" default="1"/>
   <xacro:arg name="serial_port" default="/dev/ttyUSB0"/>
   <xacro:arg name="state_update_frequency" default="250"/>
   <xacro:arg name="description_package" default="ros2_control_blue_reach_5"/>

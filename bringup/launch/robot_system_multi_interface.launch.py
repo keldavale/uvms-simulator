@@ -110,6 +110,10 @@ def add_wrench_entries(ix, rviz_config):
         rviz_config['Visualization Manager']['Displays'].append(new_wrench)
 
 def modify_controller_config(use_vehicle_hardware, use_manipulator_hardware, config_path,new_config_path,sim_robot_count:int=1):
+        
+        if not use_vehicle_hardware and not use_manipulator_hardware and sim_robot_count==0:
+            raise Exception("Invalid configuration: No robots specified. Enable either vehicle or manipulator hardware, or specify at least one simulation robot.")
+
         with open(config_path,'r') as file:
             controller_param = yaml.load(file,yaml.SafeLoader)
         new_param = copy.deepcopy(controller_param)
