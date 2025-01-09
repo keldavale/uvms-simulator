@@ -536,7 +536,7 @@ namespace ros2_control_blue_reach_5
 
             // Publish the message safely
             realtime_dvl_velocity_publisher_->unlockAndPublish();
-            RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Published DVL velocity with covariance.");
+            // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Published DVL velocity with covariance.");
         }
         else
         {
