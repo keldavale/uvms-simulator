@@ -48,7 +48,7 @@ add_library(
   hardware/vehicle.cpp
   hardware/state.cpp
   hardware/joint.cpp
-  hardware/serial_client.cpp
+  hardware/dvldriver.cpp
 )
 
 target_link_libraries(ros2_control_blue_reach_5 PUBLIC casadi)

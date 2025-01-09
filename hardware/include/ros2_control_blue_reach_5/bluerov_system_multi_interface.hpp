@@ -52,6 +52,7 @@
 
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "ros2_control_blue_reach_5/dvldriver.hpp"
 
 #include <casadi/casadi.hpp>
 
@@ -125,6 +126,16 @@ namespace ros2_control_blue_reach_5
         void publishRealtimePoseTransform(const rclcpp::Time& time);
         double delta_seconds;
         double time_seconds;
+
+        // DVL driver instance
+        a50dvl::driver::DVLDriver dvl_driver_;
+
+        // Mutex to protect DVL data
+        std::mutex dvl_data_mutex_;
+
+        blue::dynamics::DVLMessage dvl_msg;
+        blue::dynamics::DVLVelocityMessage dv_vel;
+        blue::dynamics::DVLPoseMessage dv_pose;
     };
 
 } // namespace ros2_control_blue

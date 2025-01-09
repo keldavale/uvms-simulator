@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 #include "ros2_control_blue_reach_5/bluerov_system_multi_interface.hpp"
+#include "ros2_control_blue_reach_5/dvldriver.hpp"  
 
 #include <chrono>
 #include <cmath>
@@ -30,6 +31,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <random>
+
 
 using namespace casadi;
 
@@ -139,6 +141,58 @@ namespace ros2_control_blue_reach_5
             // Retrieve the node name and log it
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "publisher node name: %s", node_topics_interface->get_name());
+
+            dvl_driver_.subscribe([this](const nlohmann::json & msg){
+                // This lambda runs in the DVLDriver poll thread whenever new JSON arrives
+
+                // Deserialize into DVLMessage
+                dvl_msg = blue::dynamics::DVLMessage::from_json(msg);
+
+                // Lock the mutex to safely update shared data
+                std::lock_guard<std::mutex> lock(dvl_data_mutex_);
+
+                switch (dvl_msg.message_type) {
+                    case blue::dynamics::DVLMessageType::VELOCITY: {
+                        dv_vel = std::get<blue::dynamics::DVLVelocityMessage>(dvl_msg.data);
+                        hw_vehicle_struct.dvl_state.altitude = dv_vel.altitude;
+                        hw_vehicle_struct.dvl_state.fom = dv_vel.fom;
+                        hw_vehicle_struct.dvl_state.format = dv_vel.format;
+                        hw_vehicle_struct.dvl_state.status = dv_vel.status;
+                        hw_vehicle_struct.dvl_state.time = dv_vel.time;
+                        hw_vehicle_struct.dvl_state.time_of_transmission = dv_vel.time_of_transmission;
+                        hw_vehicle_struct.dvl_state.time_of_validity = dv_vel.time_of_validity;
+                        hw_vehicle_struct.dvl_state.transducers = dv_vel.transducers;
+                        hw_vehicle_struct.dvl_state.type = dv_vel.type;
+                        hw_vehicle_struct.dvl_state.velocity_valid = dv_vel.velocity_valid;
+                        hw_vehicle_struct.dvl_state.vx = dv_vel.vx;
+                        hw_vehicle_struct.dvl_state.vy = dv_vel.vy;
+                        hw_vehicle_struct.dvl_state.vz = dv_vel.vz;
+                        break;
+                    }
+                    case blue::dynamics::DVLMessageType::POSITION_LOCAL: {
+                        dv_pose = std::get<blue::dynamics::DVLPoseMessage>(dvl_msg.data);
+                        hw_vehicle_struct.dvl_state.format = dv_pose.format;
+                        hw_vehicle_struct.dvl_state.pitch = dv_pose.pitch;
+                        hw_vehicle_struct.dvl_state.roll = dv_pose.roll;
+                        hw_vehicle_struct.dvl_state.status = dv_pose.status;
+                        hw_vehicle_struct.dvl_state.std_dev = dv_pose.std_dev;
+                        hw_vehicle_struct.dvl_state.ts = dv_pose.ts;
+                        hw_vehicle_struct.dvl_state.type = dv_pose.type;
+                        hw_vehicle_struct.dvl_state.x = dv_pose.x;
+                        hw_vehicle_struct.dvl_state.y = dv_pose.y;
+                        hw_vehicle_struct.dvl_state.yaw = dv_pose.yaw;
+                        hw_vehicle_struct.dvl_state.z = dv_pose.z;
+                        break;
+                    }
+                    case blue::dynamics::DVLMessageType::UNKNOWN:
+                    default:
+                        RCLCPP_WARN(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received unknown DVL message type.");
+                        break;
+                }
+            });
+
+
+            dvl_driver_.start("192.168.2.95", 16171);
 
             // tf publisher
             transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
@@ -366,17 +420,25 @@ namespace ros2_control_blue_reach_5
     hardware_interface::return_type BlueRovSystemMultiInterfaceHardware::read(
         const rclcpp::Time &time, const rclcpp::Duration &period)
     {
-        // RCLCPP_INFO(
-        //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-        //     "Got commands: %f,  %f, %f, %f, %f,  %f",
-        //     hw_vehicle_struct.command_state_.Fx,
-        //     hw_vehicle_struct.command_state_.Fy,
-        //     hw_vehicle_struct.command_state_.Fz,
-        //     hw_vehicle_struct.command_state_.Tx,
-        //     hw_vehicle_struct.command_state_.Ty,
-        //     hw_vehicle_struct.command_state_.Tz);
         delta_seconds = period.seconds();
         time_seconds = time.seconds();
+
+        {
+            // Access DVL data under lock
+            std::lock_guard<std::mutex> lock(dvl_data_mutex_);
+
+            // RCLCPP_INFO(
+            //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+            //     "Got commands: %f,  %f, %f, %f, %f",
+            //     hw_vehicle_struct.dvl_state.vx,
+            //     hw_vehicle_struct.dvl_state.vy,
+            //     hw_vehicle_struct.dvl_state.vz,
+            //     hw_vehicle_struct.dvl_state.altitude,
+            //     hw_vehicle_struct.dvl_state.velocity_valid);
+        }
+
+
+
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
