@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 
+#include "rclcpp/subscription.hpp"
+
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
@@ -55,6 +57,11 @@
 #include "geometry_msgs/msg/twist_with_covariance_stamped.hpp"
 #include "ros2_control_blue_reach_5/dvldriver.hpp"
 
+#include <sensor_msgs/msg/imu.hpp> // Add this line
+#include "rclcpp/rclcpp.hpp"
+#include <memory>
+#include <mutex>
+
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
@@ -64,6 +71,7 @@ namespace ros2_control_blue_reach_5
     {
 
     public:
+        ~BlueRovSystemMultiInterfaceHardware();
         RCLCPP_SHARED_PTR_DEFINITIONS(BlueRovSystemMultiInterfaceHardware);
 
         ROS2_CONTROL_BLUE_REACH_5_PUBLIC
@@ -74,9 +82,9 @@ namespace ros2_control_blue_reach_5
         hardware_interface::CallbackReturn on_configure(
             const rclcpp_lifecycle::State &previous_state) override;
 
-        // ROS2_CONTROL_BLUE_REACH_5_PUBLIC
-        // hardware_interface::CallbackReturn on_cleanup(
-        //     const rclcpp_lifecycle::State &previous_state) override;
+        ROS2_CONTROL_BLUE_REACH_5_PUBLIC
+        hardware_interface::CallbackReturn on_cleanup(
+            const rclcpp_lifecycle::State &previous_state) override;
 
         ROS2_CONTROL_BLUE_REACH_5_PUBLIC
         hardware_interface::return_type prepare_command_mode_switch(
@@ -147,6 +155,21 @@ namespace ros2_control_blue_reach_5
         // Add a flag for data readiness (in the header file)
         bool new_dvl_data_available_ = false;
 
+        // Subscriber for MAVROS IMU data
+        realtime_tools::RealtimeBuffer<std::shared_ptr<sensor_msgs::msg::Imu>> rt_imu_subscriber__ptr_;
+        rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
+        bool imu_new_msg_ = false;
+
+        std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+        std::thread spin_thread_;
+        std::shared_ptr<rclcpp::Node> node_topics_interface_;
+
+        // // Member variables for IMU publishing
+        // std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> imu_publisher_;
+        // std::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>> realtime_imu_publisher_;
+
+        // Mutex for thread-safe IMU data access
+        std::mutex imu_mutex_;
     };
 
 } // namespace ros2_control_blue

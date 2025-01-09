@@ -31,6 +31,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <random>
+#include <rclcpp/qos.hpp> // Ensure this header is included
 
 using namespace casadi;
 
@@ -51,7 +52,7 @@ namespace ros2_control_blue_reach_5
             return hardware_interface::CallbackReturn::ERROR;
         }
         // Access the name from the HardwareInfo
-        system_name = info.name;
+        system_name = info_.name;
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "System name: %s", system_name.c_str());
 
         // Print the CasADi version
@@ -70,12 +71,12 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            0.0, 0.0, 0.0, // Randomized position: x, y, z
-            1.0, 0.0, 0.0, 0.0,          // Orientation: qw, qx, qy, qz
-            0.0, 0.0, 0.0,               // Linear velocities: vx, vy, vz
-            0.0, 0.0, 0.0,               // Angular velocities: wx, wy, wz
-            0.0, 0.0, 0.0,               // Forces: Fx, Fy, Fz
-            0.0, 0.0, 0.0                // Torques: Tx, Ty, Tz
+            5.0, 5.0, 2.0,      // Randomized position: x, y, z
+            1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
+            0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
+            0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
+            0.0, 0.0, 0.0,      // Forces: Fx, Fy, Fz
+            0.0, 0.0, 0.0       // Torques: Tx, Ty, Tz
         };
 
         hw_vehicle_struct.set_vehicle_name("blue ROV heavy 0", initial_state);
@@ -125,19 +126,57 @@ namespace ros2_control_blue_reach_5
     hardware_interface::CallbackReturn BlueRovSystemMultiInterfaceHardware::on_configure(
         const rclcpp_lifecycle::State & /*previous_state*/)
     {
-        // declare and get parameters needed for controller operations
         // setup realtime buffers, ROS publishers ...
         try
         {
-            // Create a shared pointer to the node
-            auto node_topics_interface = std::make_shared<rclcpp::Node>(system_name);
+            // Initialize node
+            node_topics_interface_ = std::make_shared<rclcpp::Node>(system_name + "_topics_interface");
 
-            // Retrieve the node name and log it
+            // Initialize executor and add node
+            executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+            executor_->add_node(node_topics_interface_);
+
+            // Start spinning in a separate thread
+            spin_thread_ = std::thread([this]()
+                                       { executor_->spin(); });
+
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                        "publisher node name: %s", node_topics_interface->get_name());
+                        "Started executor and spinning node_topics_interface.");
+
+            // Setup IMU subscription with Reliable QoS for testing
+            // auto reliable_qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
+            auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
+            auto callback =
+                [this](const std::shared_ptr<sensor_msgs::msg::Imu> imu_msg) -> void
+            {
+                // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received IMU message");
+                {
+                    std::lock_guard<std::mutex> lock(imu_mutex_);
+                    rt_imu_subscriber__ptr_.writeFromNonRT(imu_msg);
+                    imu_new_msg_ = true;
+                }
+            };
+
+            imu_subscriber_ =
+                node_topics_interface_->create_subscription<sensor_msgs::msg::Imu>(
+                    "/mavros/imu/data", best_effort_qos, callback);
+
+            RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                        "Subscribed to /mavros/imu/data with Reliable QoS");
+
+            // // Initialize IMU Publisher
+            // imu_publisher_ = node_topics_interface_->create_publisher<sensor_msgs::msg::Imu>(
+            //     "/blue_rover/imu/data_republished",
+            //     reliable_qos);
+
+            // // Initialize Realtime Publisher for IMU
+            // realtime_imu_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>(imu_publisher_);
+
+            // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+            //             "Initialized IMU publisher on /blue_rover/imu/data_republished");
 
             // tf publisher
-            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
             realtime_transform_publisher_ =
                 std::make_shared<realtime_tools::RealtimePublisher<tf>>(
                     transform_publisher_);
@@ -146,7 +185,7 @@ namespace ros2_control_blue_reach_5
             transform_message.transforms.resize(1);
 
             // Initialize the realtime dvl publisher
-            dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface, "/dvl/velocity", rclcpp::SystemDefaultsQoS());
+            dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_, "/dvl/velocity", rclcpp::SystemDefaultsQoS());
             realtime_dvl_velocity_publisher_ =
                 std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>(
                     dvl_velocity_publisher_);
@@ -552,6 +591,37 @@ namespace ros2_control_blue_reach_5
             }
         }
         return full_covariance;
+    }
+
+
+    ros2_control_blue_reach_5::BlueRovSystemMultiInterfaceHardware::~BlueRovSystemMultiInterfaceHardware()
+    {
+        if (executor_)
+        {
+            executor_->cancel();
+        }
+        if (spin_thread_.joinable())
+        {
+            spin_thread_.join();
+        }
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "Executor stopped and spin thread joined.");
+    }
+
+    hardware_interface::CallbackReturn BlueRovSystemMultiInterfaceHardware::on_cleanup(
+        const rclcpp_lifecycle::State & /*previous_state*/)
+    {
+        if (executor_)
+        {
+            executor_->cancel();
+        }
+        if (spin_thread_.joinable())
+        {
+            spin_thread_.join();
+        }
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "Cleaned up executor and spin thread.");
+        return hardware_interface::CallbackReturn::SUCCESS;
     }
 
 } // namespace ros2_control_blue_reach_5

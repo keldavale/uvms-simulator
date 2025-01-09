@@ -21,6 +21,7 @@ def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,n
 
     rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
     rviz_axes_configure(robot_prefixes, new_rviz_config)
+    # rviz_imu_display(new_rviz_config)
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
@@ -45,6 +46,43 @@ def rviz_axes_configure(robot_prefixes, rviz_config):
             'Reference Frame': f"{prefix}joint_{i}",
             'Value': True}
             rviz_config['Visualization Manager']['Displays'].append(added_axes)
+
+def rviz_imu_display(rviz_config):
+    imu_config = {
+            "Acceleration properties": {
+                "Acc. vector alpha": 0.10000000149011612,
+                "Acc. vector color": "255; 0; 0",
+                "Acc. vector scale": 0.05000000074505806,
+                "Derotate acceleration": True,
+                "Enable acceleration": True
+            },
+            "Axes properties": {
+                "Axes scale": 1,
+                "Enable axes": True
+            },
+            "Box properties": {
+                "Box alpha": 1,
+                "Box color": "255; 0; 0",
+                "Enable box": False,
+                "x_scale": 1,
+                "y_scale": 1,
+                "z_scale": 1
+            },
+            "Class": "rviz_imu_plugin/Imu",
+            "Enabled": True,
+            "Name": "Imu",
+            "Topic": {
+                "Depth": 13,
+                "Durability Policy": "Volatile",
+                "Filter size": 10,
+                "History Policy": "Keep Last",
+                "Reliability Policy": "Best Effort",
+                "Value": "/mavros/imu/data"
+            },
+            "Value": True,
+            "fixed_frame_orientation": True
+        }
+    rviz_config['Visualization Manager']['Displays'].append(imu_config)
 
 def rviz_view_configure(robot_prefixes, robot_base_links, rviz_config):
     rviz_config['Visualization Manager']['Views']['Saved'] = []
