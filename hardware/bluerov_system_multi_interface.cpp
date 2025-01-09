@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 #include "ros2_control_blue_reach_5/bluerov_system_multi_interface.hpp"
-#include "ros2_control_blue_reach_5/dvldriver.hpp"  
+#include "ros2_control_blue_reach_5/dvldriver.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -31,7 +31,6 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <random>
-
 
 using namespace casadi;
 
@@ -87,7 +86,6 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
 
-
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {
             Thruster::State defaultState{0.0, 0.0, 0.0, 0.0};
@@ -142,7 +140,26 @@ namespace ros2_control_blue_reach_5
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "publisher node name: %s", node_topics_interface->get_name());
 
-            dvl_driver_.subscribe([this](const nlohmann::json & msg){
+            // tf publisher
+            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+            realtime_transform_publisher_ =
+                std::make_shared<realtime_tools::RealtimePublisher<tf>>(
+                    transform_publisher_);
+
+            auto &transform_message = realtime_transform_publisher_->msg_;
+            transform_message.transforms.resize(1);
+
+            // Initialize the realtime dvl publisher
+            dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface, "/dvl/velocity", rclcpp::SystemDefaultsQoS());
+            realtime_dvl_velocity_publisher_ =
+                std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>(
+                    dvl_velocity_publisher_);
+
+            RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                        "DVL velocity realtime publisher initialized on topic /dvl/velocity.");
+
+            dvl_driver_.subscribe([this](const nlohmann::json &msg)
+                                  {
                 // This lambda runs in the DVLDriver poll thread whenever new JSON arrives
 
                 // Deserialize into DVLMessage
@@ -159,6 +176,7 @@ namespace ros2_control_blue_reach_5
                         hw_vehicle_struct.dvl_state.format = dv_vel.format;
                         hw_vehicle_struct.dvl_state.status = dv_vel.status;
                         hw_vehicle_struct.dvl_state.time = dv_vel.time;
+                        hw_vehicle_struct.dvl_state.covariance = dv_vel.covariance;
                         hw_vehicle_struct.dvl_state.time_of_transmission = dv_vel.time_of_transmission;
                         hw_vehicle_struct.dvl_state.time_of_validity = dv_vel.time_of_validity;
                         hw_vehicle_struct.dvl_state.transducers = dv_vel.transducers;
@@ -167,6 +185,9 @@ namespace ros2_control_blue_reach_5
                         hw_vehicle_struct.dvl_state.vx = dv_vel.vx;
                         hw_vehicle_struct.dvl_state.vy = dv_vel.vy;
                         hw_vehicle_struct.dvl_state.vz = dv_vel.vz;
+
+                        // Set flag to indicate new data is ready
+                        new_dvl_data_available_ = true;
                         break;
                     }
                     case blue::dynamics::DVLMessageType::POSITION_LOCAL: {
@@ -188,20 +209,9 @@ namespace ros2_control_blue_reach_5
                     default:
                         RCLCPP_WARN(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received unknown DVL message type.");
                         break;
-                }
-            });
-
+                } });
 
             dvl_driver_.start("192.168.2.95", 16171);
-
-            // tf publisher
-            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-            realtime_transform_publisher_ =
-                std::make_shared<realtime_tools::RealtimePublisher<tf>>(
-                    transform_publisher_);
-
-            auto &transform_message = realtime_transform_publisher_->msg_;
-            transform_message.transforms.resize(1);
         }
         catch (const std::exception &e)
         {
@@ -360,7 +370,7 @@ namespace ros2_control_blue_reach_5
     }
 
     hardware_interface::return_type BlueRovSystemMultiInterfaceHardware::prepare_command_mode_switch(
-        const std::vector<std::string> &/*start_interfaces*/,
+        const std::vector<std::string> & /*start_interfaces*/,
         const std::vector<std::string> & /*stop_interfaces*/)
     {
         RCLCPP_INFO(
@@ -423,21 +433,13 @@ namespace ros2_control_blue_reach_5
         delta_seconds = period.seconds();
         time_seconds = time.seconds();
 
+        // Lock and check if new data is available
+        std::lock_guard<std::mutex> lock(dvl_data_mutex_);
+        if (new_dvl_data_available_)
         {
-            // Access DVL data under lock
-            std::lock_guard<std::mutex> lock(dvl_data_mutex_);
-
-            // RCLCPP_INFO(
-            //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-            //     "Got commands: %f,  %f, %f, %f, %f",
-            //     hw_vehicle_struct.dvl_state.vx,
-            //     hw_vehicle_struct.dvl_state.vy,
-            //     hw_vehicle_struct.dvl_state.vz,
-            //     hw_vehicle_struct.dvl_state.altitude,
-            //     hw_vehicle_struct.dvl_state.velocity_valid);
+            publishDVLVelocity();
+            new_dvl_data_available_ = false;
         }
-
-
 
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
@@ -513,6 +515,47 @@ namespace ros2_control_blue_reach_5
             transform.transform.rotation.w = q_new.w();
             realtime_transform_publisher_->unlockAndPublish();
         }
+    }
+    void BlueRovSystemMultiInterfaceHardware::publishDVLVelocity()
+    {
+        // Attempt to acquire the lock for real-time publishing
+        if (realtime_dvl_velocity_publisher_ && realtime_dvl_velocity_publisher_->trylock())
+        {
+            // Safely access the message within the realtime publisher
+            auto &twist_msg = realtime_dvl_velocity_publisher_->msg_;
+            twist_msg.header.stamp = rclcpp::Clock().now();
+            twist_msg.header.frame_id = hw_vehicle_struct.frame_id;
+
+            // Assign DVL velocity data
+            twist_msg.twist.twist.linear.x = hw_vehicle_struct.dvl_state.vx;
+            twist_msg.twist.twist.linear.y = hw_vehicle_struct.dvl_state.vy;
+            twist_msg.twist.twist.linear.z = hw_vehicle_struct.dvl_state.vz;
+
+            // Convert 3x3 covariance to 6x6 and assign
+            twist_msg.twist.covariance = convert3x3To6x6Covariance(hw_vehicle_struct.dvl_state.covariance);
+
+            // Publish the message safely
+            realtime_dvl_velocity_publisher_->unlockAndPublish();
+            RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Published DVL velocity with covariance.");
+        }
+        else
+        {
+            RCLCPP_WARN(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to acquire lock for DVL velocity publishing.");
+        }
+    }
+
+    // Convert 3x3 covariance to 6x6 format
+    std::array<double, 36> BlueRovSystemMultiInterfaceHardware::convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov)
+    {
+        std::array<double, 36> full_covariance = {0.0};
+        for (size_t i = 0; i < 3; ++i)
+        {
+            for (size_t j = 0; j < 3; ++j)
+            {
+                full_covariance[i * 6 + j] = linear_cov.data[i * 3 + j];
+            }
+        }
+        return full_covariance;
     }
 
 } // namespace ros2_control_blue_reach_5

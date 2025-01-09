@@ -63,7 +63,7 @@ namespace blue::dynamics
   // 2. Define Covariance Struct
   struct Covariance
   {
-    double data[9];
+    std::array<double, 9> data;
 
     // Method to deserialize from JSON
     static Covariance from_json(const nlohmann::json &j)
@@ -242,7 +242,7 @@ namespace blue::dynamics
     {
       // DVL Data
       double altitude{0.0};
-      double covariance[9]{0.0}; // Flattened 3x3 covariance matrix
+      Covariance covariance; // Flattened 3x3 covariance matrix
       double fom{0.0};
       std::string format{"unknown"};
       int status{0};

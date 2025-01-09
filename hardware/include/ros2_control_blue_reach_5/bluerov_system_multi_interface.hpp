@@ -52,6 +52,7 @@
 
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "geometry_msgs/msg/twist_with_covariance_stamped.hpp"
 #include "ros2_control_blue_reach_5/dvldriver.hpp"
 
 #include <casadi/casadi.hpp>
@@ -124,6 +125,8 @@ namespace ros2_control_blue_reach_5
             realtime_transform_publisher_;
 
         void publishRealtimePoseTransform(const rclcpp::Time& time);
+        void publishDVLVelocity();
+        std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);
         double delta_seconds;
         double time_seconds;
 
@@ -136,6 +139,14 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::DVLMessage dvl_msg;
         blue::dynamics::DVLVelocityMessage dv_vel;
         blue::dynamics::DVLPoseMessage dv_pose;
+
+        std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>> dvl_velocity_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>
+            realtime_dvl_velocity_publisher_;
+
+        // Add a flag for data readiness (in the header file)
+        bool new_dvl_data_available_ = false;
+
     };
 
 } // namespace ros2_control_blue
