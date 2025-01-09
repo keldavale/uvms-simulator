@@ -62,14 +62,15 @@ namespace ros2_control_blue_reach_5
         // Use CasADi's "external" to load the compiled functions
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dis_x(-5.0, 5.0);
-        std::uniform_real_distribution<> dis_y(-5.0, 5.0);
-        std::uniform_real_distribution<> dis_z(3.0, 7.0);
+        hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
+        hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
+        hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            dis_x(gen), dis_y(gen), 5.0, // Randomized position: x, y, z
+            0.0, 0.0, 0.0, // Randomized position: x, y, z
             1.0, 0.0, 0.0, 0.0,          // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,               // Linear velocities: vx, vy, vz
             0.0, 0.0, 0.0,               // Angular velocities: wx, wy, wz
@@ -80,11 +81,6 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.set_vehicle_name("blue ROV heavy 0", initial_state);
 
         hw_vehicle_struct.thrustSizeAllocation(info_.joints.size());
-
-        hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
-        hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
-        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
-        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {

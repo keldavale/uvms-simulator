@@ -61,6 +61,13 @@ namespace ros2_control_blue_reach_5
         // Use CasADi's "external" to load the compiled functions
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
 
+        hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
+        hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
+        hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
+
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> dis_x(-5.0, 5.0);
@@ -79,12 +86,6 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.set_vehicle_name("blue ROV heavy 0", initial_state);
 
         hw_vehicle_struct.thrustSizeAllocation(info_.joints.size());
-
-        hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
-        hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
-        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
-        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
-
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {

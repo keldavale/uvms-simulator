@@ -221,6 +221,7 @@ namespace blue::dynamics
     uint8_t device_id;          // Unique identifier for the device
     std::string frame_id;       // origin frame
     std::string child_frame_id; // body frame
+    std::string robot_prefix; // robot prefix
 
     struct Pose_vel
     {
