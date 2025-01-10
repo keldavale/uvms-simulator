@@ -104,12 +104,12 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 25 gpio state interfaces
-            if (gpio.state_interfaces.size() != 27)
+            // RRBotSystemMultiInterface has exactly 34 gpio state interfaces
+            if (gpio.state_interfaces.size() != 34)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 27 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 34 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -243,6 +243,22 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.current_state_.sim_period));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.imu_state.position_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.imu_state.position_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.imu_state.position_z));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.orientation_w));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.orientation_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.orientation_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_z));
         return state_interfaces;
     }
 

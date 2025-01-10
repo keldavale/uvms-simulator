@@ -153,6 +153,15 @@
         
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+
+        <state_interface name="imu_position_x"/>
+        <state_interface name="imu_position_y"/>
+        <state_interface name="imu_position_z"/>
+
+        <state_interface name="imu_orientation_w"/>
+        <state_interface name="imu_orientation_x"/>
+        <state_interface name="imu_orientation_y"/>
+        <state_interface name="imu_orientation_z"/>
       </gpio>
 
     </ros2_control>

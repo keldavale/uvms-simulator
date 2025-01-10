@@ -100,12 +100,12 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 25 gpio state interfaces
-            if (gpio.state_interfaces.size() != 27)
+            // RRBotSystemMultiInterface has exactly 34 gpio state interfaces
+            if (gpio.state_interfaces.size() != 34)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 27 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 34 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -150,7 +150,7 @@ namespace ros2_control_blue_reach_5
                     transform_publisher_);
 
             auto &transform_message = realtime_transform_publisher_->msg_;
-            transform_message.transforms.resize(2);
+            transform_message.transforms.resize(1);
 
             // Setup IMU subscription with Reliable QoS for testing
             auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
@@ -160,7 +160,14 @@ namespace ros2_control_blue_reach_5
                 // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received IMU message");
                 {
                     std::lock_guard<std::mutex> lock(imu_mutex_);
-                    rt_imu_subscriber__ptr_.writeFromNonRT(imu_msg);
+                    hw_vehicle_struct.imu_state.position_x = 0.0;
+                    hw_vehicle_struct.imu_state.position_y = 0.0;
+                    hw_vehicle_struct.imu_state.position_z = 0.0;
+
+                    hw_vehicle_struct.imu_state.orientation_w = imu_msg->orientation.w;
+                    hw_vehicle_struct.imu_state.orientation_x = imu_msg->orientation.x;
+                    hw_vehicle_struct.imu_state.orientation_y = imu_msg->orientation.y;
+                    hw_vehicle_struct.imu_state.orientation_z = imu_msg->orientation.z;
                     imu_new_msg_ = true;
                 }
             };
@@ -329,6 +336,23 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.current_state_.sim_period));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.imu_state.position_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.imu_state.position_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.imu_state.position_z));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.orientation_w));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.orientation_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.orientation_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_z));
+        return state_interfaces;
         return state_interfaces;
     }
 
@@ -463,32 +487,6 @@ namespace ros2_control_blue_reach_5
             publishDVLVelocity();
             new_dvl_data_available_ = false;
         }
-
-        sensor_msgs::msg::Imu imu_for_transform;
-        sensor_msgs::msg::Imu last_imu_msg_;
-        bool have_new_imu = false;
-
-        if (imu_new_msg_)
-        {
-            auto latest_imu_ptr = rt_imu_subscriber__ptr_.readFromRT();
-            if (latest_imu_ptr)
-            {
-                // Copy the IMU from pointer into our local variable
-                // imu_for_transform = *latest_imu_ptr;
-                imu_for_transform = **latest_imu_ptr; // Double dereference
-                have_new_imu = true;
-
-                // Update the last received IMU message
-                last_imu_msg_ = imu_for_transform;
-            }
-            else
-            {
-                RCLCPP_WARN(
-                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                    "No valid IMU data pointer available from rt_imu_subscriber__ptr_");
-            }
-            imu_new_msg_ = false;
-        }
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
@@ -521,15 +519,7 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.current_state_.sim_time = time_seconds;
         hw_vehicle_struct.current_state_.sim_period = delta_seconds;
         // Publish transforms
-        if (have_new_imu)
-        {
-            publishRealtimePoseTransform(time, imu_for_transform);
-        }
-        else
-        {
-            // Optionally, publish pose transform without IMU data
-            publishRealtimePoseTransform(time, last_imu_msg_);
-        }
+        publishRealtimePoseTransform(time);
         return hardware_interface::return_type::OK;
     }
 
@@ -539,8 +529,7 @@ namespace ros2_control_blue_reach_5
         return hardware_interface::return_type::OK;
     }
 
-    void BlueRovSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time,
-                                                                           const sensor_msgs::msg::Imu &imu_msg)
+    void BlueRovSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time)
     {
         if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
         {
@@ -571,24 +560,6 @@ namespace ros2_control_blue_reach_5
             transform.transform.rotation.y = q_new.y();
             transform.transform.rotation.z = q_new.z();
             transform.transform.rotation.w = q_new.w();
-
-            // We assume transform_message.transforms.resize(2) in on_configure()
-            // The second transform index is [1]
-            auto &imu_tf = transforms[1];
-            // Set timestamps
-            imu_tf.header.stamp = time;
-            imu_tf.header.frame_id = hw_vehicle_struct.child_frame_id; // <- parent frame, adjust as desired
-            imu_tf.child_frame_id = "imu_link";              // <- the IMU frame you want to broadcast
-
-            // Fill orientation from the subscribed IMU orientation
-            imu_tf.transform.translation.x = 0.0;
-            imu_tf.transform.translation.y = 0.0;
-            imu_tf.transform.translation.z = 0.0;
-
-            imu_tf.transform.rotation.x = imu_msg.orientation.x;
-            imu_tf.transform.rotation.y = imu_msg.orientation.y;
-            imu_tf.transform.rotation.z = imu_msg.orientation.z;
-            imu_tf.transform.rotation.w = imu_msg.orientation.w;
 
             // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();

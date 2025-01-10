@@ -268,8 +268,20 @@ namespace blue::dynamics
       double z{0.0};
     };
 
+    struct imu_info
+    {
+      double position_x{0.0};
+      double position_y{0.0};
+      double position_z{0.0};
+      double orientation_w{0.0};
+      double orientation_x{0.0};
+      double orientation_y{0.0};
+      double orientation_z{0.0};
+    };
+
     Pose_vel default_state_, command_state_, current_state_, async_state_;
     dvl_info dvl_state;
+    imu_info imu_state;
     std::vector<Thruster> hw_thrust_structs_; // Store the state & commands for the uv thruster
 
     Vehicle() = default;

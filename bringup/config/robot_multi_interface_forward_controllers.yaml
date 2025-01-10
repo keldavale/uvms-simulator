@@ -6,18 +6,6 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    fts_broadcaster_real:
-      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
-
-    imu_broadcaster_real:
-      type: imu_sensor_broadcaster/IMUSensorBroadcaster
-
-    fts_broadcaster_1:
-      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
-
-    imu_broadcaster_1:
-      type: imu_sensor_broadcaster/IMUSensorBroadcaster
-
     uvms_controller:
       type: uvms_controller/UvmsController
 
