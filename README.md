@@ -8,7 +8,7 @@ A simulator for the **BlueROV Heavy** equipped with a **Reach Alpha 5** manipula
 
 - **Realistic Dynamics:** Accurate simulation of underwater vehicle and manipulator behaviors.
 - **Multi-Agent Support:** Simulate multiple agents within a shared environment.
-- **Hardware-in-the-Loop Support:** Integrates BlueROV Heavy hardware including IMU, A50 DVL, and Reach Alpha 5 manipulator for realistic interaction and testing.
+- **Hardware-in-the-Loop Support:** Integrates BlueROV Heavy hardware including A50 DVL, and Reach Alpha 5 manipulator for realistic interaction and testing.
 - **Video Demonstration:** [![Watch the Video](https://img.youtube.com/vi/VRJUbpdvPIM/0.jpg)](https://www.youtube.com/watch?v=VRJUbpdvPIM)
 
 ---
@@ -93,6 +93,10 @@ For detailed setup and usage instructions, refer to the [User Documentation](doc
 
 ---
 
+For detailed instructions on setting up HIL, refer to the [Hardware-in-the-Loop Documentation](doc/hil_setup.rst).
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for enhancements or bug fixes.
@@ -102,29 +106,5 @@ Contributions are welcome! Please open an issue or submit a pull request for enh
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Hardware-in-the-Loop Setup
-
-To enable Hardware-in-the-Loop (HIL) simulation with the BlueROV Heavy, follow these additional steps:
-
-1. **Connect Hardware Components:**
-   - **IMU:** Ensure the Inertial Measurement Unit (IMU) is properly connected to your system.
-   - **A50 DVL:** Connect the Doppler Velocity Log (DVL) to interface with the simulator.
-   - **Reach Alpha 5 Manipulator:** Integrate the manipulator hardware following the [Reach Robotics SDK](https://github.com/Reach-Robotics/reach_robotics_sdk/tree/master) guidelines.
-
-2. **Configure ROS2 Nodes:**
-   - Launch the appropriate ROS2 nodes to interface with each hardware component.
-   - Update the simulation configuration files to include hardware topics and parameters.
-
-3. **Calibrate Sensors:**
-   - Perform calibration for the IMU and DVL to ensure accurate data representation within the simulator.
-
-4. **Testing:**
-   - Run the simulator and verify that real-time data from the hardware components is accurately reflected in the simulation environment.
-   - Use the provided controllers to manipulate the Reach Alpha 5 and observe interactions within the simulated underwater environment.
-
-For detailed instructions on setting up HIL, refer to the [Hardware-in-the-Loop Documentation](doc/hil_setup.rst).
 
 ---
