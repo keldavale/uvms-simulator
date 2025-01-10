@@ -576,8 +576,8 @@ namespace ros2_control_blue_reach_5
 
             // Populate the header
             odom_msg.header.stamp = time;
-            odom_msg.header.frame_id = hw_vehicle_struct.frame_id;      // Typically "base_link "
-            odom_msg.child_frame_id = "odom"; // Typically "odom"
+            odom_msg.header.frame_id = hw_vehicle_struct.child_frame_id;      // robot_base_link
+            odom_msg.child_frame_id = "odom"; // odom_link
 
             // Populate the pose (if available from other sensors or estimation)
             // For now, we'll set it to zero or maintain previous state
