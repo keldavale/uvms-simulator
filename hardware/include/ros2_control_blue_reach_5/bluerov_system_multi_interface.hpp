@@ -55,6 +55,7 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "geometry_msgs/msg/twist_with_covariance_stamped.hpp"
+#include <nav_msgs/msg/odometry.hpp>
 #include "ros2_control_blue_reach_5/dvldriver.hpp"
 
 #include <sensor_msgs/msg/imu.hpp> // Add this line
@@ -135,7 +136,8 @@ namespace ros2_control_blue_reach_5
         void publishRealtimePoseTransform(
         const rclcpp::Time &time
         );
-        void publishDVLVelocity();
+
+        void publishDVLAsOdometry(const rclcpp::Time &time);
         std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);
 
         double delta_seconds;
@@ -151,25 +153,20 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::DVLVelocityMessage dv_vel;
         blue::dynamics::DVLPoseMessage dv_pose;
 
-        std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>> dvl_velocity_publisher_;
-        std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>
-            realtime_dvl_velocity_publisher_;
+        std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odom_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
+            realtime_odom_publisher_;
 
         // Add a flag for data readiness (in the header file)
         bool new_dvl_data_available_ = false;
 
         // Subscriber for MAVROS IMU data
-        realtime_tools::RealtimeBuffer<std::shared_ptr<sensor_msgs::msg::Imu>> rt_imu_subscriber__ptr_;
         rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
         bool imu_new_msg_ = false;
 
         std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
         std::thread spin_thread_;
         std::shared_ptr<rclcpp::Node> node_topics_interface_;
-
-        // // Member variables for IMU publishing
-        // std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Imu>> imu_publisher_;
-        // std::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>> realtime_imu_publisher_;
 
         // Mutex for thread-safe IMU data access
         std::mutex imu_mutex_;
