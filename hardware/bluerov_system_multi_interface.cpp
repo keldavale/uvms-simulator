@@ -143,8 +143,16 @@ namespace ros2_control_blue_reach_5
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Started executor and spinning node_topics_interface.");
 
+            // tf publisher
+            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+            realtime_transform_publisher_ =
+                std::make_shared<realtime_tools::RealtimePublisher<tf>>(
+                    transform_publisher_);
+
+            auto &transform_message = realtime_transform_publisher_->msg_;
+            transform_message.transforms.resize(2);
+
             // Setup IMU subscription with Reliable QoS for testing
-            // auto reliable_qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
             auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
             auto callback =
                 [this](const std::shared_ptr<sensor_msgs::msg::Imu> imu_msg) -> void
@@ -163,26 +171,6 @@ namespace ros2_control_blue_reach_5
 
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Subscribed to /mavros/imu/data with Reliable QoS");
-
-            // // Initialize IMU Publisher
-            // imu_publisher_ = node_topics_interface_->create_publisher<sensor_msgs::msg::Imu>(
-            //     "/blue_rover/imu/data_republished",
-            //     reliable_qos);
-
-            // // Initialize Realtime Publisher for IMU
-            // realtime_imu_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<sensor_msgs::msg::Imu>>(imu_publisher_);
-
-            // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-            //             "Initialized IMU publisher on /blue_rover/imu/data_republished");
-
-            // tf publisher
-            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
-            realtime_transform_publisher_ =
-                std::make_shared<realtime_tools::RealtimePublisher<tf>>(
-                    transform_publisher_);
-
-            auto &transform_message = realtime_transform_publisher_->msg_;
-            transform_message.transforms.resize(1);
 
             // Initialize the realtime dvl publisher
             dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_, "/dvl/velocity", rclcpp::SystemDefaultsQoS());
@@ -476,6 +464,31 @@ namespace ros2_control_blue_reach_5
             new_dvl_data_available_ = false;
         }
 
+        sensor_msgs::msg::Imu imu_for_transform;
+        sensor_msgs::msg::Imu last_imu_msg_;
+        bool have_new_imu = false;
+
+        if (imu_new_msg_)
+        {
+            auto latest_imu_ptr = rt_imu_subscriber__ptr_.readFromRT();
+            if (latest_imu_ptr)
+            {
+                // Copy the IMU from pointer into our local variable
+                // imu_for_transform = *latest_imu_ptr;
+                imu_for_transform = **latest_imu_ptr; // Double dereference
+                have_new_imu = true;
+
+                // Update the last received IMU message
+                last_imu_msg_ = imu_for_transform;
+            }
+            else
+            {
+                RCLCPP_WARN(
+                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "No valid IMU data pointer available from rt_imu_subscriber__ptr_");
+            }
+            imu_new_msg_ = false;
+        }
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
@@ -507,8 +520,16 @@ namespace ros2_control_blue_reach_5
 
         hw_vehicle_struct.current_state_.sim_time = time_seconds;
         hw_vehicle_struct.current_state_.sim_period = delta_seconds;
-
-        publishRealtimePoseTransform(time);
+        // Publish transforms
+        if (have_new_imu)
+        {
+            publishRealtimePoseTransform(time, imu_for_transform);
+        }
+        else
+        {
+            // Optionally, publish pose transform without IMU data
+            publishRealtimePoseTransform(time, last_imu_msg_);
+        }
         return hardware_interface::return_type::OK;
     }
 
@@ -518,10 +539,12 @@ namespace ros2_control_blue_reach_5
         return hardware_interface::return_type::OK;
     }
 
-    void BlueRovSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time)
+    void BlueRovSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time,
+                                                                           const sensor_msgs::msg::Imu &imu_msg)
     {
         if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
         {
+            auto &transforms = realtime_transform_publisher_->msg_.transforms;
             // Original pose in NED
             // RVIZ USES NWU
             tf2::Quaternion q_orig, q_rot, q_new;
@@ -536,7 +559,7 @@ namespace ros2_control_blue_reach_5
             q_new = q_rot * q_orig;
             q_new.normalize();
 
-            auto &transform = realtime_transform_publisher_->msg_.transforms.front();
+            auto &transform = transforms[0];
             transform.header.frame_id = hw_vehicle_struct.frame_id;
             transform.child_frame_id = hw_vehicle_struct.child_frame_id;
             transform.header.stamp = time;
@@ -548,6 +571,26 @@ namespace ros2_control_blue_reach_5
             transform.transform.rotation.y = q_new.y();
             transform.transform.rotation.z = q_new.z();
             transform.transform.rotation.w = q_new.w();
+
+            // We assume transform_message.transforms.resize(2) in on_configure()
+            // The second transform index is [1]
+            auto &imu_tf = transforms[1];
+            // Set timestamps
+            imu_tf.header.stamp = time;
+            imu_tf.header.frame_id = hw_vehicle_struct.child_frame_id; // <- parent frame, adjust as desired
+            imu_tf.child_frame_id = "imu_link";              // <- the IMU frame you want to broadcast
+
+            // Fill orientation from the subscribed IMU orientation
+            imu_tf.transform.translation.x = 0.0;
+            imu_tf.transform.translation.y = 0.0;
+            imu_tf.transform.translation.z = 0.0;
+
+            imu_tf.transform.rotation.x = imu_msg.orientation.x;
+            imu_tf.transform.rotation.y = imu_msg.orientation.y;
+            imu_tf.transform.rotation.z = imu_msg.orientation.z;
+            imu_tf.transform.rotation.w = imu_msg.orientation.w;
+
+            // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();
         }
     }
@@ -592,7 +635,6 @@ namespace ros2_control_blue_reach_5
         }
         return full_covariance;
     }
-
 
     ros2_control_blue_reach_5::BlueRovSystemMultiInterfaceHardware::~BlueRovSystemMultiInterfaceHardware()
     {

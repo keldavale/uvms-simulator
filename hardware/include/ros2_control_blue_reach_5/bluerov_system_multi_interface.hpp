@@ -132,9 +132,13 @@ namespace ros2_control_blue_reach_5
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
             realtime_transform_publisher_;
 
-        void publishRealtimePoseTransform(const rclcpp::Time& time);
+        void publishRealtimePoseTransform(
+        const rclcpp::Time &time,
+        const sensor_msgs::msg::Imu &imu_msg
+        );
         void publishDVLVelocity();
         std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);
+
         double delta_seconds;
         double time_seconds;
 
