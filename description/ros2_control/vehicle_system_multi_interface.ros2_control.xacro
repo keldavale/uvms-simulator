@@ -162,6 +162,10 @@
         <state_interface name="imu_orientation_x"/>
         <state_interface name="imu_orientation_y"/>
         <state_interface name="imu_orientation_z"/>
+
+        <state_interface name="dvl_gyro_roll"/>
+        <state_interface name="dvl_gyro_pitch"/>
+        <state_interface name="dvl_gyro_yaw"/>
       </gpio>
 
     </ros2_control>

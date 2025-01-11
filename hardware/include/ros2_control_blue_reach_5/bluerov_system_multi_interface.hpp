@@ -62,7 +62,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <memory>
 #include <mutex>
-
+#include "tf2_ros/static_transform_broadcaster.h"
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
@@ -141,6 +141,9 @@ namespace ros2_control_blue_reach_5
         void publishRealtimePoseTransform(
         const rclcpp::Time &time
         );
+
+        std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
+
 
         void publishDVLVelocity(const rclcpp::Time &time);
         std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);

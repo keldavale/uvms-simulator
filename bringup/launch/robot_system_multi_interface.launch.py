@@ -13,7 +13,7 @@ class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
 
-def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,new_rviz_config_path)->None:
+def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_prefixes, robot_base_links, ix, rviz_config_path,new_rviz_config_path)->None:
     # Load the RViz configuration file
     with open(rviz_config_path,'r') as file:
         rviz_config = yaml.load(file,yaml.SafeLoader)
@@ -22,10 +22,11 @@ def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,n
     rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
     rviz_states_axes_configure(robot_prefixes, new_rviz_config)
 
-    imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config)
-    rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02)
-    rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01)
-    rviz_axes_display('real_robot_odom', "odom_real", new_rviz_config, 0.4, 0.04)
+    if use_vehicle_hardware:
+        imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config)
+        rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02)
+        rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01)
+        rviz_axes_display('real_robot_odom', "robot_odom", new_rviz_config, 0.4, 0.04)
 
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
@@ -48,7 +49,7 @@ def imu_display(name, topic,rviz_config):
                 "Acc. vector color": "255; 0; 0",
                 "Acc. vector scale": 0.05000000074505806,
                 "Derotate acceleration": True,
-                "Enable acceleration": True
+                "Enable acceleration": False
             },
             "Axes properties": {
                 "Axes scale": 0.2,
@@ -215,26 +216,7 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
     new_param['controller_manager']['ros__parameters'][fts_broadcaster_name] = {
         'type': 'force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster'
     }
-    if use_vehicle_hardware and i=="real":
-        # Add imu transform broadcaster
-        imu_transform_bdc = f'tf2_broadcaster'
-        new_param['controller_manager']['ros__parameters'][imu_transform_bdc] = {
-                'type': 'tf2_broadcaster/Tf2Broadcaster'
-            }
 
-        new_param[imu_transform_bdc] = {'ros__parameters': {
-            'sensor': 'robot_real_IOs',
-            'child_frame_id': 'imu_link',
-            'parent_frame_id': base_link,
-            'position_x_state_interface' : 'imu_position_x',
-            'position_y_state_interface' : 'imu_position_y',
-            'position_z_state_interface' : 'imu_position_z',
-            'orientation_w_state_interface' : 'imu_orientation_w',
-            'orientation_x_state_interface' : 'imu_orientation_x',
-            'orientation_y_state_interface' : 'imu_orientation_y',
-            'orientation_z_state_interface' : 'imu_orientation_z'
-            }
-        }
     new_param[imu_broadcaster_name] = {'ros__parameters': {
             'frame_id': base_link,
             'sensor_name': IOs
@@ -257,6 +239,39 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
             }
         }
     }
+
+    if use_vehicle_hardware and i=="real":
+        # Add imu transform broadcaster
+        imu_transform_bdc = f'tf2_broadcaster'
+        new_param['controller_manager']['ros__parameters'][imu_transform_bdc] = {
+                'type': 'tf2_broadcaster/Tf2Broadcaster'
+            }
+
+        new_param[imu_transform_bdc] = {'ros__parameters': {
+            'sensor': 'robot_real_IOs',
+            'child_frame_id': 'imu_link',
+            'parent_frame_id': base_link,
+            'position_x_state_interface' : 'imu_position_x',
+            'position_y_state_interface' : 'imu_position_y',
+            'position_z_state_interface' : 'imu_position_z',
+            'orientation_w_state_interface' : 'imu_orientation_w',
+            'orientation_x_state_interface' : 'imu_orientation_x',
+            'orientation_y_state_interface' : 'imu_orientation_y',
+            'orientation_z_state_interface' : 'imu_orientation_z'
+            }
+        }
+        # # Add gyro from dvl as IMU sensor to be done
+        # dvl_gyro_imu_broadcaster_name = f'dvl_gyro_imu'
+        # new_param['controller_manager']['ros__parameters'][dvl_gyro_imu_broadcaster_name] = {
+        #     'type': 'imu_sensor_broadcaster/IMUSensorBroadcaster'
+        # }
+
+        # new_param[dvl_gyro_imu_broadcaster_name] = {'ros__parameters': {
+        #         'frame_id': 'dvl_link',
+        #         'sensor_name': 'robot_real_IOs'
+        #     }
+        # }
+
     return new_param, robot_prefixes, robot_base_links, ix
 
 def generate_launch_description():
@@ -374,6 +389,13 @@ def launch_setup(context, *args, **kwargs):
             "robot_multi_interface_forward_controllers_modified.yaml",
         ]
     )
+    robot_localization_file_path = PathJoinSubstitution(
+        [
+            FindPackageShare("ros2_control_blue_reach_5"),
+            "config",
+            "ekf_localization_local.yaml",
+        ]
+    )
     # resolve PathJoinSubstitution to a string
     robot_controllers_read_file = str(robot_controllers_read.perform(context))
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
@@ -405,7 +427,7 @@ def launch_setup(context, *args, **kwargs):
     rviz_config_read_file = str(rviz_config_read.perform(context))
     rviz_config_modified_file = str(rviz_config_modified.perform(context))
     
-    rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
+    rviz_file_configure(use_vehicle_hardware_bool, use_manipulator_hardware_bool,robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
     mavros_config = PathJoinSubstitution(
             [
@@ -431,6 +453,14 @@ def launch_setup(context, *args, **kwargs):
         output="both",
         parameters=[robot_description],
     )
+
+    # Start robot localization using an Extended Kalman filter
+    start_robot_localization_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[robot_localization_file_path])
 
     rviz_node = Node(
         package="rviz2",
@@ -556,9 +586,10 @@ def launch_setup(context, *args, **kwargs):
         uv_hardware_node,
         # visualise_node,
         # sensorPy_node,
-        mouse_control,
+        # mouse_control,
         run_plotjuggler,
         control_node,
+        # start_robot_localization_node,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
     ] + spawner_nodes + [register_tf2_broadcaster]

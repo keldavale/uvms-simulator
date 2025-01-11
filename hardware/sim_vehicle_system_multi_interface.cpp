@@ -104,12 +104,12 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 34 gpio state interfaces
-            if (gpio.state_interfaces.size() != 34)
+            // RRBotSystemMultiInterface has exactly 37 gpio state interfaces
+            if (gpio.state_interfaces.size() != 37)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 34 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 37 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -259,6 +259,13 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.orientation_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_z));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[34].name, &hw_vehicle_struct.dvl_state.roll));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[35].name, &hw_vehicle_struct.dvl_state.pitch));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[36].name, &hw_vehicle_struct.dvl_state.yaw));
         return state_interfaces;
     }
 
