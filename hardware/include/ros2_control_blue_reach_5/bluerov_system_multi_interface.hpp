@@ -127,6 +127,9 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::Vehicle hw_vehicle_struct;
         std::string system_name;
 
+        double odom_position_x, odom_position_y, odom_position_z;
+        double odom_orientaion_w, odom_orientaion_x, odom_orientaion_y, odom_orientaion_z;
+
         tf2::Quaternion q_orig, q_rot, q_new;
 
         using tf = tf2_msgs::msg::TFMessage;

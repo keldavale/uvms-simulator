@@ -21,7 +21,12 @@ def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,n
 
     rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
     rviz_states_axes_configure(robot_prefixes, new_rviz_config)
-    rviz_sensor_display(new_rviz_config)
+
+    imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config)
+    rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02)
+    rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01)
+    rviz_axes_display('real_robot_odom', "odom_real", new_rviz_config, 0.4, 0.04)
+
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
@@ -79,10 +84,7 @@ def rviz_states_axes_configure(robot_prefixes, rviz_config):
         for i in range(5):
             rviz_axes_display(f'{prefix}joint_{i}', f"{prefix}joint_{i}", rviz_config, 0.1, 0.01)
 
-def rviz_sensor_display(rviz_config):
-    imu_display("Imu Sensor", "/mavros/imu/data", rviz_config)
-    rviz_axes_display('imu_frame', "imu_link", rviz_config, 0.3, 0.02)
-    rviz_axes_display('dvl_frame', "dvl_link", rviz_config, 0.1, 0.01)
+
     
 def rviz_view_configure(robot_prefixes, robot_base_links, rviz_config):
     rviz_config['Visualization Manager']['Views']['Saved'] = []
@@ -554,7 +556,7 @@ def launch_setup(context, *args, **kwargs):
         uv_hardware_node,
         # visualise_node,
         # sensorPy_node,
-        # mouse_control,
+        mouse_control,
         run_plotjuggler,
         control_node,
         robot_state_pub_node,

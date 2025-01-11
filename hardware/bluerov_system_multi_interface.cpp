@@ -70,9 +70,19 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
 
+
+        odom_position_x = 5.0;
+        odom_position_y = 5.0;
+        odom_position_z = 0.0;
+
+        odom_orientaion_w = 1.0;
+        odom_orientaion_x = 0.0;
+        odom_orientaion_y = 0.0;
+        odom_orientaion_z = 0.0;
+
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            5.0, 5.0, 2.0,      // Randomized position: x, y, z
-            1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
+            odom_position_x, odom_position_y, odom_position_z,      // odom_frame at position: x, y, z  
+            odom_orientaion_w, odom_orientaion_x, odom_orientaion_y, odom_orientaion_z, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
             0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
             0.0, 0.0, 0.0,      // Forces: Fx, Fy, Fz
@@ -150,7 +160,7 @@ namespace ros2_control_blue_reach_5
                     transform_publisher_);
 
             auto &transform_message = realtime_transform_publisher_->msg_;
-            transform_message.transforms.resize(2);
+            transform_message.transforms.resize(3);
 
             // Setup IMU subscription with Reliable QoS for testing
             auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
@@ -573,6 +583,20 @@ namespace ros2_control_blue_reach_5
             dvlTransform.transform.rotation.y = 0;
             dvlTransform.transform.rotation.z = 0;
             dvlTransform.transform.rotation.w = 1;
+
+            // Publish the odom frame
+            auto &odomTransform = transforms[2];
+            odomTransform.header.frame_id = hw_vehicle_struct.frame_id;
+            odomTransform.child_frame_id = "odom_real";
+            odomTransform.header.stamp = time;
+            odomTransform.transform.translation.x = odom_position_x;
+            odomTransform.transform.translation.y = odom_position_y;
+            odomTransform.transform.translation.z = odom_position_z;
+
+            odomTransform.transform.rotation.x = odom_orientaion_x;
+            odomTransform.transform.rotation.y = odom_orientaion_y;
+            odomTransform.transform.rotation.z = odom_orientaion_z;
+            odomTransform.transform.rotation.w = odom_orientaion_w;
 
             // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();
