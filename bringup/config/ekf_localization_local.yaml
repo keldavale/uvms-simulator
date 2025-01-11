@@ -1,5 +1,4 @@
 ### ekf config file ###
-### not working well currently
 ekf_filter_node:
     ros__parameters:
       #Configuation for robot odometry EKF

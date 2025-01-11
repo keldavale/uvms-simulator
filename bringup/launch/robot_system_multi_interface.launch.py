@@ -26,7 +26,7 @@ def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_pr
         imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config)
         rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02)
         rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01)
-        rviz_axes_display('real_robot_odom', "robot_odom", new_rviz_config, 0.4, 0.04)
+        rviz_axes_display('real_robot_odom', "robot_odom", new_rviz_config, 0.1, 0.01)
 
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
@@ -586,10 +586,10 @@ def launch_setup(context, *args, **kwargs):
         uv_hardware_node,
         # visualise_node,
         # sensorPy_node,
-        # mouse_control,
+        mouse_control,
         run_plotjuggler,
         control_node,
-        # start_robot_localization_node,
+        start_robot_localization_node,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
     ] + spawner_nodes + [register_tf2_broadcaster]

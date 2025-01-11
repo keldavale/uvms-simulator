@@ -451,35 +451,6 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Activating... please wait...");
 
-        for (std::size_t i = 0; i < info_.joints.size(); i++)
-        {
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position = 0.0;
-            }
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].current_state_.velocity))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].current_state_.velocity = 0.0;
-            }
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].current_state_.current))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].current_state_.current = 0.0;
-            }
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].current_state_.acceleration))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].current_state_.acceleration = 0.0;
-            }
-
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.current))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].command_state_.current = 0.0;
-            }
-            if (std::isnan(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.effort))
-            {
-                hw_vehicle_struct.hw_thrust_structs_[i].command_state_.effort = 0.0;
-            }
-        }
-
         // Capture the current time
         rclcpp::Time current_time = node_topics_interface_->now();
 
@@ -559,23 +530,24 @@ namespace ros2_control_blue_reach_5
         {
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_period = delta_seconds;
-            hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position = hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position + 60 * delta_seconds;
+            hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position += 60 * delta_seconds;
+
         }
 
-        hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.command_state_.position_x;
-        hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.command_state_.position_y;
-        hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.command_state_.position_z;
-        hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.command_state_.orientation_w;
-        hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.command_state_.orientation_x;
-        hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.command_state_.orientation_y;
-        hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.command_state_.orientation_z;
+        // hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.command_state_.position_x;
+        // hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.command_state_.position_y;
+        // hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.command_state_.position_z;
+        // hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.command_state_.orientation_w;
+        // hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.command_state_.orientation_x;
+        // hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.command_state_.orientation_y;
+        // hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.command_state_.orientation_z;
 
-        hw_vehicle_struct.current_state_.u = hw_vehicle_struct.command_state_.u;
-        hw_vehicle_struct.current_state_.v = hw_vehicle_struct.command_state_.v;
-        hw_vehicle_struct.current_state_.w = hw_vehicle_struct.command_state_.w;
-        hw_vehicle_struct.current_state_.p = hw_vehicle_struct.command_state_.p;
-        hw_vehicle_struct.current_state_.q = hw_vehicle_struct.command_state_.q;
-        hw_vehicle_struct.current_state_.r = hw_vehicle_struct.command_state_.r;
+        // hw_vehicle_struct.current_state_.u = hw_vehicle_struct.command_state_.u;
+        // hw_vehicle_struct.current_state_.v = hw_vehicle_struct.command_state_.v;
+        // hw_vehicle_struct.current_state_.w = hw_vehicle_struct.command_state_.w;
+        // hw_vehicle_struct.current_state_.p = hw_vehicle_struct.command_state_.p;
+        // hw_vehicle_struct.current_state_.q = hw_vehicle_struct.command_state_.q;
+        // hw_vehicle_struct.current_state_.r = hw_vehicle_struct.command_state_.r;
 
         hw_vehicle_struct.current_state_.Fx = hw_vehicle_struct.command_state_.Fx;
         hw_vehicle_struct.current_state_.Fy = hw_vehicle_struct.command_state_.Fy;
