@@ -20,86 +20,23 @@ def rviz_file_configure(robot_prefixes, robot_base_links, ix, rviz_config_path,n
     new_rviz_config = copy.deepcopy(rviz_config)
 
     rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
-    rviz_axes_configure(robot_prefixes, new_rviz_config)
-    rviz_imu_display(new_rviz_config,"/mavros/imu/data")
-    rviz_odom_display(new_rviz_config, "/dvl/odom", "dvl_deadreck")
+    rviz_states_axes_configure(robot_prefixes, new_rviz_config)
+    rviz_sensor_display(new_rviz_config)
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
 
-def rviz_axes_configure(robot_prefixes, rviz_config):
-    for prefix in robot_prefixes:
-        added_axes = {'Class': 'rviz_default_plugins/Axes',
+def rviz_axes_display(name, reference_frame, rviz_config, length, radius):
+    added_axes = {'Class': 'rviz_default_plugins/Axes',
         'Enabled': True,
-        'Length': '0.10000000149011612',
-        'Name': f'{prefix}vehicle_base',
-        'Radius': '0.009999999776482582',
-        'Reference Frame': f"{prefix}vehicle_base",
+        'Length': str(length),
+        'Name': name,
+        'Radius': str(radius),
+        'Reference Frame': reference_frame,
         'Value': True}
-        rviz_config['Visualization Manager']['Displays'].append(added_axes)
-        
-        for i in range(5):
-            added_axes = {'Class': 'rviz_default_plugins/Axes',
-            'Enabled': True,
-            'Length': '0.10000000149011612',
-            'Name': f'{prefix}joint_{i}',
-            'Radius': '0.009999999776482582',
-            'Reference Frame': f"{prefix}joint_{i}",
-            'Value': True}
-            rviz_config['Visualization Manager']['Displays'].append(added_axes)
+    rviz_config['Visualization Manager']['Displays'].append(added_axes)
 
-def rviz_odom_display(rviz_config, topic, odom_name):
-    odom_config = {
-        "Angle Tolerance": 9.999999747378752e-05,
-        "Class": "rviz_default_plugins/Odometry",
-        "Covariance": {
-            "Orientation": {
-                "Alpha": 0.5,
-                "Color": "255; 255; 127",
-                "Color Style": "Unique",
-                "Frame": "Local",
-                "Offset": 1,
-                "Scale": 1,
-                "Value": True
-            },
-            "Position": {
-                "Alpha": 0.30000001192092896,
-                "Color": "204; 51; 204",
-                "Scale": 1,
-                "Value": True
-            },
-            "Value": True
-        },
-        "Enabled": True,
-        "Keep": 1,
-        "Name": odom_name,
-        "Position Tolerance": 9.999999747378752e-05,
-        "Shape": {
-            "Alpha": 1,
-            "Axes Length": 0.07,
-            "Axes Radius": 0.01,
-            "Color": "255; 25; 0",
-            "Head Length": 0.30000001192092896,
-            "Head Radius": 0.10000000149011612,
-            "Shaft Length": 1,
-            "Shaft Radius": 0.05000000074505806,
-            "Value": "Axes"
-        },
-        "Topic": {
-            "Depth": 5,
-            "Durability Policy": "Volatile",
-            "Filter size": 10,
-            "History Policy": "Keep Last",
-            "Reliability Policy": "Reliable",
-            "Value": topic
-        },
-        "Value": True
-    }
-    rviz_config['Visualization Manager']['Displays'].append(odom_config)
-
-    
-
-def rviz_imu_display(rviz_config, topic):
+def imu_display(name, topic,rviz_config):
     imu_config = {
             "Acceleration properties": {
                 "Acc. vector alpha": 0.10000000149011612,
@@ -122,7 +59,7 @@ def rviz_imu_display(rviz_config, topic):
             },
             "Class": "rviz_imu_plugin/Imu",
             "Enabled": True,
-            "Name": "Imu Sensor",
+            "Name": name,
             "Topic": {
                 "Depth": 13,
                 "Durability Policy": "Volatile",
@@ -135,14 +72,17 @@ def rviz_imu_display(rviz_config, topic):
             "fixed_frame_orientation": True
         }
     rviz_config['Visualization Manager']['Displays'].append(imu_config)
-    added_axes = {'Class': 'rviz_default_plugins/Axes',
-    'Enabled': True,
-    'Length': '0.3',
-    'Name': f'imu_frame',
-    'Radius': '0.02',
-    'Reference Frame': f"imu_link",
-    'Value': True}
-    rviz_config['Visualization Manager']['Displays'].append(added_axes)
+
+def rviz_states_axes_configure(robot_prefixes, rviz_config):
+    for prefix in robot_prefixes:
+        rviz_axes_display(f'{prefix}vehicle_base', f"{prefix}vehicle_base", rviz_config, 0.1, 0.01)
+        for i in range(5):
+            rviz_axes_display(f'{prefix}joint_{i}', f"{prefix}joint_{i}", rviz_config, 0.1, 0.01)
+
+def rviz_sensor_display(rviz_config):
+    imu_display("Imu Sensor", "/mavros/imu/data", rviz_config)
+    rviz_axes_display('imu_frame', "imu_link", rviz_config, 0.3, 0.02)
+    rviz_axes_display('dvl_frame', "dvl_link", rviz_config, 0.1, 0.01)
     
 def rviz_view_configure(robot_prefixes, robot_base_links, rviz_config):
     rviz_config['Visualization Manager']['Views']['Saved'] = []

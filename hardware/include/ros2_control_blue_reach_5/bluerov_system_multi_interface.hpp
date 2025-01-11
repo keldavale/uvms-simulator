@@ -127,6 +127,8 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::Vehicle hw_vehicle_struct;
         std::string system_name;
 
+        tf2::Quaternion q_orig, q_rot, q_new;
+
         using tf = tf2_msgs::msg::TFMessage;
 
         std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
@@ -137,7 +139,7 @@ namespace ros2_control_blue_reach_5
         const rclcpp::Time &time
         );
 
-        void publishDVLAsOdometry(const rclcpp::Time &time);
+        void publishDVLVelocity(const rclcpp::Time &time);
         std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);
 
         double delta_seconds;
@@ -151,11 +153,11 @@ namespace ros2_control_blue_reach_5
 
         blue::dynamics::DVLMessage dvl_msg;
         blue::dynamics::DVLVelocityMessage dv_vel;
-        blue::dynamics::DVLPoseMessage dv_pose;
+        blue::dynamics::DVLPoseMessage dvl_pose;
 
-        std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odom_publisher_;
-        std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
-            realtime_odom_publisher_;
+        std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>> dvl_velocity_publisher_;
+        std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>
+            realtime_dvl_velocity_publisher_;
 
         // Add a flag for data readiness (in the header file)
         bool new_dvl_data_available_ = false;

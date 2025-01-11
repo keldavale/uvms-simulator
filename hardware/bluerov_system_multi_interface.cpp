@@ -150,7 +150,7 @@ namespace ros2_control_blue_reach_5
                     transform_publisher_);
 
             auto &transform_message = realtime_transform_publisher_->msg_;
-            transform_message.transforms.resize(1);
+            transform_message.transforms.resize(2);
 
             // Setup IMU subscription with Reliable QoS for testing
             auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
@@ -179,15 +179,15 @@ namespace ros2_control_blue_reach_5
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Subscribed to /mavros/imu/data with Reliable QoS");
 
-            // Initialize the Odometry publisher
-            odom_publisher_ = node_topics_interface_->create_publisher<nav_msgs::msg::Odometry>(
-                "/dvl/odom", rclcpp::SystemDefaultsQoS());
+            // Initialize the realtime dvl publisher
+            dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_,
+                                                                                                               "/dvl/twist", rclcpp::SystemDefaultsQoS());
+            realtime_dvl_velocity_publisher_ =
+                std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::TwistWithCovarianceStamped>>(
+                    dvl_velocity_publisher_);
 
-            realtime_odom_publisher_ = std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(
-                odom_publisher_);
-                
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                        "Odometry realtime publisher initialized on topic /dvl/odom.");
+                        "DVL velocity realtime publisher initialized on topic /dvl/twist.");
 
             dvl_driver_.subscribe([this](const nlohmann::json &msg)
                                   {
@@ -222,18 +222,18 @@ namespace ros2_control_blue_reach_5
                         break;
                     }
                     case blue::dynamics::DVLMessageType::POSITION_LOCAL: {
-                        dv_pose = std::get<blue::dynamics::DVLPoseMessage>(dvl_msg.data);
-                        hw_vehicle_struct.dvl_state.format = dv_pose.format;
-                        hw_vehicle_struct.dvl_state.pitch = dv_pose.pitch;
-                        hw_vehicle_struct.dvl_state.roll = dv_pose.roll;
-                        hw_vehicle_struct.dvl_state.status = dv_pose.status;
-                        hw_vehicle_struct.dvl_state.std_dev = dv_pose.std_dev;
-                        hw_vehicle_struct.dvl_state.ts = dv_pose.ts;
-                        hw_vehicle_struct.dvl_state.type = dv_pose.type;
-                        hw_vehicle_struct.dvl_state.x = dv_pose.x;
-                        hw_vehicle_struct.dvl_state.y = dv_pose.y;
-                        hw_vehicle_struct.dvl_state.yaw = dv_pose.yaw;
-                        hw_vehicle_struct.dvl_state.z = dv_pose.z;
+                        dvl_pose = std::get<blue::dynamics::DVLPoseMessage>(dvl_msg.data);
+                        hw_vehicle_struct.dvl_state.format = dvl_pose.format;
+                        hw_vehicle_struct.dvl_state.pitch = dvl_pose.pitch;
+                        hw_vehicle_struct.dvl_state.roll = dvl_pose.roll;
+                        hw_vehicle_struct.dvl_state.status = dvl_pose.status;
+                        hw_vehicle_struct.dvl_state.std_dev = dvl_pose.std_dev;
+                        hw_vehicle_struct.dvl_state.ts = dvl_pose.ts;
+                        hw_vehicle_struct.dvl_state.type = dvl_pose.type;
+                        hw_vehicle_struct.dvl_state.x = dvl_pose.x;
+                        hw_vehicle_struct.dvl_state.y = dvl_pose.y;
+                        hw_vehicle_struct.dvl_state.yaw = dvl_pose.yaw;
+                        hw_vehicle_struct.dvl_state.z = dvl_pose.z;
                         break;
                     }
                     case blue::dynamics::DVLMessageType::UNKNOWN:
@@ -485,7 +485,7 @@ namespace ros2_control_blue_reach_5
         std::lock_guard<std::mutex> lock(dvl_data_mutex_);
         if (new_dvl_data_available_)
         {
-            publishDVLAsOdometry(time);
+            publishDVLVelocity(time);
             new_dvl_data_available_ = false;
         }
         for (std::size_t i = 0; i < info_.joints.size(); i++)
@@ -535,10 +535,16 @@ namespace ros2_control_blue_reach_5
         if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
         {
             auto &transforms = realtime_transform_publisher_->msg_.transforms;
+            auto &StateEstimateTransform = transforms[0];
+            StateEstimateTransform.header.frame_id = hw_vehicle_struct.frame_id;
+            StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
+            StateEstimateTransform.header.stamp = time;
+            StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
+            StateEstimateTransform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
+            StateEstimateTransform.transform.translation.z = -hw_vehicle_struct.current_state_.position_z;
+
             // Original pose in NED
             // RVIZ USES NWU
-            tf2::Quaternion q_orig, q_rot, q_new;
-
             q_orig.setW(hw_vehicle_struct.current_state_.orientation_w);
             q_orig.setX(hw_vehicle_struct.current_state_.orientation_x);
             q_orig.setY(hw_vehicle_struct.current_state_.orientation_y);
@@ -549,59 +555,49 @@ namespace ros2_control_blue_reach_5
             q_new = q_rot * q_orig;
             q_new.normalize();
 
-            auto &transform = transforms[0];
-            transform.header.frame_id = hw_vehicle_struct.frame_id;
-            transform.child_frame_id = hw_vehicle_struct.child_frame_id;
-            transform.header.stamp = time;
-            transform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
-            transform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
-            transform.transform.translation.z = -hw_vehicle_struct.current_state_.position_z;
+            StateEstimateTransform.transform.rotation.x = q_new.x();
+            StateEstimateTransform.transform.rotation.y = q_new.y();
+            StateEstimateTransform.transform.rotation.z = q_new.z();
+            StateEstimateTransform.transform.rotation.w = q_new.w();
 
-            transform.transform.rotation.x = q_new.x();
-            transform.transform.rotation.y = q_new.y();
-            transform.transform.rotation.z = q_new.z();
-            transform.transform.rotation.w = q_new.w();
+            // Publish the dvl link TF
+            auto &dvlTransform = transforms[1];
+            dvlTransform.header.frame_id = hw_vehicle_struct.child_frame_id;
+            dvlTransform.child_frame_id = "dvl_link";
+            dvlTransform.header.stamp = time;
+            dvlTransform.transform.translation.x = -0.060;
+            dvlTransform.transform.translation.y = 0.000;
+            dvlTransform.transform.translation.z = -0.105;
+
+            dvlTransform.transform.rotation.x = 0;
+            dvlTransform.transform.rotation.y = 0;
+            dvlTransform.transform.rotation.z = 0;
+            dvlTransform.transform.rotation.w = 1;
 
             // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();
         }
     }
-    void BlueRovSystemMultiInterfaceHardware::publishDVLAsOdometry(const rclcpp::Time &time)
+    void BlueRovSystemMultiInterfaceHardware::publishDVLVelocity(const rclcpp::Time &time)
     {
         // Attempt to acquire the lock for real-time publishing
-        if (realtime_odom_publisher_ && realtime_odom_publisher_->trylock())
+        if (realtime_dvl_velocity_publisher_ && realtime_dvl_velocity_publisher_->trylock())
         {
             // Safely access the message within the realtime publisher
-            auto &odom_msg = realtime_odom_publisher_->msg_;
+            auto &twist_msg = realtime_dvl_velocity_publisher_->msg_;
+            twist_msg.header.stamp = time;
+            twist_msg.header.frame_id = "dvl_link";
 
-            // Populate the header
-            odom_msg.header.stamp = time;
-            odom_msg.header.frame_id = hw_vehicle_struct.child_frame_id;      // robot_base_link
-            odom_msg.child_frame_id = "odom"; // odom_link
+            // Assign DVL velocity data
+            twist_msg.twist.twist.linear.x = hw_vehicle_struct.dvl_state.vx;
+            twist_msg.twist.twist.linear.y = hw_vehicle_struct.dvl_state.vy;
+            twist_msg.twist.twist.linear.z = hw_vehicle_struct.dvl_state.vz;
 
-            // Populate the pose (if available from other sensors or estimation)
-            // For now, we'll set it to zero or maintain previous state
-            odom_msg.pose.pose.position.x = dv_pose.x;
-            odom_msg.pose.pose.position.y = dv_pose.y;
-            odom_msg.pose.pose.position.z = dv_pose.z;
-
-            // Convert roll, pitch, yaw to quaternion
-            tf2::Quaternion q;
-            q.setRPY(dv_pose.roll, dv_pose.pitch, dv_pose.yaw);
-            q.normalize(); // Ensure the quaternion is normalized
-            odom_msg.pose.pose.orientation = tf2::toMsg(q);
-
-            // Populate the twist with DVL velocity data
-            odom_msg.twist.twist.linear.x = hw_vehicle_struct.dvl_state.vx;
-            odom_msg.twist.twist.linear.y = hw_vehicle_struct.dvl_state.vy;
-            odom_msg.twist.twist.linear.z = hw_vehicle_struct.dvl_state.vz;
-
-            // Assign covariance if available
-            odom_msg.twist.covariance = convert3x3To6x6Covariance(hw_vehicle_struct.dvl_state.covariance);
-
+            // Convert 3x3 covariance to 6x6 and assign
+            twist_msg.twist.covariance = convert3x3To6x6Covariance(hw_vehicle_struct.dvl_state.covariance);
 
             // Publish the message safely
-            realtime_odom_publisher_->unlockAndPublish();
+            realtime_dvl_velocity_publisher_->unlockAndPublish();
             // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Published DVL velocity with covariance.");
         }
         else
