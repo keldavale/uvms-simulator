@@ -71,13 +71,24 @@
     </joint>
 
     <!-- Robot world origin -->
-    <link name="base_link"/>    
+    <link name="base_link"/>   
 
     <joint name="world_joint" type="fixed">
       <child link="base_link" />
       <parent link="world" />
       <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     </joint>
+
+
+    <!-- Robot NED origin --> 
+    <link name="ned_frame"/>
+
+    <joint name="ned_frame_joint" type="fixed">
+      <child link="ned_frame" />
+      <parent link="world" />
+      <origin xyz="0.0 0.0 0.0" rpy="3.14159265359 0 0"/> 
+    </joint>
+
 
   </xacro:macro>
 

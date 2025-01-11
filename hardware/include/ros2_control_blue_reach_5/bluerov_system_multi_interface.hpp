@@ -130,10 +130,11 @@ namespace ros2_control_blue_reach_5
         double odom_position_x, odom_position_y, odom_position_z;
         double odom_orientaion_w, odom_orientaion_x, odom_orientaion_y, odom_orientaion_z;
 
-        tf2::Quaternion q_orig, q_rot, q_new;
 
         using tf = tf2_msgs::msg::TFMessage;
 
+        tf2::Quaternion q_orig, q_rot, q_new;
+        
         std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
             realtime_transform_publisher_;

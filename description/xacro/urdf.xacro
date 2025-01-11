@@ -66,7 +66,7 @@
       
     <joint name="${prefix}base_joint" type="fixed">
       <child link="${prefix}base_link" />
-      <parent link="base_link" />
+      <parent link="ned_frame" />
       <origin xyz="${x} ${y} ${z}" rpy="${rot_r} ${rot_p} ${rot_y}"/>
     </joint>
 

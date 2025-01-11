@@ -68,7 +68,7 @@
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
       use_hardware="false"
-      frame_id="base_link"
+      frame_id="ned_frame"
       child_frame_id="${prefix}base_link"/>
       
       <!-- Recursively call the macro for the next robot -->
@@ -104,7 +104,7 @@
       serial_port="${serial_port}"
       state_update_frequency="${state_update_frequency}"
       use_hardware="${use_vehicle_hardware}"
-      frame_id="base_link"
+      frame_id="ned_frame"
       child_frame_id="${prefix}base_link"/>
   </xacro:if>
 

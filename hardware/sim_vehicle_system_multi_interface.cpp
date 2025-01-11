@@ -425,7 +425,7 @@ namespace ros2_control_blue_reach_5
 
         hw_vehicle_struct.current_state_.Fx = hw_vehicle_struct.command_state_.Fx;
         hw_vehicle_struct.current_state_.Fy = hw_vehicle_struct.command_state_.Fy;
-        hw_vehicle_struct.current_state_.Fz = -hw_vehicle_struct.command_state_.Fz;
+        hw_vehicle_struct.current_state_.Fz = hw_vehicle_struct.command_state_.Fz;
         hw_vehicle_struct.current_state_.Tx = hw_vehicle_struct.command_state_.Tx;
         hw_vehicle_struct.current_state_.Ty = hw_vehicle_struct.command_state_.Ty;
         hw_vehicle_struct.current_state_.Tz = hw_vehicle_struct.command_state_.Tz;
@@ -447,32 +447,31 @@ namespace ros2_control_blue_reach_5
     {
         if (realtime_transform_publisher_ && realtime_transform_publisher_->trylock())
         {
-            // Original pose in NED
-            // RVIZ USES NWU
-            tf2::Quaternion q_orig, q_rot, q_new;
+            auto &transforms = realtime_transform_publisher_->msg_.transforms;
+            auto &StateEstimateTransform = transforms.front();
+            StateEstimateTransform.header.frame_id = hw_vehicle_struct.frame_id;
+            StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
+            StateEstimateTransform.header.stamp = time;
+            StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
+            StateEstimateTransform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
+            StateEstimateTransform.transform.translation.z = hw_vehicle_struct.current_state_.position_z;
 
             q_orig.setW(hw_vehicle_struct.current_state_.orientation_w);
             q_orig.setX(hw_vehicle_struct.current_state_.orientation_x);
             q_orig.setY(hw_vehicle_struct.current_state_.orientation_y);
             q_orig.setZ(hw_vehicle_struct.current_state_.orientation_z);
 
-            // Rotate the previous pose by 0 degrees about X
-            q_rot.setRPY(0.0, 0.0, 0.0);
-            q_new = q_rot * q_orig;
+            // Rotate the pose about X UPRIGHT
+            q_rot.setRPY(-M_PI, 0.0, 0.0);
+            q_new = q_orig * q_rot;
             q_new.normalize();
 
-            auto &transform = realtime_transform_publisher_->msg_.transforms.front();
-            transform.header.frame_id = hw_vehicle_struct.frame_id;
-            transform.child_frame_id = hw_vehicle_struct.child_frame_id;
-            transform.header.stamp = time;
-            transform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
-            transform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
-            transform.transform.translation.z = -hw_vehicle_struct.current_state_.position_z;
-
-            transform.transform.rotation.x = q_new.x();
-            transform.transform.rotation.y = q_new.y();
-            transform.transform.rotation.z = q_new.z();
-            transform.transform.rotation.w = q_new.w();
+            StateEstimateTransform.transform.rotation.x = q_new.x();
+            StateEstimateTransform.transform.rotation.y = q_new.y();
+            StateEstimateTransform.transform.rotation.z = q_new.z();
+            StateEstimateTransform.transform.rotation.w = q_new.w();
+            
+            // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();
         }
     }
