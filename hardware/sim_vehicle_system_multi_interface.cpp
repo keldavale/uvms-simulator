@@ -424,7 +424,7 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.current_state_.r = hw_vehicle_struct.command_state_.r;
 
         hw_vehicle_struct.current_state_.Fx = hw_vehicle_struct.command_state_.Fx;
-        hw_vehicle_struct.current_state_.Fy = hw_vehicle_struct.command_state_.Fy;
+        hw_vehicle_struct.current_state_.Fy = -hw_vehicle_struct.command_state_.Fy;
         hw_vehicle_struct.current_state_.Fz = hw_vehicle_struct.command_state_.Fz;
         hw_vehicle_struct.current_state_.Tx = hw_vehicle_struct.command_state_.Tx;
         hw_vehicle_struct.current_state_.Ty = hw_vehicle_struct.command_state_.Ty;
@@ -453,7 +453,7 @@ namespace ros2_control_blue_reach_5
             StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
             StateEstimateTransform.header.stamp = time;
             StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
-            StateEstimateTransform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
+            StateEstimateTransform.transform.translation.y = -hw_vehicle_struct.current_state_.position_y;
             StateEstimateTransform.transform.translation.z = hw_vehicle_struct.current_state_.position_z;
 
             q_orig.setW(hw_vehicle_struct.current_state_.orientation_w);
@@ -462,7 +462,7 @@ namespace ros2_control_blue_reach_5
             q_orig.setZ(hw_vehicle_struct.current_state_.orientation_z);
 
             // Rotate the pose about X UPRIGHT
-            q_rot.setRPY(-M_PI, 0.0, 0.0);
+            q_rot.setRPY(M_PI, 0.0, 0.0);
             q_new = q_orig * q_rot;
             q_new.normalize();
 

@@ -26,7 +26,7 @@
 
 /**/imu:
   ros__parameters:
-    frame_id: "robot_real_base_link"
+    frame_id: "robot_real_body_ned"
     # need find actual values
     # linear_acceleration_stdev: 0.0003
     # angular_velocity_stdev: 0.0003490659  # 0.02 degrees

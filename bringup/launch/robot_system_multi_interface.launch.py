@@ -218,13 +218,13 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
     }
 
     new_param[imu_broadcaster_name] = {'ros__parameters': {
-            'frame_id': base_link,
+            'frame_id': f'{prefix}base_link',
             'sensor_name': IOs
         }
     }
 
     new_param[fts_broadcaster_name] = {'ros__parameters': {
-        'frame_id': base_link,
+        'frame_id': f'{prefix}body_ned',
         'interface_names': {
             'force': {
                 'x': f'{IOs}/force.x',
@@ -250,7 +250,7 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
         new_param[imu_transform_bdc] = {'ros__parameters': {
             'sensor': 'robot_real_IOs',
             'child_frame_id': 'imu_link',
-            'parent_frame_id': base_link,
+            'parent_frame_id': f'{prefix}base_link',
             'position_x_state_interface' : 'imu_position_x',
             'position_y_state_interface' : 'imu_position_y',
             'position_z_state_interface' : 'imu_position_z',
