@@ -454,14 +454,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[robot_description],
     )
 
-    # Start robot localization using an Extended Kalman filter
-    start_robot_localization_node = Node(
-        package='robot_localization',
-        executable='ekf_node',
-        name='ekf_filter_node',
-        output='screen',
-        parameters=[robot_localization_file_path])
-
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -589,7 +581,6 @@ def launch_setup(context, *args, **kwargs):
         mouse_control,
         run_plotjuggler,
         control_node,
-        start_robot_localization_node,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
     ] + spawner_nodes + [register_tf2_broadcaster]
