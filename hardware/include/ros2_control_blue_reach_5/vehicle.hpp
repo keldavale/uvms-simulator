@@ -221,8 +221,11 @@ namespace blue::dynamics
     uint8_t device_id;          // Unique identifier for the device
     std::string frame_id;       // origin frame
     std::string child_frame_id; // body frame
+    std::string map_frame_id; // body frame
     std::string robot_prefix; // robot prefix
-
+    double sim_time = 0;
+    double sim_period = 0;
+    
     struct Pose_vel
     {
       double position_x, position_y, position_z;
@@ -235,8 +238,6 @@ namespace blue::dynamics
       double Tx = 0;
       double Ty = 0;
       double Tz = 0;
-      double sim_time = 0;
-      double sim_period = 0;
     };
 
     struct dvl_info

@@ -23,18 +23,17 @@ def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_pr
     rviz_states_axes_configure(robot_prefixes, new_rviz_config)
 
     if use_vehicle_hardware:
-        imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config)
-        rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02)
-        rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01)
-        rviz_axes_display('real_robot_odom', "robot_odom", new_rviz_config, 0.1, 0.01)
+        imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config, False)
+        rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02, False)
+        rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01, False)
 
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
 
-def rviz_axes_display(name, reference_frame, rviz_config, length, radius):
+def rviz_axes_display(name, reference_frame, rviz_config, length, radius, enabled):
     added_axes = {'Class': 'rviz_default_plugins/Axes',
-        'Enabled': True,
+        'Enabled': enabled,
         'Length': str(length),
         'Name': name,
         'Radius': str(radius),
@@ -42,7 +41,7 @@ def rviz_axes_display(name, reference_frame, rviz_config, length, radius):
         'Value': True}
     rviz_config['Visualization Manager']['Displays'].append(added_axes)
 
-def imu_display(name, topic,rviz_config):
+def imu_display(name, topic,rviz_config, enabled):
     imu_config = {
             "Acceleration properties": {
                 "Acc. vector alpha": 0.10000000149011612,
@@ -64,7 +63,7 @@ def imu_display(name, topic,rviz_config):
                 "z_scale": 1
             },
             "Class": "rviz_imu_plugin/Imu",
-            "Enabled": True,
+            "Enabled": enabled,
             "Name": name,
             "Topic": {
                 "Depth": 13,
@@ -81,9 +80,12 @@ def imu_display(name, topic,rviz_config):
 
 def rviz_states_axes_configure(robot_prefixes, rviz_config):
     for prefix in robot_prefixes:
-        rviz_axes_display(f'{prefix}vehicle_base', f"{prefix}vehicle_base", rviz_config, 0.1, 0.01)
+        base_link = f'{prefix}base_link'
+        robot_map_frame = f'{prefix}map'
+        rviz_axes_display(base_link, base_link, rviz_config, 0.1, 0.01, True)
+        rviz_axes_display(robot_map_frame, f'{prefix}map', rviz_config, 0.1, 0.01, True)
         for i in range(5):
-            rviz_axes_display(f'{prefix}joint_{i}', f"{prefix}joint_{i}", rviz_config, 0.1, 0.01)
+            rviz_axes_display(f'{prefix}joint_{i}', f"{prefix}joint_{i}", rviz_config, 0.1, 0.01, True)
 
 
     
@@ -104,7 +106,7 @@ def rviz_view_configure(robot_prefixes, robot_base_links, rviz_config):
         'Focal Shape Fixed Size': True,
         'Focal Shape Size': 0.05000000074505806,
         'Invert Z Axis': False,
-        'Name': 'NED Origin',
+        'Name': 'World Origin',
         'Near Clip Distance': 0.009999999776482582,
         'Pitch': 0.44020360708236694,
         'Target Frame': 'base_link',
@@ -218,13 +220,13 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
     }
 
     new_param[imu_broadcaster_name] = {'ros__parameters': {
-            'frame_id': f'{prefix}base_link',
+            'frame_id': base_link,
             'sensor_name': IOs
         }
     }
 
     new_param[fts_broadcaster_name] = {'ros__parameters': {
-        'frame_id': f'{prefix}body_ned',
+        'frame_id': base_link,
         'interface_names': {
             'force': {
                 'x': f'{IOs}/force.x',
@@ -250,7 +252,7 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
         new_param[imu_transform_bdc] = {'ros__parameters': {
             'sensor': 'robot_real_IOs',
             'child_frame_id': 'imu_link',
-            'parent_frame_id': f'{prefix}base_link',
+            'parent_frame_id': base_link,
             'position_x_state_interface' : 'imu_position_x',
             'position_y_state_interface' : 'imu_position_y',
             'position_z_state_interface' : 'imu_position_z',

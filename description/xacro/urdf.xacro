@@ -62,22 +62,13 @@
         <origin rpy="0 0 0" xyz="-0.11425 -0.14375 0.08" />
       </collision>
     </link>
+
       
     <joint name="${prefix}base_joint" type="fixed">
       <child link="${prefix}base_link" />
-      <parent link="ned_frame" />
+      <parent link="base_link" />
       <origin xyz="${x} ${y} ${z}" rpy="${rot_r} ${rot_p} ${rot_y}"/>
     </joint>
-
-    <!-- Robot body NED --> 
-    <link name="${prefix}body_ned"/>
-
-    <joint name="${prefix}body_ned_joint" type="fixed">
-      <child link="${prefix}body_ned" />
-      <parent link="${prefix}base_link" />
-      <origin xyz="0.0 0.0 0.0" rpy="${pi} 0 0"/> 
-    </joint>
-
 
     <joint name="${prefix}manipulator_mount_joint" type="fixed">
       <origin rpy="0 0 0" xyz="0.14 0.0 -0.12" />
@@ -109,5 +100,4 @@
 </robot>
   <!-- Used for fixing robot -->
  
-
 

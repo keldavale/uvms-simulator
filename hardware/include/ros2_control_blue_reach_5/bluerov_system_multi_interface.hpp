@@ -127,8 +127,8 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::Vehicle hw_vehicle_struct;
         std::string system_name;
 
-        double odom_position_x, odom_position_y, odom_position_z;
-        double odom_orientaion_w, odom_orientaion_x, odom_orientaion_y, odom_orientaion_z;
+        double map_position_x, map_position_y, map_position_z;
+        double map_orientaion_w, map_orientaion_x, map_orientaion_y, map_orientaion_z;
 
 
         using tf = tf2_msgs::msg::TFMessage;
@@ -173,12 +173,17 @@ namespace ros2_control_blue_reach_5
         rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
         bool imu_new_msg_ = false;
 
+        // Subscriber for kalman filtered odometry data
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr filterd_odom_subscriber_;
+        bool filtered_odom_new_msg_ = false;
+
         std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
         std::thread spin_thread_;
         std::shared_ptr<rclcpp::Node> node_topics_interface_;
 
         // Mutex for thread-safe IMU data access
         std::mutex imu_mutex_;
+        std::mutex filtered_odom_mutex_;
     };
 
 } // namespace ros2_control_blue

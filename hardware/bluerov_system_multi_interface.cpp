@@ -65,27 +65,30 @@ namespace ros2_control_blue_reach_5
 
         hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
         hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
+        hw_vehicle_struct.map_frame_id = info_.hardware_parameters["map_frame_id"];
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
+
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
 
-        odom_position_x = 5.0;
-        odom_position_y = 5.0;
-        odom_position_z = 0.0;
+        map_position_x = 5.0;
+        map_position_y = 5.0;
+        map_position_z = 0.0;
 
-        odom_orientaion_w = 1.0;
-        odom_orientaion_x = 0.0;
-        odom_orientaion_y = 0.0;
-        odom_orientaion_z = 0.0;
+        map_orientaion_w = 1.0;
+        map_orientaion_x = 0.0;
+        map_orientaion_y = 0.0;
+        map_orientaion_z = 0.0;
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            odom_position_x, odom_position_y, odom_position_z,                          // odom_frame at position: x, y, z
-            odom_orientaion_w, odom_orientaion_x, odom_orientaion_y, odom_orientaion_z, // Orientation: qw, qx, qy, qz
-            0.0, 0.0, 0.0,                                                              // Linear velocities: vx, vy, vz
-            0.0, 0.0, 0.0,                                                              // Angular velocities: wx, wy, wz
-            0.0, 0.0, 0.0,                                                              // Forces: Fx, Fy, Fz
-            0.0, 0.0, 0.0                                                               // Torques: Tx, Ty, Tz
+            0.0, 0.0, 0.0,      // map_frame at position: x, y, z
+            1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
+            0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
+            0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
+            0.0, 0.0, 0.0,      // Forces: Fx, Fy, Fz
+            0.0, 0.0, 0.0       // Torques: Tx, Ty, Tz
         };
 
         hw_vehicle_struct.set_vehicle_name("blue ROV heavy 0", initial_state);
@@ -150,13 +153,15 @@ namespace ros2_control_blue_reach_5
                                        { executor_->spin(); });
 
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                        "Started executor and spinning node_topics_interface.");
+                        "Started executor and spinning node_topics_interface: %s", node_topics_interface_->get_name());
 
             // Initialize the StaticTransformBroadcaster
             static_tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_topics_interface_);
 
             // tf publisher
-            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_, DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+            transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_,
+                                                                DEFAULT_TRANSFORM_TOPIC,
+                                                                rclcpp::SystemDefaultsQoS());
             realtime_transform_publisher_ =
                 std::make_shared<realtime_tools::RealtimePublisher<tf>>(
                     transform_publisher_);
@@ -166,7 +171,7 @@ namespace ros2_control_blue_reach_5
 
             // Setup IMU subscription with Reliable QoS for testing
             auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
-            auto callback =
+            auto imu_callback =
                 [this](const std::shared_ptr<sensor_msgs::msg::Imu> imu_msg) -> void
             {
                 // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received IMU message");
@@ -186,10 +191,52 @@ namespace ros2_control_blue_reach_5
 
             imu_subscriber_ =
                 node_topics_interface_->create_subscription<sensor_msgs::msg::Imu>(
-                    "/mavros/imu/data", best_effort_qos, callback);
+                    "/mavros/imu/data", best_effort_qos, imu_callback);
 
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Subscribed to /mavros/imu/data with Reliable QoS");
+
+            // Setup Kalman filtered odom subscription
+            auto reliable_qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
+
+            // Define the odometry callback
+            auto filtered_odom_callback =
+                [this](const std::shared_ptr<nav_msgs::msg::Odometry> odom_msg) -> void
+            {
+                // Log receipt of odometry message
+                // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received filtered odom message");
+
+                {
+                    std::lock_guard<std::mutex> lock_odom(filtered_odom_mutex_);
+                    hw_vehicle_struct.async_state_.position_x = odom_msg->pose.pose.position.x;
+                    hw_vehicle_struct.async_state_.position_y = odom_msg->pose.pose.position.y;
+                    hw_vehicle_struct.async_state_.position_z = odom_msg->pose.pose.position.z;
+                    hw_vehicle_struct.async_state_.orientation_w = odom_msg->pose.pose.orientation.w;
+                    hw_vehicle_struct.async_state_.orientation_x = odom_msg->pose.pose.orientation.x;
+                    hw_vehicle_struct.async_state_.orientation_y = odom_msg->pose.pose.orientation.y;
+                    hw_vehicle_struct.async_state_.orientation_z = odom_msg->pose.pose.orientation.z;
+
+                    hw_vehicle_struct.async_state_.u = odom_msg->twist.twist.linear.x;
+                    hw_vehicle_struct.async_state_.v = odom_msg->twist.twist.linear.y;
+                    hw_vehicle_struct.async_state_.w = odom_msg->twist.twist.linear.z;
+                    hw_vehicle_struct.async_state_.p = odom_msg->twist.twist.angular.x;
+                    hw_vehicle_struct.async_state_.q = odom_msg->twist.twist.angular.y;
+                    hw_vehicle_struct.async_state_.r = odom_msg->twist.twist.angular.z;
+                    filtered_odom_new_msg_ = true;
+                }
+            };
+
+            // Create the Odometry subscriber
+            filterd_odom_subscriber_ =
+                node_topics_interface_->create_subscription<nav_msgs::msg::Odometry>(
+                    "/blue_rov/odom", // Updated topic name for odometry
+                    reliable_qos,     // Use reliable QoS as per the log message
+                    filtered_odom_callback);
+
+            // Log the subscription
+            RCLCPP_INFO(
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                "Subscribed to /blue_rov/odom_ned with Reliable QoS");
 
             // Initialize the realtime dvl publisher
             dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_,
@@ -346,9 +393,9 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct.current_state_.Tz));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.sim_time));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.current_state_.sim_period));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.sim_period));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.imu_state.position_x));
@@ -454,28 +501,27 @@ namespace ros2_control_blue_reach_5
         // Capture the current time
         rclcpp::Time current_time = node_topics_interface_->now();
 
-        // Create and send the static odom transform
-        geometry_msgs::msg::TransformStamped static_odom_transform;
+        // Create and send the static map transform
+        geometry_msgs::msg::TransformStamped static_map_transform;
 
-        static_odom_transform.header.stamp = current_time;
-        static_odom_transform.header.frame_id = hw_vehicle_struct.frame_id;
-        static_odom_transform.child_frame_id = "robot_odom";
+        static_map_transform.header.stamp = current_time;
+        static_map_transform.header.frame_id = hw_vehicle_struct.frame_id;
+        static_map_transform.child_frame_id = hw_vehicle_struct.map_frame_id;
 
         // Set translation based on current state
-        static_odom_transform.transform.translation.x = odom_position_x;
-        static_odom_transform.transform.translation.y = odom_position_y;
-        static_odom_transform.transform.translation.z = odom_position_z;
+        static_map_transform.transform.translation.x = map_position_x;
+        static_map_transform.transform.translation.y = map_position_y;
+        static_map_transform.transform.translation.z = map_position_z;
 
         // Set rotation based on current state (quaternion)
-        static_odom_transform.transform.rotation.x = odom_orientaion_x;
-        static_odom_transform.transform.rotation.y = odom_orientaion_y;
-        static_odom_transform.transform.rotation.z = odom_orientaion_z;
-        static_odom_transform.transform.rotation.w = odom_orientaion_w;
+        static_map_transform.transform.rotation.x = map_orientaion_x;
+        static_map_transform.transform.rotation.y = map_orientaion_y;
+        static_map_transform.transform.rotation.z = map_orientaion_z;
+        static_map_transform.transform.rotation.w = map_orientaion_w;
         // Publish the static transform
-        static_tf_broadcaster_->sendTransform(static_odom_transform);
+        static_tf_broadcaster_->sendTransform(static_map_transform);
 
-
-        // Create and send the static odom transform
+        // Create and send the static dvl transform
         geometry_msgs::msg::TransformStamped static_dvl_transform;
 
         static_dvl_transform.header.stamp = current_time;
@@ -487,9 +533,8 @@ namespace ros2_control_blue_reach_5
         static_dvl_transform.transform.translation.y = 0.000;
         static_dvl_transform.transform.translation.z = -0.105;
 
-
         // Rotate the pose about X UPRIGHT
-        q_rot_dvl.setRPY(M_PI, 0.0, 0.0);
+        q_rot_dvl.setRPY(0.0, 0.0, 0.0);
 
         q_rot_dvl.normalize();
 
@@ -537,33 +582,39 @@ namespace ros2_control_blue_reach_5
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_period = delta_seconds;
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position += 60 * delta_seconds;
-
         }
-
-        hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.command_state_.position_x;
-        hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.command_state_.position_y;
-        hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.command_state_.position_z;
-        hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.command_state_.orientation_w;
-        hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.command_state_.orientation_x;
-        hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.command_state_.orientation_y;
-        hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.command_state_.orientation_z;
-
-        hw_vehicle_struct.current_state_.u = hw_vehicle_struct.command_state_.u;
-        hw_vehicle_struct.current_state_.v = hw_vehicle_struct.command_state_.v;
-        hw_vehicle_struct.current_state_.w = hw_vehicle_struct.command_state_.w;
-        hw_vehicle_struct.current_state_.p = hw_vehicle_struct.command_state_.p;
-        hw_vehicle_struct.current_state_.q = hw_vehicle_struct.command_state_.q;
-        hw_vehicle_struct.current_state_.r = hw_vehicle_struct.command_state_.r;
 
         hw_vehicle_struct.current_state_.Fx = hw_vehicle_struct.command_state_.Fx;
         hw_vehicle_struct.current_state_.Fy = -hw_vehicle_struct.command_state_.Fy;
-        hw_vehicle_struct.current_state_.Fz = hw_vehicle_struct.command_state_.Fz;
+        hw_vehicle_struct.current_state_.Fz = -hw_vehicle_struct.command_state_.Fz;
         hw_vehicle_struct.current_state_.Tx = hw_vehicle_struct.command_state_.Tx;
         hw_vehicle_struct.current_state_.Ty = hw_vehicle_struct.command_state_.Ty;
         hw_vehicle_struct.current_state_.Tz = hw_vehicle_struct.command_state_.Tz;
 
-        hw_vehicle_struct.current_state_.sim_time = time_seconds;
-        hw_vehicle_struct.current_state_.sim_period = delta_seconds;
+        hw_vehicle_struct.sim_time = time_seconds;
+        hw_vehicle_struct.sim_period = delta_seconds;
+
+        // Lock and check if new data is available
+        std::lock_guard<std::mutex> lock_odom(filtered_odom_mutex_);
+        if (filtered_odom_new_msg_)
+        {
+            hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.async_state_.position_x;
+            hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.async_state_.position_y;
+            hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.async_state_.position_z;
+            hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.async_state_.orientation_w;
+            hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.async_state_.orientation_x;
+            hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.async_state_.orientation_y;
+            hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.async_state_.orientation_z;
+
+            hw_vehicle_struct.current_state_.u = hw_vehicle_struct.async_state_.u;
+            hw_vehicle_struct.current_state_.v = hw_vehicle_struct.async_state_.v;
+            hw_vehicle_struct.current_state_.w = hw_vehicle_struct.async_state_.w;
+            hw_vehicle_struct.current_state_.p = hw_vehicle_struct.async_state_.p;
+            hw_vehicle_struct.current_state_.q = hw_vehicle_struct.async_state_.q;
+            hw_vehicle_struct.current_state_.r = hw_vehicle_struct.async_state_.r;
+            filtered_odom_new_msg_ = false;
+        }
+
         // Publish transforms
         publishRealtimePoseTransform(time);
         return hardware_interface::return_type::OK;
@@ -581,27 +632,24 @@ namespace ros2_control_blue_reach_5
         {
             auto &transforms = realtime_transform_publisher_->msg_.transforms;
             auto &StateEstimateTransform = transforms.front();
-            StateEstimateTransform.header.frame_id = hw_vehicle_struct.frame_id;
+            StateEstimateTransform.header.frame_id = hw_vehicle_struct.map_frame_id;
             StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
             StateEstimateTransform.header.stamp = time;
             StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
             StateEstimateTransform.transform.translation.y = -hw_vehicle_struct.current_state_.position_y;
-            StateEstimateTransform.transform.translation.z = hw_vehicle_struct.current_state_.position_z;
+            StateEstimateTransform.transform.translation.z = -hw_vehicle_struct.current_state_.position_z;
 
             q_orig.setW(hw_vehicle_struct.current_state_.orientation_w);
             q_orig.setX(hw_vehicle_struct.current_state_.orientation_x);
             q_orig.setY(hw_vehicle_struct.current_state_.orientation_y);
             q_orig.setZ(hw_vehicle_struct.current_state_.orientation_z);
 
-            // Rotate the pose about X UPRIGHT
-            q_rot.setRPY(M_PI, 0.0, 0.0);
-            q_new = q_orig * q_rot;
-            q_new.normalize();
+            q_orig.normalize();
 
-            StateEstimateTransform.transform.rotation.x = q_new.x();
-            StateEstimateTransform.transform.rotation.y = q_new.y();
-            StateEstimateTransform.transform.rotation.z = q_new.z();
-            StateEstimateTransform.transform.rotation.w = q_new.w();
+            StateEstimateTransform.transform.rotation.x = q_orig.x();
+            StateEstimateTransform.transform.rotation.y = q_orig.y();
+            StateEstimateTransform.transform.rotation.z = q_orig.z();
+            StateEstimateTransform.transform.rotation.w = q_orig.w();
 
             // Publish the TF
             realtime_transform_publisher_->unlockAndPublish();

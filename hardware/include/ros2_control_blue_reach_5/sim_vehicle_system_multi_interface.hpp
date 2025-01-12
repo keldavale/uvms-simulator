@@ -52,7 +52,7 @@
 
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-
+#include "tf2_ros/static_transform_broadcaster.h"
 #include <casadi/casadi.hpp>
 
 namespace ros2_control_blue_reach_5
@@ -116,9 +116,12 @@ namespace ros2_control_blue_reach_5
         blue::dynamics::Vehicle hw_vehicle_struct;
         std::string system_name;
 
+        double map_position_x, map_position_y, map_position_z;
+        double map_orientaion_w, map_orientaion_x, map_orientaion_y, map_orientaion_z;
+
         using tf = tf2_msgs::msg::TFMessage;
 
-        tf2::Quaternion q_orig, q_rot, q_new;
+        tf2::Quaternion q_orig, q_rot, q_new, q_rot_dvl;
 
         std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
@@ -127,6 +130,12 @@ namespace ros2_control_blue_reach_5
         void publishRealtimePoseTransform(const rclcpp::Time& time);
         double delta_seconds;
         double time_seconds;
+
+        std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+        std::thread spin_thread_;
+        std::shared_ptr<rclcpp::Node> node_topics_interface_;
+
+        std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
     };
 
 } // namespace ros2_control_blue
