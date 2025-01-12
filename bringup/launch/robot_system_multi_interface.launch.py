@@ -389,13 +389,7 @@ def launch_setup(context, *args, **kwargs):
             "robot_multi_interface_forward_controllers_modified.yaml",
         ]
     )
-    robot_localization_file_path = PathJoinSubstitution(
-        [
-            FindPackageShare("ros2_control_blue_reach_5"),
-            "config",
-            "ekf_localization_local.yaml",
-        ]
-    )
+
     # resolve PathJoinSubstitution to a string
     robot_controllers_read_file = str(robot_controllers_read.perform(context))
     robot_controllers_modified_file = str(robot_controllers_modified.perform(context))
@@ -432,7 +426,7 @@ def launch_setup(context, *args, **kwargs):
     mavros_config = PathJoinSubstitution(
             [
                 FindPackageShare("ros2_control_blue_reach_5"),
-                "mavros",
+                "config",
                 "mavros.yaml",
             ]
         )
@@ -572,10 +566,18 @@ def launch_setup(context, *args, **kwargs):
     #     condition=IfCondition(any_real_hardware)
     # )
 
+    kf_node = Node(
+        package='simlab',
+        executable='kf_node',
+        condition=IfCondition(use_vehicle_hardware)
+    )
+
+
 
     # Collect all nodes
     nodes = [
         uv_hardware_node,
+        kf_node,
         # visualise_node,
         # sensorPy_node,
         mouse_control,

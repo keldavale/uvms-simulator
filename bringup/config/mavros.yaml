@@ -8,7 +8,6 @@
       - debug_value
       - global_position
       - distance_sensor
-      - hil
       - extras
       - wheel_odometry
       - image_pub
