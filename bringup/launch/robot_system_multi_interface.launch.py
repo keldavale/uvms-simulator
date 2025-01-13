@@ -208,21 +208,9 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
         'base_TF_rotation': [3.142, 0.000, 0.000],
     }
 
-    # Add IMU sensor broadcaster
-    imu_broadcaster_name = f'imu_broadcaster_{i}'
-    new_param['controller_manager']['ros__parameters'][imu_broadcaster_name] = {
-        'type': 'imu_sensor_broadcaster/IMUSensorBroadcaster'
-    }
-
     fts_broadcaster_name = f'fts_broadcaster_{i}'
     new_param['controller_manager']['ros__parameters'][fts_broadcaster_name] = {
         'type': 'force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster'
-    }
-
-    new_param[imu_broadcaster_name] = {'ros__parameters': {
-            'frame_id': base_link,
-            'sensor_name': IOs
-        }
     }
 
     new_param[fts_broadcaster_name] = {'ros__parameters': {
@@ -241,38 +229,6 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
             }
         }
     }
-
-    if use_vehicle_hardware and i=="real":
-        # Add imu transform broadcaster
-        imu_transform_bdc = f'tf2_broadcaster'
-        new_param['controller_manager']['ros__parameters'][imu_transform_bdc] = {
-                'type': 'tf2_broadcaster/Tf2Broadcaster'
-            }
-
-        new_param[imu_transform_bdc] = {'ros__parameters': {
-            'sensor': 'robot_real_IOs',
-            'child_frame_id': 'imu_link',
-            'parent_frame_id': base_link,
-            'position_x_state_interface' : 'imu_position_x',
-            'position_y_state_interface' : 'imu_position_y',
-            'position_z_state_interface' : 'imu_position_z',
-            'orientation_w_state_interface' : 'imu_orientation_w',
-            'orientation_x_state_interface' : 'imu_orientation_x',
-            'orientation_y_state_interface' : 'imu_orientation_y',
-            'orientation_z_state_interface' : 'imu_orientation_z'
-            }
-        }
-        # # Add gyro from dvl as IMU sensor to be done
-        # dvl_gyro_imu_broadcaster_name = f'dvl_gyro_imu'
-        # new_param['controller_manager']['ros__parameters'][dvl_gyro_imu_broadcaster_name] = {
-        #     'type': 'imu_sensor_broadcaster/IMUSensorBroadcaster'
-        # }
-
-        # new_param[dvl_gyro_imu_broadcaster_name] = {'ros__parameters': {
-        #         'frame_id': 'dvl_link',
-        #         'sensor_name': 'robot_real_IOs'
-        #     }
-        # }
 
     return new_param, robot_prefixes, robot_base_links, ix
 
@@ -488,7 +444,6 @@ def launch_setup(context, *args, **kwargs):
     # Spawn fts and imu broadcasters for each robot
     for i in ix:
         fts_broadcaster_name = f'fts_broadcaster_{i}'
-        imu_broadcaster_name = f'imu_broadcaster_{i}'
 
         # FTS Spawner
         fts_spawner = Node(
@@ -497,39 +452,6 @@ def launch_setup(context, *args, **kwargs):
             arguments=[fts_broadcaster_name, "--controller-manager", "/controller_manager"],
         )
         spawner_nodes.append(fts_spawner)
-
-        # IMU Spawner
-        imu_spawner = Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=[imu_broadcaster_name, "--controller-manager", "/controller_manager"],
-        )
-        spawner_nodes.append(imu_spawner)
-
-    # tf2_broadcaster Spawner
-    tf2_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["tf2_broadcaster", "--controller-manager", "/controller_manager"],
-        condition=IfCondition(use_vehicle_hardware)
-    )
-    # Register an event handler to launch tf2_broadcaster_spawner after all other spawner nodes have started
-    # Assuming tf2_broadcaster_spawner depends on all other spawners, we'll trigger it after the last spawner starts
-    # Identify the last spawner node (e.g., imu_spawner)
-    last_spawner = spawner_nodes[-1] if spawner_nodes else None
-
-    if last_spawner:
-        # Register an event to launch tf2_broadcaster_spawner after the last spawner starts
-        register_tf2_broadcaster = RegisterEventHandler(
-            OnProcessExit(
-                target_action=last_spawner,
-                on_exit=[tf2_broadcaster_spawner],
-            )
-        )
-    else:
-        # If no spawner nodes, launch tf2_broadcaster_spawner directly
-        register_tf2_broadcaster = tf2_broadcaster_spawner
-    
 
     # Delay RViz start after `joint_state_broadcaster_spawner`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -569,9 +491,13 @@ def launch_setup(context, *args, **kwargs):
     # )
 
     kf_node = Node(
-        package='simlab',
+        package='bluerov_kalmanfilter',
         executable='kf_node',
-        condition=IfCondition(use_vehicle_hardware)
+        condition=IfCondition(use_vehicle_hardware),
+        parameters=[{
+            'use_pressure': True,
+            'dvl_source': 'ros_hil_simulator'
+        }]
     )
 
 
@@ -587,6 +513,6 @@ def launch_setup(context, *args, **kwargs):
         control_node,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
-    ] + spawner_nodes + [register_tf2_broadcaster]
+    ] + spawner_nodes
 
     return nodes
