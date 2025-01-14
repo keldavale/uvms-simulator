@@ -402,7 +402,7 @@ namespace ros2_control_blue_reach_5
 
         static_dvl_transform.header.stamp = current_time;
         static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = "dvl_link";
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
 
         // Set translation based on current state
         static_dvl_transform.transform.translation.x = -0.060;
@@ -486,7 +486,7 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.sim_time = time_seconds;
         hw_vehicle_struct.sim_period = delta_seconds;
 
-        publishRealtimePoseTransform(time);
+        // publishRealtimePoseTransform(time);
         return hardware_interface::return_type::OK;
     }
 

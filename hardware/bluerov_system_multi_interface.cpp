@@ -526,7 +526,7 @@ namespace ros2_control_blue_reach_5
 
         static_dvl_transform.header.stamp = current_time;
         static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = "dvl_link";
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
 
         // Set translation based on current state
         static_dvl_transform.transform.translation.x = -0.060;
@@ -635,9 +635,9 @@ namespace ros2_control_blue_reach_5
             StateEstimateTransform.header.frame_id = hw_vehicle_struct.map_frame_id;
             StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
             StateEstimateTransform.header.stamp = time;
-            StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
-            StateEstimateTransform.transform.translation.y = -hw_vehicle_struct.current_state_.position_y;
-            StateEstimateTransform.transform.translation.z = -hw_vehicle_struct.current_state_.position_z;
+            StateEstimateTransform.transform.translation.x = -hw_vehicle_struct.current_state_.position_x;
+            StateEstimateTransform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
+            StateEstimateTransform.transform.translation.z = hw_vehicle_struct.current_state_.position_z;
 
             q_orig.setW(hw_vehicle_struct.current_state_.orientation_w);
             q_orig.setX(hw_vehicle_struct.current_state_.orientation_x);
@@ -663,7 +663,7 @@ namespace ros2_control_blue_reach_5
             // Safely access the message within the realtime publisher
             auto &twist_msg = realtime_dvl_velocity_publisher_->msg_;
             twist_msg.header.stamp = time;
-            twist_msg.header.frame_id = "dvl_link";
+            twist_msg.header.frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
 
             // Assign DVL velocity data
             twist_msg.twist.twist.linear.x = hw_vehicle_struct.dvl_state.vx;
