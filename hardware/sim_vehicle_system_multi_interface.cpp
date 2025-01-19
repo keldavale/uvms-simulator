@@ -74,17 +74,17 @@ namespace ros2_control_blue_reach_5
 
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<> dis_x(-5.0, 5.0);
-        std::uniform_real_distribution<> dis_y(-5.0, 5.0);
+        std::uniform_real_distribution<> dis_x(5.0, 5.0);
+        std::uniform_real_distribution<> dis_y(5.0, 10.0);
         std::uniform_real_distribution<> dis_z(0.0, 0.0);
 
-        // map_position_x = dis_x(gen);
-        // map_position_y = dis_y(gen);
-        // map_position_z = dis_z(gen);
+        map_position_x = dis_x(gen);
+        map_position_y = dis_y(gen);
+        map_position_z = dis_z(gen);
 
-        map_position_x = 5.0;
-        map_position_y = 6.0;
-        map_position_z = 0.0;
+        // map_position_x = 5.0;
+        // map_position_y = 6.0;
+        // map_position_z = 0.0;
 
         map_orientaion_w = 1.0;
         map_orientaion_x = 0.0;
@@ -486,7 +486,7 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.sim_time = time_seconds;
         hw_vehicle_struct.sim_period = delta_seconds;
 
-        // publishRealtimePoseTransform(time);
+        publishRealtimePoseTransform(time);
         return hardware_interface::return_type::OK;
     }
 
