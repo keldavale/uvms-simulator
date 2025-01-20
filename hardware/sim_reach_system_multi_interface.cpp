@@ -255,6 +255,9 @@ namespace ros2_control_blue_reach_5
 
     for (std::size_t i = 0; i < info_.joints.size(); i++)
     {
+
+    // RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "logging sim %f", hw_joint_struct_[i].command_state_.velocity);
+
       hw_joint_struct_[i].current_state_.sim_time = time_seconds;
       hw_joint_struct_[i].current_state_.sim_period = delta_seconds;
 
@@ -266,9 +269,9 @@ namespace ros2_control_blue_reach_5
 
       hw_joint_struct_[i].current_state_.filtered_velocity = hw_joint_struct_[i].command_state_.velocity;
 
-      hw_joint_struct_[i].current_state_.effort = hw_joint_struct_[i].command_state_.computed_effort;
+      hw_joint_struct_[i].current_state_.effort = hw_joint_struct_[i].command_state_.effort;
 
-      hw_joint_struct_[i].current_state_.computed_effort = hw_joint_struct_[i].command_state_.computed_effort;
+      hw_joint_struct_[i].current_state_.computed_effort = hw_joint_struct_[i].command_state_.effort;
     };
 
     return hardware_interface::return_type::OK;

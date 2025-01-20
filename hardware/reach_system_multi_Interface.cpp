@@ -314,7 +314,7 @@ namespace ros2_control_blue_reach_5
       hw_joint_struct_[i].current_state_.position = hw_joint_struct_[i].async_state_.position;
       hw_joint_struct_[i].current_state_.filtered_position = hw_joint_struct_[i].async_state_.position;
       hw_joint_struct_[i].current_state_.velocity = hw_joint_struct_[i].async_state_.velocity;
-      // hw_joint_struct_[i].current_state_.filtered_velocity = hw_joint_struct_[i].async_state_.position;
+      hw_joint_struct_[i].current_state_.filtered_velocity = hw_joint_struct_[i].async_state_.velocity;
       hw_joint_struct_[i].current_state_.current = hw_joint_struct_[i].async_state_.current;
 
       if (hw_joint_struct_[i].current_state_.current > 0)
@@ -331,6 +331,7 @@ namespace ros2_control_blue_reach_5
       };
       std::vector<DM> torque = utils_service.current2torqueMap(T2C_arg);
       hw_joint_struct_[i].current_state_.effort = torque.at(0).scalar();
+      hw_joint_struct_[i].current_state_.computed_effort = hw_joint_struct_[i].command_state_.effort;
       hw_joint_struct_[i].calcAcceleration(hw_joint_struct_[i].current_state_.velocity, prev_velocity_, delta_seconds);
 
       hw_joint_struct_[i].current_state_.sim_time = time_seconds;
