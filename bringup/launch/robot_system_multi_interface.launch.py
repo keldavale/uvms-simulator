@@ -472,6 +472,7 @@ def launch_setup(context, *args, **kwargs):
         package='simlab',
         executable='mouse_node_effort',
         name='space_mouse_control',
+        condition=IfCondition(use_manipulator_hardware),
         parameters=[{
             'no_robot': len(robot_prefixes) ,
             'no_efforts': len(dof_efforts)
