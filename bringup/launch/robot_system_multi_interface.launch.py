@@ -274,6 +274,14 @@ def generate_launch_description():
 
     declared_arguments.append(
         DeclareLaunchArgument(
+            "use_space_mouse",
+            default_value="false",
+            description="Start simulation with a 3Dconnexion space mouse compact in the loop",
+        )
+    )
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "sim_robot_count",
             default_value="1",
             description="Spawn with n numbers of robot agents",
@@ -294,6 +302,7 @@ def launch_setup(context, *args, **kwargs):
     prefix = LaunchConfiguration("prefix").perform(context)
     use_manipulator_hardware = LaunchConfiguration("use_manipulator_hardware").perform(context)
     use_vehicle_hardware = LaunchConfiguration("use_vehicle_hardware").perform(context)
+    use_space_mouse = LaunchConfiguration("use_space_mouse").perform(context)
     serial_port = LaunchConfiguration("serial_port").perform(context)
     state_update_frequency = LaunchConfiguration("state_update_frequency").perform(context)
     gui = LaunchConfiguration("gui").perform(context)
@@ -326,6 +335,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_vehicle_hardware:=",
             use_vehicle_hardware,
+            " ",
+            "use_space_mouse:=",
+            use_space_mouse,
             " ",
             "sim_robot_count:=",
             TextSubstitution(text=str(sim_robot_count)),
@@ -472,7 +484,7 @@ def launch_setup(context, *args, **kwargs):
         package='simlab',
         executable='mouse_node_effort',
         name='space_mouse_control',
-        condition=IfCondition(use_manipulator_hardware),
+        condition=IfCondition(use_space_mouse),
         parameters=[{
             'no_robot': len(robot_prefixes) ,
             'no_efforts': len(dof_efforts)
