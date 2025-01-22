@@ -68,7 +68,7 @@ namespace ros2_control_blue_reach_5
       double forward_I_static = stod(joint.parameters.at("forward_I_static"));
       double backward_I_static = stod(joint.parameters.at("backward_I_static"));
 
-      Joint::State initialState{default_position, 0.0, 0.0};
+      Joint::State initialState{.position=default_position};
       Joint::Limits jointLimits{.position_min = min_position, .position_max = max_position, .velocity_max = max_velocity, .effort_max = max_effort};
       Joint::SoftLimits jointSoftLimits{.position_k = soft_k_position, .velocity_k = soft_k_velocity, .position_min = soft_min_position, .position_max = soft_max_position};
       Joint::MotorInfo actuatorProp{.kt = kt, .forward_I_static = forward_I_static, .backward_I_static = backward_I_static};

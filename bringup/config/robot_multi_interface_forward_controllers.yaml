@@ -35,8 +35,8 @@ uvms_controller:
 
     joint0:
       name : "{prefix}_axis_e"
-      pose_topic_interface: ["filtered_position"]
-      velocity_topic_interface: ["filtered_velocity"]
+      pose_topic_interface: ["position"]
+      velocity_topic_interface: ["velocity"]
       acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
@@ -45,8 +45,8 @@ uvms_controller:
 
     joint1:
       name : "{prefix}_axis_d"
-      pose_topic_interface: ["filtered_position"]
-      velocity_topic_interface: ["filtered_velocity"]
+      pose_topic_interface: ["position"]
+      velocity_topic_interface: ["velocity"]
       acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
@@ -55,8 +55,8 @@ uvms_controller:
 
     joint2:
       name : "{prefix}_axis_c"
-      pose_topic_interface: ["filtered_position"]
-      velocity_topic_interface: ["filtered_velocity"]
+      pose_topic_interface: ["position"]
+      velocity_topic_interface: ["velocity"]
       acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
@@ -65,8 +65,8 @@ uvms_controller:
 
     joint3:
       name : "{prefix}_axis_b"
-      pose_topic_interface: ["filtered_position"]
-      velocity_topic_interface: ["filtered_velocity"]
+      pose_topic_interface: ["position"]
+      velocity_topic_interface: ["velocity"]
       acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]
@@ -75,8 +75,8 @@ uvms_controller:
       
     endeffector:
       name : "{prefix}_axis_a"
-      pose_topic_interface: ["filtered_position"]
-      velocity_topic_interface: ["filtered_velocity"]
+      pose_topic_interface: ["position"]
+      velocity_topic_interface: ["velocity"]
       acceleration_topic_interface: ["acceleration"]
       pose_command_interface: ["position"]
       velocity_command_interface: ["velocity"]

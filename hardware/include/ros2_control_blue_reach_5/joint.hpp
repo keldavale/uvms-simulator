@@ -21,7 +21,7 @@ public:
     struct State
     {
         double sim_time = 0;
-        double sim_period =0;
+        double sim_period = 0;
         double position = 0;
         double filtered_position = 0;
         double err_p = 0;
@@ -39,7 +39,7 @@ public:
         double predicted_position_uncertainty = 0;
         double predicted_velocity = 0;
         double predicted_velocity_uncertainty = 0;
-        
+
         double state_id = 0;
         casadi::DM covariance = 100 * casadi::DM::eye(4);
         std::vector<double> sigma_m = {pow(0.1, 2), pow(0.1, 2)}; // measurement noise covariance matrix
@@ -49,6 +49,16 @@ public:
         double adaptive_predicted_position_uncertainty = 0;
         double adaptive_predicted_velocity = 0;
         double adaptive_predicted_velocity_uncertainty = 0;
+        // Constructors
+        // State()
+        // {
+        //     std::cout << "Default State constructor called.\n";
+        // }
+
+        // State(double pos) : position(pos), filtered_position(pos)
+        // {
+        //     std::cout << "State constructor with pos called. Position set to " << pos << "\n";
+        // }
     };
 
     State default_state_{}, command_state_{}, current_state_{}, async_state_{};
@@ -90,14 +100,14 @@ public:
     Joint(std::string joint_name, uint8_t joint_id, State default_state)
         : name(std::move(joint_name)),
           device_id(joint_id),
-          default_state_(default_state) {}
+          default_state_(default_state), command_state_(default_state), current_state_(default_state), async_state_(default_state) {}
 
     // Constructor with member initializer list
     Joint(std::string joint_name, uint8_t joint_id, State default_state, Limits limits, bool position_limits,
           SoftLimits soft_limits, MotorInfo actuator_Properties)
         : name(std::move(joint_name)),
           device_id(joint_id),
-          default_state_(default_state),
+          default_state_(default_state), command_state_(default_state), current_state_(default_state), async_state_(default_state),
           limits_(limits),
           has_position_limits(position_limits),
           soft_limits_(soft_limits),

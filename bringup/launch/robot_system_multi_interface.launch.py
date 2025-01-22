@@ -503,6 +503,14 @@ def launch_setup(context, *args, **kwargs):
     #     condition=IfCondition(any_real_hardware)
     # )
 
+    coverage_node = Node(
+        package='simlab',
+        executable='coverage_node',
+        condition=UnlessCondition(use_space_mouse),
+    )
+
+    
+
     kf_node = Node(
         package='bluerov_kalmanfilter',
         executable='kf_node',
@@ -522,6 +530,7 @@ def launch_setup(context, *args, **kwargs):
         # visualise_node,
         # sensorPy_node,
         mouse_control,
+        coverage_node,
         run_plotjuggler,
         control_node,
         robot_state_pub_node,
