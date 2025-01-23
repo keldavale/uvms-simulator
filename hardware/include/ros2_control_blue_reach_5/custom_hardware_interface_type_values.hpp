@@ -19,6 +19,8 @@ namespace custom_hardware_interface
 {
 /// Constant defining current interface
 constexpr char HW_IF_CURRENT[] = "current";
+/// Constant defining pwm interface
+constexpr char HW_IF_PWM[] = "pwm";
 /// Constant defining disable interface
 constexpr char HW_IF_DISABLE[] = "disable";
 /// Constant defining standby interface

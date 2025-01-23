@@ -329,7 +329,7 @@ namespace ros2_control_blue_reach_5
             state_interfaces.emplace_back(hardware_interface::StateInterface(
                 info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.acceleration));
             state_interfaces.emplace_back(hardware_interface::StateInterface(
-                info_.joints[i].name, custom_hardware_interface::HW_IF_CURRENT, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.current));
+                info_.joints[i].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.pwm));
             state_interfaces.emplace_back(hardware_interface::StateInterface(
                 info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.effort));
 

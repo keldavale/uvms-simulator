@@ -27,7 +27,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -36,7 +36,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -45,7 +45,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -54,7 +54,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -63,7 +63,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -72,7 +72,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -80,7 +80,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>
@@ -89,7 +89,7 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
-        <state_interface name="current"/>
+        <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
       </joint>

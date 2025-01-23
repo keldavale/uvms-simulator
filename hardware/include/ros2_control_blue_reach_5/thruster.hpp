@@ -16,21 +16,13 @@ public:
         double sim_period = 0;
         double position = 0;
         double velocity = 0;
-        double current = 0;
+        double pwm = 0;
         double acceleration = 0;
         double effort = 0;
     };
 
 
-    struct Command_State
-    {
-        double current = 0;
-        double effort = 0;
-    };
-
     State default_state_{}, current_state_{}, async_state_{};
-    Command_State command_state_{};
-
 
     Thruster() = default;
     // Constructor with member initializer list
