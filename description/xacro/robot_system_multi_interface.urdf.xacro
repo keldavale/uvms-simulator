@@ -70,7 +70,8 @@
       use_hardware="false"
       frame_id="base_link"
       child_frame_id="${prefix}base_link"
-      map_frame_id="${prefix}map"/>
+      map_frame_id="${prefix}map"
+      max_set_param_attempts="5"/>
       
       <!-- Recursively call the macro for the next robot -->
       <xacro:instantiate_robots index="${index + 1}" count="${count}"/>
@@ -107,7 +108,8 @@
       use_hardware="${use_vehicle_hardware}"
       frame_id="base_link"
       child_frame_id="${prefix}base_link"
-      map_frame_id="${prefix}map"/>
+      map_frame_id="${prefix}map"
+      max_set_param_attempts="5"/>
   </xacro:if>
 
 </robot>

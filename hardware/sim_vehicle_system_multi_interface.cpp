@@ -107,7 +107,7 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {
-            Thruster::State defaultState{0.0, 0.0, 0.0, 0.0};
+            Thruster::State defaultState{};
             hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, defaultState);
             // RRBotSystemMultiInterface has exactly 6 joint state interfaces
             if (joint.state_interfaces.size() != 6)

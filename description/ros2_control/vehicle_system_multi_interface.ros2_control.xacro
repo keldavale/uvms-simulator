@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="vehicle_system_multi_interface" params="name prefix serial_port state_update_frequency use_hardware frame_id child_frame_id map_frame_id">
+  <xacro:macro name="vehicle_system_multi_interface" params="name prefix serial_port state_update_frequency use_hardware frame_id child_frame_id map_frame_id max_set_param_attempts">
 
     <ros2_control name="${name}" type="system">
 
@@ -12,6 +12,7 @@
           <param name="frame_id">${frame_id}</param>
           <param name="child_frame_id">${child_frame_id}</param>
           <param name="map_frame_id">${map_frame_id}</param>
+          <param name="max_set_param_attempts">${max_set_param_attempts}</param>
         </xacro:if>
 
         <xacro:unless value="${use_hardware}">

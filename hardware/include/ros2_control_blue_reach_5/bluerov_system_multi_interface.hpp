@@ -184,6 +184,8 @@ namespace ros2_control_blue_reach_5
         // Mutex for thread-safe IMU data access
         std::mutex imu_mutex_;
         std::mutex filtered_odom_mutex_;
+
+        int max_retries_;
     };
 
 } // namespace ros2_control_blue

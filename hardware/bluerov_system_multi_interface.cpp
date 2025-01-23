@@ -63,16 +63,48 @@ namespace ros2_control_blue_reach_5
         // Use CasADi's "external" to load the compiled functions
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
 
+        if (info_.hardware_parameters.find("frame_id") == info_.hardware_parameters.cend()) {
+            RCLCPP_ERROR(  // NOLINT
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'frame_id' parameter is required.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
+
+        if (info_.hardware_parameters.find("child_frame_id") == info_.hardware_parameters.cend()) {
+            RCLCPP_ERROR(  // NOLINT
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'child_frame_id' parameter is required.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
+
+        if (info_.hardware_parameters.find("map_frame_id") == info_.hardware_parameters.cend()) {
+            RCLCPP_ERROR(  // NOLINT
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'map_frame_id' parameter is required.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         hw_vehicle_struct.map_frame_id = info_.hardware_parameters["map_frame_id"];
+
+        if (info_.hardware_parameters.find("prefix") == info_.hardware_parameters.cend()) {
+            RCLCPP_ERROR(  // NOLINT
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'prefix' parameter is required.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
+
+        // Get the maximum number of attempts that can be made to set the thruster parameters before failing
+        if (info_.hardware_parameters.find("max_set_param_attempts") == info_.hardware_parameters.cend()) {
+            RCLCPP_ERROR(  // NOLINT
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'max_set_param_attempts' parameter is required.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
+        max_retries_ = std::stoi(info_.hardware_parameters.at("max_set_param_attempts"));
 
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
-        RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
-
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************max_set_param_attempts: %u", max_retries_);
+        
         map_position_x = 5.0;
         map_position_y = 5.0;
         map_position_z = 0.0;
@@ -97,7 +129,7 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {
-            Thruster::State defaultState{0.0, 0.0, 0.0, 0.0};
+            Thruster::State defaultState{};
             hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, defaultState);
             // RRBotSystemMultiInterface has exactly 6 joint state interfaces
             if (joint.state_interfaces.size() != 6)
