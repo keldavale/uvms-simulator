@@ -45,7 +45,7 @@ namespace ros2_control_blue_reach_5
             RCLCPP_INFO(
                 rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Device default position is %f", default_position);
 
-            Joint::State initialState{.position = default_position};
+            Joint::State initialState(default_position);
             hw_joint_struct_.emplace_back(joint.name, device_id, initialState);
             // RRBotSystemMultiInterface has exactly 19 state interfaces
             // and 6 command interfaces on each joint
@@ -200,10 +200,10 @@ namespace ros2_control_blue_reach_5
         // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
         RCLCPP_INFO(
             rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Activating... please wait...");
-        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "logging sim joint 0 %f", hw_joint_struct_[0].current_state_.filtered_position);
-        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "logging sim joint 1  %f", hw_joint_struct_[1].current_state_.filtered_position);
-        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "logging sim joint 2  %f", hw_joint_struct_[2].current_state_.filtered_position);
-        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "logging sim joint 3  %f", hw_joint_struct_[3].current_state_.filtered_position);
+        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "default sim joint 0 %f", hw_joint_struct_[0].current_state_.filtered_position);
+        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "default sim joint 1  %f", hw_joint_struct_[1].current_state_.filtered_position);
+        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "default sim joint 2  %f", hw_joint_struct_[2].current_state_.filtered_position);
+        RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "default sim joint 3  %f", hw_joint_struct_[3].current_state_.filtered_position);
         RCLCPP_INFO(rclcpp::get_logger("SimReachSystemMultiInterfaceHardware"), "Successfully deactivated!");
         return hardware_interface::CallbackReturn::SUCCESS;
     }

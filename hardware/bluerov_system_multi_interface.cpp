@@ -513,6 +513,13 @@ namespace ros2_control_blue_reach_5
         static_map_transform.transform.translation.y = map_position_y;
         static_map_transform.transform.translation.z = map_position_z;
 
+        RCLCPP_INFO(
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f", 
+            hw_vehicle_struct.async_state_.orientation_w, 
+            hw_vehicle_struct.async_state_.orientation_x,
+            hw_vehicle_struct.async_state_.orientation_y,
+            hw_vehicle_struct.async_state_.orientation_z);
+
         // Set rotation based on current state (quaternion)
         static_map_transform.transform.rotation.x = map_orientaion_x;
         static_map_transform.transform.rotation.y = map_orientaion_y;
@@ -526,7 +533,7 @@ namespace ros2_control_blue_reach_5
 
         static_dvl_transform.header.stamp = current_time;
         static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
 
         // Set translation based on current state
         static_dvl_transform.transform.translation.x = -0.060;
@@ -663,7 +670,7 @@ namespace ros2_control_blue_reach_5
             // Safely access the message within the realtime publisher
             auto &twist_msg = realtime_dvl_velocity_publisher_->msg_;
             twist_msg.header.stamp = time;
-            twist_msg.header.frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
+            twist_msg.header.frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
 
             // Assign DVL velocity data
             twist_msg.twist.twist.linear.x = hw_vehicle_struct.dvl_state.vx;

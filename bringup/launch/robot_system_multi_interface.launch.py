@@ -507,6 +507,11 @@ def launch_setup(context, *args, **kwargs):
         package='simlab',
         executable='coverage_node',
         condition=UnlessCondition(use_space_mouse),
+        parameters=[{
+            'robots_prefix': robot_prefixes,
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
     )
 
     
@@ -516,7 +521,7 @@ def launch_setup(context, *args, **kwargs):
         executable='kf_node',
         condition=IfCondition(use_vehicle_hardware),
         parameters=[{
-            'use_pressure': True,
+            'use_pressure': False,
             'dvl_source': 'ros_hil_simulator'
         }]
     )

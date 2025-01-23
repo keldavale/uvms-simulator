@@ -50,15 +50,15 @@ public:
         double adaptive_predicted_velocity = 0;
         double adaptive_predicted_velocity_uncertainty = 0;
         // Constructors
-        // State()
-        // {
-        //     std::cout << "Default State constructor called.\n";
-        // }
+        State()
+        {
+            std::cout << "Default State constructor called.\n";
+        }
 
-        // State(double pos) : position(pos), filtered_position(pos)
-        // {
-        //     std::cout << "State constructor with pos called. Position set to " << pos << "\n";
-        // }
+        State(double pos) : position(pos), filtered_position(pos)
+        {
+            std::cout << "State constructor with pos called. Position set to " << pos << "\n";
+        }
     };
 
     State default_state_{}, command_state_{}, current_state_{}, async_state_{};

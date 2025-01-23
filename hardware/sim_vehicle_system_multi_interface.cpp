@@ -92,7 +92,7 @@ namespace ros2_control_blue_reach_5
         map_orientaion_z = 0.0;
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            1.0, 1.0, 1.0,      // map_frame at position: x, y, z
+            0.0, 0.0, 0.0,      // map_frame at position: x, y, z
             1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
             0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
