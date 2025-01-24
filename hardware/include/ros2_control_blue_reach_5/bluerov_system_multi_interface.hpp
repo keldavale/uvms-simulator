@@ -41,7 +41,7 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "ros2_control_blue_reach_5/visibility_control.h"
-
+#include "mavros_msgs/msg/override_rc_in.hpp"
 #include "ros2_control_blue_reach_5/state.hpp"
 #include "ros2_control_blue_reach_5/custom_hardware_interface_type_values.hpp"
 #include "ros2_control_blue_reach_5/utils.hpp"
@@ -139,13 +139,18 @@ namespace ros2_control_blue_reach_5
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
             realtime_transform_publisher_;
 
+        std::shared_ptr<rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>> override_rc_pub_;
+        std::unique_ptr<realtime_tools::RealtimePublisher<mavros_msgs::msg::OverrideRCIn>> rt_override_rc_pub_;
+
+        std::shared_ptr<rclcpp::Client<rcl_interfaces::srv::SetParameters>> set_params_client_;
+
         void publishRealtimePoseTransform(
         const rclcpp::Time &time
         );
 
         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 
-
+        void stop_thrusters();
         void publishDVLVelocity(const rclcpp::Time &time);
         std::array<double, 36> convert3x3To6x6Covariance(const blue::dynamics::Covariance &linear_cov);
 

@@ -63,38 +63,43 @@ namespace ros2_control_blue_reach_5
         // Use CasADi's "external" to load the compiled functions
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
 
-        if (info_.hardware_parameters.find("frame_id") == info_.hardware_parameters.cend()) {
-            RCLCPP_ERROR(  // NOLINT
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'frame_id' parameter is required.");
+        if (info_.hardware_parameters.find("frame_id") == info_.hardware_parameters.cend())
+        {
+            RCLCPP_ERROR( // NOLINT
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'frame_id' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
         hw_vehicle_struct.frame_id = info_.hardware_parameters["frame_id"];
 
-        if (info_.hardware_parameters.find("child_frame_id") == info_.hardware_parameters.cend()) {
-            RCLCPP_ERROR(  // NOLINT
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'child_frame_id' parameter is required.");
+        if (info_.hardware_parameters.find("child_frame_id") == info_.hardware_parameters.cend())
+        {
+            RCLCPP_ERROR( // NOLINT
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'child_frame_id' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
         hw_vehicle_struct.child_frame_id = info_.hardware_parameters["child_frame_id"];
 
-        if (info_.hardware_parameters.find("map_frame_id") == info_.hardware_parameters.cend()) {
-            RCLCPP_ERROR(  // NOLINT
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'map_frame_id' parameter is required.");
+        if (info_.hardware_parameters.find("map_frame_id") == info_.hardware_parameters.cend())
+        {
+            RCLCPP_ERROR( // NOLINT
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'map_frame_id' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
         hw_vehicle_struct.map_frame_id = info_.hardware_parameters["map_frame_id"];
 
-        if (info_.hardware_parameters.find("prefix") == info_.hardware_parameters.cend()) {
-            RCLCPP_ERROR(  // NOLINT
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'prefix' parameter is required.");
+        if (info_.hardware_parameters.find("prefix") == info_.hardware_parameters.cend())
+        {
+            RCLCPP_ERROR( // NOLINT
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'prefix' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
 
         // Get the maximum number of attempts that can be made to set the thruster parameters before failing
-        if (info_.hardware_parameters.find("max_set_param_attempts") == info_.hardware_parameters.cend()) {
-            RCLCPP_ERROR(  // NOLINT
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'max_set_param_attempts' parameter is required.");
+        if (info_.hardware_parameters.find("max_set_param_attempts") == info_.hardware_parameters.cend())
+        {
+            RCLCPP_ERROR( // NOLINT
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'max_set_param_attempts' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
         max_retries_ = std::stoi(info_.hardware_parameters.at("max_set_param_attempts"));
@@ -104,7 +109,7 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************max_set_param_attempts: %u", max_retries_);
-        
+
         map_position_x = 5.0;
         map_position_y = 5.0;
         map_position_z = 0.0;
@@ -129,8 +134,31 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &joint : info_.joints)
         {
+            // Make sure the the joint-level parameters exist
+            if (
+                joint.parameters.find("param_name") == joint.parameters.cend() ||
+                joint.parameters.find("default_param_value") == joint.parameters.cend() ||
+                joint.parameters.find("channel") == joint.parameters.cend() ||
+                joint.parameters.find("neutral_pwm") == joint.parameters.cend())
+            {
+                RCLCPP_ERROR( // NOLINT
+                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "Joint %s missing required configurations. Ensure that the `param_name`, `default_param_value`, `neutral_pwm` and "
+                    "`channel` are provided for each joint.",
+                    joint.name.c_str());
+                return hardware_interface::CallbackReturn::ERROR;
+            };
+
+            rcl_interfaces::msg::Parameter mavros_rc_param;
+            mavros_rc_param.name = joint.parameters.at("param_name");
+            mavros_rc_param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
+            mavros_rc_param.value.integer_value = std::stoi(joint.parameters.at("default_param_value"));
+
+            int rc_channel = std::stoi(joint.parameters.at("channel"));
+            int rc_neutral_pwm = std::stoi(joint.parameters.at("neutral_pwm"));
+
             Thruster::State defaultState{};
-            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, defaultState);
+            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, mavros_rc_param, rc_channel, rc_neutral_pwm, defaultState);
             // RRBotSystemMultiInterface has exactly 6 joint state interfaces
             if (joint.state_interfaces.size() != 6)
             {
@@ -141,6 +169,8 @@ namespace ros2_control_blue_reach_5
                 return hardware_interface::CallbackReturn::ERROR;
             };
         };
+        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************hw_vehicle_struct.hw_thrust_structs_.size()s: %zu",
+                    hw_vehicle_struct.hw_thrust_structs_.size());
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
@@ -189,6 +219,36 @@ namespace ros2_control_blue_reach_5
 
             // Initialize the StaticTransformBroadcaster
             static_tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_topics_interface_);
+
+            // override_rc publisher
+            override_rc_pub_ = rclcpp::create_publisher<mavros_msgs::msg::OverrideRCIn>(node_topics_interface_,
+                                                                                        "mavros/rc/override",
+                                                                                        rclcpp::SystemDefaultsQoS());
+
+            rt_override_rc_pub_ = std::make_unique<realtime_tools::RealtimePublisher<mavros_msgs::msg::OverrideRCIn>>(override_rc_pub_);
+
+            rt_override_rc_pub_->lock();
+            for (auto &channel : rt_override_rc_pub_->msg_.channels)
+            {
+                channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+            }
+            rt_override_rc_pub_->unlock();
+
+            // Assuming node_topics_interface_ is a shared_ptr<rclcpp::Node>
+            set_params_client_ = node_topics_interface_->create_client<rcl_interfaces::srv::SetParameters>("mavros/param/set_parameters");
+
+            using namespace std::chrono_literals;
+            while (!set_params_client_->wait_for_service(1s))
+            {
+                if (!rclcpp::ok())
+                {
+                    RCLCPP_ERROR( // NOLINT
+                        rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Interrupted while waiting for the `mavros/set_parameters` service.");
+                    return hardware_interface::CallbackReturn::ERROR;
+                }
+                RCLCPP_INFO( // NOLINT
+                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Waiting for the `mavros/set_parameters` service to be available...");
+            }
 
             // tf publisher
             transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_,
@@ -361,7 +421,7 @@ namespace ros2_control_blue_reach_5
             state_interfaces.emplace_back(hardware_interface::StateInterface(
                 info_.joints[i].name, hardware_interface::HW_IF_ACCELERATION, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.acceleration));
             state_interfaces.emplace_back(hardware_interface::StateInterface(
-                info_.joints[i].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.pwm));
+                info_.joints[i].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.rc_pwm));
             state_interfaces.emplace_back(hardware_interface::StateInterface(
                 info_.joints[i].name, hardware_interface::HW_IF_EFFORT, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.effort));
 
@@ -530,6 +590,20 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Activating... please wait...");
 
+        std::vector<rcl_interfaces::msg::Parameter> params;
+        params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
+
+        for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
+        {
+            RCLCPP_INFO(
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "################## config.param.name %s", config.param.name.c_str());
+            rcl_interfaces::msg::Parameter param;
+            param.name = config.param.name;
+            param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
+            param.value.integer_value = 1; // Set the thruster parameter values to RC passthrough here
+            params.emplace_back(param);
+        }
+
         // Capture the current time
         rclcpp::Time current_time = node_topics_interface_->now();
 
@@ -546,8 +620,8 @@ namespace ros2_control_blue_reach_5
         static_map_transform.transform.translation.z = map_position_z;
 
         RCLCPP_INFO(
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f", 
-            hw_vehicle_struct.async_state_.orientation_w, 
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f",
+            hw_vehicle_struct.async_state_.orientation_w,
             hw_vehicle_struct.async_state_.orientation_x,
             hw_vehicle_struct.async_state_.orientation_y,
             hw_vehicle_struct.async_state_.orientation_z);
@@ -748,6 +822,18 @@ namespace ros2_control_blue_reach_5
         }
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                     "Executor stopped and spin thread joined.");
+    }
+
+    void BlueRovSystemMultiInterfaceHardware::stop_thrusters()
+    {
+        if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
+        {
+            for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
+            {
+                rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = hw_vehicle_struct.hw_thrust_structs_[i].neutral_pwm;
+            }
+            rt_override_rc_pub_->unlockAndPublish();
+        }
     }
 
     hardware_interface::CallbackReturn BlueRovSystemMultiInterfaceHardware::on_cleanup(
