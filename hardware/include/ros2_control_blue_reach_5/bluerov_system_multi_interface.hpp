@@ -190,6 +190,10 @@ namespace ros2_control_blue_reach_5
         std::mutex imu_mutex_;
         std::mutex filtered_odom_mutex_;
 
+        std::mutex activate_mutex_;
+        std::condition_variable activate_cv_;
+        bool activation_complete_ = false;
+        bool activation_successful_ = false;
         int max_retries_;
     };
 
