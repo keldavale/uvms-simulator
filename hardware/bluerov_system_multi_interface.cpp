@@ -590,65 +590,7 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Activating... please wait...");
 
-        // Capture the current time
-        rclcpp::Time current_time = node_topics_interface_->now();
-
-        // Create and send the static map transform
-        geometry_msgs::msg::TransformStamped static_map_transform;
-
-        static_map_transform.header.stamp = current_time;
-        static_map_transform.header.frame_id = hw_vehicle_struct.frame_id;
-        static_map_transform.child_frame_id = hw_vehicle_struct.map_frame_id;
-
-        // Set translation based on current state
-        static_map_transform.transform.translation.x = map_position_x;
-        static_map_transform.transform.translation.y = map_position_y;
-        static_map_transform.transform.translation.z = map_position_z;
-
-        RCLCPP_INFO(
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f",
-            hw_vehicle_struct.async_state_.orientation_w,
-            hw_vehicle_struct.async_state_.orientation_x,
-            hw_vehicle_struct.async_state_.orientation_y,
-            hw_vehicle_struct.async_state_.orientation_z);
-
-        // Set rotation based on current state (quaternion)
-        static_map_transform.transform.rotation.x = map_orientaion_x;
-        static_map_transform.transform.rotation.y = map_orientaion_y;
-        static_map_transform.transform.rotation.z = map_orientaion_z;
-        static_map_transform.transform.rotation.w = map_orientaion_w;
-        // Publish the static transform
-        static_tf_broadcaster_->sendTransform(static_map_transform);
-
-        // Create and send the static dvl transform
-        geometry_msgs::msg::TransformStamped static_dvl_transform;
-
-        static_dvl_transform.header.stamp = current_time;
-        static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
-
-        // Set translation based on current state
-        static_dvl_transform.transform.translation.x = -0.060;
-        static_dvl_transform.transform.translation.y = 0.000;
-        static_dvl_transform.transform.translation.z = -0.105;
-
-        // Rotate the pose about X UPRIGHT
-        q_rot_dvl.setRPY(0.0, 0.0, 0.0);
-
-        q_rot_dvl.normalize();
-
-        static_dvl_transform.transform.rotation.x = q_rot_dvl.x();
-        static_dvl_transform.transform.rotation.y = q_rot_dvl.y();
-        static_dvl_transform.transform.rotation.z = q_rot_dvl.z();
-        static_dvl_transform.transform.rotation.w = q_rot_dvl.w();
-
-        // Publish the static transform
-        static_tf_broadcaster_->sendTransform(static_dvl_transform);
-
-        RCLCPP_INFO(
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-            "Published static odom transform once during activation.");
-
+        publishStaticPoseTransform();
         // Prepare parameters to set thruster to RC passthrough
         std::vector<rcl_interfaces::msg::Parameter> params;
         params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
@@ -784,6 +726,68 @@ namespace ros2_control_blue_reach_5
     {
         return hardware_interface::return_type::OK;
     }
+
+    void BlueRovSystemMultiInterfaceHardware::publishStaticPoseTransform()
+    {
+        // Capture the current time
+        rclcpp::Time current_time = node_topics_interface_->now();
+
+        // Create and send the static map transform
+        geometry_msgs::msg::TransformStamped static_map_transform;
+
+        static_map_transform.header.stamp = current_time;
+        static_map_transform.header.frame_id = hw_vehicle_struct.frame_id;
+        static_map_transform.child_frame_id = hw_vehicle_struct.map_frame_id;
+
+        // Set translation based on current state
+        static_map_transform.transform.translation.x = map_position_x;
+        static_map_transform.transform.translation.y = map_position_y;
+        static_map_transform.transform.translation.z = map_position_z;
+
+        RCLCPP_INFO(
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f",
+            hw_vehicle_struct.async_state_.orientation_w,
+            hw_vehicle_struct.async_state_.orientation_x,
+            hw_vehicle_struct.async_state_.orientation_y,
+            hw_vehicle_struct.async_state_.orientation_z);
+
+        // Set rotation based on current state (quaternion)
+        static_map_transform.transform.rotation.x = map_orientaion_x;
+        static_map_transform.transform.rotation.y = map_orientaion_y;
+        static_map_transform.transform.rotation.z = map_orientaion_z;
+        static_map_transform.transform.rotation.w = map_orientaion_w;
+        // Publish the static transform
+        static_tf_broadcaster_->sendTransform(static_map_transform);
+
+        // Create and send the static dvl transform
+        geometry_msgs::msg::TransformStamped static_dvl_transform;
+
+        static_dvl_transform.header.stamp = current_time;
+        static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
+
+        // Set translation based on current state
+        static_dvl_transform.transform.translation.x = -0.060;
+        static_dvl_transform.transform.translation.y = 0.000;
+        static_dvl_transform.transform.translation.z = -0.105;
+
+        // Rotate the pose about X UPRIGHT
+        q_rot_dvl.setRPY(0.0, 0.0, 0.0);
+
+        q_rot_dvl.normalize();
+
+        static_dvl_transform.transform.rotation.x = q_rot_dvl.x();
+        static_dvl_transform.transform.rotation.y = q_rot_dvl.y();
+        static_dvl_transform.transform.rotation.z = q_rot_dvl.z();
+        static_dvl_transform.transform.rotation.w = q_rot_dvl.w();
+
+        // Publish the static transform
+        static_tf_broadcaster_->sendTransform(static_dvl_transform);
+
+        RCLCPP_INFO(
+            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+            "Published static odom transform once during activation.");
+    };
 
     void BlueRovSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time)
     {
