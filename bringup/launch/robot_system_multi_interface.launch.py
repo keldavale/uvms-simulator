@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess, OpaqueFunction, TimerAction
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess, OpaqueFunction, TimerAction, GroupAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
@@ -514,23 +514,36 @@ def launch_setup(context, *args, **kwargs):
             'dvl_source': 'ros_hil_simulator'
         }]
     )
-    simulator_agent = TimerAction(
-        period=15.0,
-        actions=[
-            control_node,
-            kf_node,
-            mouse_control,
-            coverage_node,
-            run_plotjuggler,
-            robot_state_pub_node,
-            delay_rviz_after_joint_state_broadcaster_spawner,
-        ] + spawner_nodes,
-    )
 
-    # launch nodes
+  # Define the simulator actions
+    simulator_actions = [
+        control_node,
+        kf_node,
+        mouse_control,
+        coverage_node,
+        run_plotjuggler,
+        robot_state_pub_node,
+        delay_rviz_after_joint_state_broadcaster_spawner,
+    ] + spawner_nodes
+    
+    # Define delayed simulator_agent (15-second delay) conditioned on use_vehicle_hardware=True
+    simulator_agent_delayed = TimerAction(
+        period=15.0,
+        actions=simulator_actions,
+        condition=IfCondition(use_vehicle_hardware)
+    )
+    
+    # Define immediate simulator_agent (no delay) conditioned on use_vehicle_hardware=False
+    simulator_agent_immediate = GroupAction(
+        actions=simulator_actions,
+        condition=UnlessCondition(use_vehicle_hardware)
+    )
+    
+    # Launch nodes
     nodes = [
         mavros_node,
-        simulator_agent
+        simulator_agent_delayed,
+        simulator_agent_immediate
     ]
-
+    
     return nodes
