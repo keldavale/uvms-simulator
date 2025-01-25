@@ -609,48 +609,48 @@ namespace ros2_control_blue_reach_5
         auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
         request->parameters = params;
 
-        // // Send the service request with a callback
-        // auto future = set_params_client_->async_send_request(
-        //     request,
-        //     [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
-        //     {
-        //         std::lock_guard<std::mutex> lock(activate_mutex_);
-        //         const auto responses = future.get()->results;
-        //         for (const auto &response : responses)
-        //         {
-        //             if (!response.successful)
-        //             {
-        //                 RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set thruster parameter: %s", response.reason.c_str());
-        //                 activation_successful_ = false;
-        //                 activation_complete_ = true;
-        //                 activate_cv_.notify_one();
-        //                 return;
-        //             }
-        //         }
+        // Send the service request with a callback
+        auto future = set_params_client_->async_send_request(
+            request,
+            [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
+            {
+                std::lock_guard<std::mutex> lock(activate_mutex_);
+                const auto responses = future.get()->results;
+                for (const auto &response : responses)
+                {
+                    if (!response.successful)
+                    {
+                        RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set thruster parameter: %s", response.reason.c_str());
+                        activation_successful_ = false;
+                        activation_complete_ = true;
+                        activate_cv_.notify_one();
+                        return;
+                    }
+                }
 
-        //         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully set thruster parameters to RC passthrough!");
+                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully set thruster parameters to RC passthrough!");
 
-        //         // Stop the thrusters before switching to an external controller
-        //         stop_thrusters();
+                // Stop the thrusters before switching to an external controller
+                stop_thrusters();
 
-        //         activation_successful_ = true;
-        //         activation_complete_ = true;
-        //         activate_cv_.notify_one();
-        //     });
+                activation_successful_ = true;
+                activation_complete_ = true;
+                activate_cv_.notify_one();
+            });
 
-        // // Wait for the activation to complete
-        // {
-        //     std::unique_lock<std::mutex> lock(activate_mutex_);
-        //     activate_cv_.wait(lock, [this]()
-        //                       { return activation_complete_; });
-        // }
+        // Wait for the activation to complete
+        {
+            std::unique_lock<std::mutex> lock(activate_mutex_);
+            activate_cv_.wait(lock, [this]()
+                              { return activation_complete_; });
+        }
 
-        // if (!activation_successful_)
-        // {
-        //     RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-        //                  "Failed to set thruster parameters to passthrough mode.");
-        //     return hardware_interface::CallbackReturn::ERROR;
-        // }
+        if (!activation_successful_)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                         "Failed to set thruster parameters to passthrough mode.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "System successfully activated!");
         return hardware_interface::CallbackReturn::SUCCESS;

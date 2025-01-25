@@ -1,14 +1,13 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, ExecuteProcess, OpaqueFunction, TimerAction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-import os, yaml, xacro, copy
-import ast
- 
+import yaml, copy
+
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
         return True
@@ -401,7 +400,7 @@ def launch_setup(context, *args, **kwargs):
             ]
         )
     mavros_config_file = str(mavros_config.perform(context))
-    uv_hardware_node = ExecuteProcess(
+    mavros_node = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'mavros', 'mavros_node',
             '--ros-args', '--params-file', f'{mavros_config_file}'
@@ -434,6 +433,7 @@ def launch_setup(context, *args, **kwargs):
         output="both",
     )
 
+
     # Spawner Nodes
     spawner_nodes = []
 
@@ -444,6 +444,7 @@ def launch_setup(context, *args, **kwargs):
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
     spawner_nodes.append(joint_state_broadcaster_spawner)
+
 
     # UVMS Controller Spawner (if using mock hardware)
     uvms_spawner = Node(
@@ -491,18 +492,6 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    # sensorPy_node = Node(
-    #     package='simlab',
-    #     executable='sensor_py_node',
-    #     condition=IfCondition(any_real_hardware)
-    # )
-
-    # visualise_node = Node(
-    #     package='simlab',
-    #     executable='visualise_node',
-    #     condition=IfCondition(any_real_hardware)
-    # )
-
     coverage_node = Node(
         package='simlab',
         executable='coverage_node',
@@ -525,21 +514,23 @@ def launch_setup(context, *args, **kwargs):
             'dvl_source': 'ros_hil_simulator'
         }]
     )
+    simulator_agent = TimerAction(
+        period=15.0,
+        actions=[
+            control_node,
+            kf_node,
+            mouse_control,
+            coverage_node,
+            run_plotjuggler,
+            robot_state_pub_node,
+            delay_rviz_after_joint_state_broadcaster_spawner,
+        ] + spawner_nodes,
+    )
 
-
-
-    # Collect all nodes
+    # launch nodes
     nodes = [
-        uv_hardware_node,
-        kf_node,
-        # visualise_node,
-        # sensorPy_node,
-        mouse_control,
-        coverage_node,
-        run_plotjuggler,
-        control_node,
-        robot_state_pub_node,
-        delay_rviz_after_joint_state_broadcaster_spawner,
-    ] + spawner_nodes
+        mavros_node,
+        simulator_agent
+    ]
 
     return nodes

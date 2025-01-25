@@ -26,7 +26,7 @@
 
       <joint name="${prefix}thruster1_joint">
         <param name="param_name">SERVO1_FUNCTION</param>
-        <param name="default_param_value">29</param>
+        <param name="default_param_value">33</param>
         <param name="channel">1</param>
         <param name="neutral_pwm">1500</param>
 
@@ -40,7 +40,7 @@
 
       <joint name="${prefix}thruster2_joint">
         <param name="param_name">SERVO2_FUNCTION</param>
-        <param name="default_param_value">30</param>
+        <param name="default_param_value">34</param>
         <param name="channel">2</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -53,7 +53,7 @@
 
        <joint name="${prefix}thruster3_joint">
         <param name="param_name">SERVO3_FUNCTION</param>
-        <param name="default_param_value">31</param>
+        <param name="default_param_value">35</param>
         <param name="channel">3</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -66,7 +66,7 @@
 
        <joint name="${prefix}thruster4_joint">
         <param name="param_name">SERVO4_FUNCTION</param>
-        <param name="default_param_value">32</param>
+        <param name="default_param_value">36</param>
         <param name="channel">4</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -79,7 +79,7 @@
 
        <joint name="${prefix}thruster5_joint">
         <param name="param_name">SERVO5_FUNCTION</param>
-        <param name="default_param_value">33</param>
+        <param name="default_param_value">37</param>
         <param name="channel">5</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -92,7 +92,7 @@
 
        <joint name="${prefix}thruster6_joint">
         <param name="param_name">SERVO6_FUNCTION</param>
-        <param name="default_param_value">34</param>
+        <param name="default_param_value">38</param>
         <param name="channel">6</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -104,7 +104,7 @@
       </joint>
        <joint name="${prefix}thruster7_joint">
         <param name="param_name">SERVO7_FUNCTION</param>
-        <param name="default_param_value">35</param>
+        <param name="default_param_value">39</param>
         <param name="channel">7</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
@@ -117,7 +117,7 @@
 
        <joint name="${prefix}thruster8_joint">
         <param name="param_name">SERVO8_FUNCTION</param>
-        <param name="default_param_value">36</param>
+        <param name="default_param_value">40</param>
         <param name="channel">8</param>
         <param name="neutral_pwm">1500</param>
         <state_interface name="position"/>
