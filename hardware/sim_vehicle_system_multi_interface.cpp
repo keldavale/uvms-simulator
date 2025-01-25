@@ -66,7 +66,6 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.map_frame_id = info_.hardware_parameters["map_frame_id"];
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
 
-        
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
@@ -116,6 +115,14 @@ namespace ros2_control_blue_reach_5
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
                     "Thruster '%s'has %zu state interfaces. 6 expected.", joint.name.c_str(),
                     joint.state_interfaces.size());
+                return hardware_interface::CallbackReturn::ERROR;
+            };
+            if (joint.command_interfaces.size() != 1)
+            {
+                RCLCPP_FATAL(
+                    rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
+                    "Thruster '%s'has %zu command interfaces. 1 expected.", joint.name.c_str(),
+                    joint.command_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             };
         };
@@ -303,6 +310,25 @@ namespace ros2_control_blue_reach_5
     SimVehicleSystemMultiInterfaceHardware::export_command_interfaces()
     {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[0].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[1].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[2].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[3].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm));
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[4].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[5].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[6].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[7].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm));
+            
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &hw_vehicle_struct.command_state_.position_x));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -402,7 +428,7 @@ namespace ros2_control_blue_reach_5
 
         static_dvl_transform.header.stamp = current_time;
         static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix+"dvl_link";
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
 
         // Set translation based on current state
         static_dvl_transform.transform.translation.x = -0.060;

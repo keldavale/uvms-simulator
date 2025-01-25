@@ -102,13 +102,11 @@ namespace ros2_control_blue_reach_5
                 rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'max_set_param_attempts' parameter is required.");
             return hardware_interface::CallbackReturn::ERROR;
         }
-        max_retries_ = std::stoi(info_.hardware_parameters.at("max_set_param_attempts"));
 
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
-        RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************max_set_param_attempts: %u", max_retries_);
 
         map_position_x = 5.0;
         map_position_y = 5.0;
@@ -166,6 +164,15 @@ namespace ros2_control_blue_reach_5
                     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                     "Thruster '%s'has %zu state interfaces. 6 expected.", joint.name.c_str(),
                     joint.state_interfaces.size());
+                return hardware_interface::CallbackReturn::ERROR;
+            };
+
+            if (joint.command_interfaces.size() != 1)
+            {
+                RCLCPP_FATAL(
+                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "Thruster '%s'has %zu command interfaces. 1 expected.", joint.name.c_str(),
+                    joint.command_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             };
         };
@@ -519,6 +526,25 @@ namespace ros2_control_blue_reach_5
     BlueRovSystemMultiInterfaceHardware::export_command_interfaces()
     {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[0].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[1].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[2].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[3].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm));
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[4].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[5].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[6].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.joints[7].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm));
+
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &hw_vehicle_struct.command_state_.position_x));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
@@ -661,6 +687,61 @@ namespace ros2_control_blue_reach_5
     {
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Deactivating... please wait...");
+
+        // Stop the thrusters before switching out of passthrough mode
+        stop_thrusters();
+
+        // Prepare parameters to set thruster to default
+        std::vector<rcl_interfaces::msg::Parameter> default_params;
+        default_params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
+
+        for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
+        {
+            default_params.emplace_back(config.param);
+        }
+
+        auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+        request->parameters = default_params;
+
+        // Send the service request with a callback
+        auto future = set_params_client_->async_send_request(
+            request,
+            [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
+            {
+                std::lock_guard<std::mutex> lock(deactivate_mutex_);
+                const auto responses = future.get()->results;
+                for (const auto &response : responses)
+                {
+                    if (!response.successful)
+                    {
+                        RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set default thruster parameter: %s", response.reason.c_str());
+                        deactivation_successful_ = false;
+                        deactivation_complete_ = true;
+                        deactivate_cv_.notify_one();
+                        return;
+                    }
+                }
+
+                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully restored the default thruster parameter!");
+
+                deactivation_successful_ = true;
+                deactivation_complete_ = true;
+                deactivate_cv_.notify_one();
+            });
+
+        // Wait for the activation to complete
+        {
+            std::unique_lock<std::mutex> lock(deactivate_mutex_);
+            deactivate_cv_.wait(lock, [this]()
+                                { return deactivation_complete_; });
+        }
+
+        if (!deactivation_successful_)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                         "Failed to set default thruster parameters.");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully deactivated!");
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -724,6 +805,14 @@ namespace ros2_control_blue_reach_5
     hardware_interface::return_type BlueRovSystemMultiInterfaceHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
     {
+        // if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
+        // {
+        //     for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
+        //     {
+        //         rt_override_rc_pub_->msg_.channels[thruster_configs_[i].channel - 1] = static_cast<int>(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
+        //     }
+        //     rt_override_rc_pub_->unlockAndPublish();
+        // }
         return hardware_interface::return_type::OK;
     }
 

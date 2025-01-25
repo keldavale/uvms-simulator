@@ -195,7 +195,11 @@ namespace ros2_control_blue_reach_5
         std::condition_variable activate_cv_;
         bool activation_complete_ = false;
         bool activation_successful_ = false;
-        int max_retries_;
+
+        std::mutex deactivate_mutex_;
+        std::condition_variable deactivate_cv_;
+        bool deactivation_complete_ = false;
+        bool deactivation_successful_ = false;
     };
 
 } // namespace ros2_control_blue

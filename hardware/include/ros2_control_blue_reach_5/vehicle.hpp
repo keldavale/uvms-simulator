@@ -225,7 +225,7 @@ namespace blue::dynamics
     std::string robot_prefix; // robot prefix
     double sim_time = 0;
     double sim_period = 0;
-    
+  
     struct Pose_vel
     {
       double position_x, position_y, position_z;

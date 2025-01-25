@@ -26,7 +26,7 @@ public:
         double effort = 0;
     };
 
-    State default_state_{}, current_state_{}, async_state_{};
+    State default_state_{}, command_state_{}, current_state_{}, async_state_{};
 
     Thruster() = default;
     // Constructor with member initializer list

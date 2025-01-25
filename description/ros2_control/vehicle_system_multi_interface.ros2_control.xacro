@@ -36,6 +36,8 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+
+        <command_interface name="pwm"/>
       </joint>
 
       <joint name="${prefix}thruster2_joint">
@@ -49,6 +51,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
        <joint name="${prefix}thruster3_joint">
@@ -62,6 +65,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
        <joint name="${prefix}thruster4_joint">
@@ -75,6 +79,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
        <joint name="${prefix}thruster5_joint">
@@ -88,6 +93,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
        <joint name="${prefix}thruster6_joint">
@@ -101,6 +107,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
        <joint name="${prefix}thruster7_joint">
         <param name="param_name">SERVO7_FUNCTION</param>
@@ -113,6 +120,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
        <joint name="${prefix}thruster8_joint">
@@ -126,6 +134,7 @@
         <state_interface name="pwm"/>
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
+        <command_interface name="pwm"/>
       </joint>
 
       <gpio name="${prefix}IOs">
