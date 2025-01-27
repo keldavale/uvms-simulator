@@ -77,13 +77,13 @@ namespace ros2_control_blue_reach_5
         std::uniform_real_distribution<> dis_y(5.0, 10.0);
         std::uniform_real_distribution<> dis_z(0.0, 0.0);
 
-        map_position_x = dis_x(gen);
-        map_position_y = dis_y(gen);
-        map_position_z = dis_z(gen);
+        // map_position_x = dis_x(gen);
+        // map_position_y = dis_y(gen);
+        // map_position_z = dis_z(gen);
 
-        // map_position_x = 5.0;
-        // map_position_y = 6.0;
-        // map_position_z = 0.0;
+        map_position_x = 0.0;
+        map_position_y = 0.0;
+        map_position_z = 0.0;
 
         map_orientaion_w = 1.0;
         map_orientaion_x = 0.0;
