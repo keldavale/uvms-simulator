@@ -71,19 +71,21 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "*************map frame id: %s", hw_vehicle_struct.map_frame_id.c_str());
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        // Use the robot_prefix as a seed
+        std::size_t seed_val = std::hash<std::string>{}(hw_vehicle_struct.robot_prefix);
+        std::mt19937 gen(seed_val);
+
         std::uniform_real_distribution<> dis_x(5.0, 5.0);
-        std::uniform_real_distribution<> dis_y(5.0, 10.0);
+        std::uniform_real_distribution<> dis_y(0.0, 20.0);
         std::uniform_real_distribution<> dis_z(0.0, 0.0);
 
-        // map_position_x = dis_x(gen);
-        // map_position_y = dis_y(gen);
-        // map_position_z = dis_z(gen);
+        map_position_x = dis_x(gen);
+        map_position_y = dis_y(gen);
+        map_position_z = dis_z(gen);
 
-        map_position_x = 0.0;
-        map_position_y = 0.0;
-        map_position_z = 0.0;
+        // map_position_x = 0.0;
+        // map_position_y = 0.0;
+        // map_position_z = 0.0;
 
         map_orientaion_w = 1.0;
         map_orientaion_x = 0.0;

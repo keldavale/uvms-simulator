@@ -7,6 +7,7 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import yaml, copy
+import random
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -20,7 +21,7 @@ def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_pr
 
     rviz_view_configure(robot_prefixes, robot_base_links, new_rviz_config)
     rviz_states_axes_configure(robot_prefixes, new_rviz_config)
-
+    rviz_robots_path_configure(robot_prefixes, new_rviz_config)
     if use_vehicle_hardware:
         imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config, False)
         rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02, False)
@@ -29,6 +30,43 @@ def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_pr
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:
         yaml.dump(new_rviz_config,file,Dumper=NoAliasDumper)
+
+
+def rviz_path_display(name, topic, rviz_config, color, enabled):
+    path_config = {
+        "Alpha": 1,
+        "Buffer Length": 1,
+        "Class": "rviz_default_plugins/Path",
+        "Color": color,
+        "Enabled": enabled,
+        "Head Diameter": 0.3,
+        "Head Length": 0.2,
+        "Length": 0.3,
+        "Line Style": "Lines",
+        "Line Width": 0.03,
+        "Name": name,
+        "Offset": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+        },
+        "Pose Color": "255; 85; 255",
+        "Pose Style": "None",
+        "Radius": 0.03,
+        "Shaft Diameter": 0.1,
+        "Shaft Length": 0.1,
+        "Topic": {
+            "Depth": 5,
+            "Durability Policy": "Volatile",
+            "Filter size": 40,
+            "History Policy": "Keep Last",
+            "Reliability Policy": "Reliable",
+            "Value": topic
+        },
+        "Value": True
+    }
+    rviz_config['Visualization Manager']['Displays'].append(path_config)
+
 
 def rviz_axes_display(name, reference_frame, rviz_config, length, radius, enabled):
     added_axes = {'Class': 'rviz_default_plugins/Axes',
@@ -76,6 +114,37 @@ def imu_display(name, topic,rviz_config, enabled):
             "fixed_frame_orientation": True
         }
     rviz_config['Visualization Manager']['Displays'].append(imu_config)
+
+def generate_random_color(path_type=None, default=False):
+    """
+    Generates a random color in the "R; G; B" string format.
+    
+    Returns:
+    - str: Random color as "R; G; B".
+    """
+    if default and path_type=='ref_path':
+        default_path_color = "248; 228; 92"       # Yellow for the first robot's Path
+        return default_path_color
+    if default and path_type=='robot_path': 
+        default_traj_color = "224;27;36"        # Red for the first robot's TrajectoryPath
+        return default_traj_color
+        
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return f"{r}; {g}; {b}"
+
+def rviz_robots_path_configure(robot_prefixes, rviz_config):
+    enabled = True
+    for idx, prefix in enumerate(robot_prefixes):
+        if idx == 0:
+            path_color = generate_random_color('ref_path', True)
+            traj_color = generate_random_color('robot_path', True)
+        else:
+            path_color = generate_random_color()
+            traj_color = generate_random_color()
+        rviz_path_display(f"{prefix}/Path", f"/{prefix}Path", rviz_config, path_color, enabled)
+        rviz_path_display(f"{prefix}/TrajectoryPath", f"/{prefix}TrajectoryPath", rviz_config, traj_color, enabled)
 
 def rviz_states_axes_configure(robot_prefixes, rviz_config):
     for prefix in robot_prefixes:
