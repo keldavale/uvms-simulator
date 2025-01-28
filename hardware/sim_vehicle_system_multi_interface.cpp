@@ -94,6 +94,7 @@ namespace ros2_control_blue_reach_5
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
             0.0, 0.0, 0.0,      // map_frame at position: x, y, z
+            0.0, 0.0, 0.0,
             1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
             0.0, 0.0, 0.0,      // Angular velocities: wx, wy, wz
@@ -131,21 +132,21 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 37 gpio state interfaces
-            if (gpio.state_interfaces.size() != 37)
+            // RRBotSystemMultiInterface has exactly 40 gpio state interfaces
+            if (gpio.state_interfaces.size() != 40)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 37 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 40 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
-            // RRBotSystemMultiInterface has exactly 25 gpio command interfaces
-            if (gpio.command_interfaces.size() != 25)
+            // RRBotSystemMultiInterface has exactly 28 gpio command interfaces
+            if (gpio.command_interfaces.size() != 28)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu command interfaces. 25 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu command interfaces. 28 expected.", gpio.name.c_str(),
                     gpio.command_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -231,80 +232,90 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[1].name, &hw_vehicle_struct.current_state_.position_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &hw_vehicle_struct.current_state_.position_z));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.orientation_w));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[4].name, &hw_vehicle_struct.current_state_.orientation_x));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &hw_vehicle_struct.current_state_.orientation_y));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &hw_vehicle_struct.current_state_.orientation_z));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[7].name, &hw_vehicle_struct.current_state_.u));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[8].name, &hw_vehicle_struct.current_state_.v));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[9].name, &hw_vehicle_struct.current_state_.w));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[10].name, &hw_vehicle_struct.current_state_.p));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[11].name, &hw_vehicle_struct.current_state_.q));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[12].name, &hw_vehicle_struct.current_state_.r));
+
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct.current_state_.du));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[14].name, &hw_vehicle_struct.current_state_.dv));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[4].name, &hw_vehicle_struct.current_state_.pitch));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct.current_state_.dw));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct.current_state_.dp));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct.current_state_.dq));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct.current_state_.dr));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &hw_vehicle_struct.current_state_.yaw));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[19].name, &hw_vehicle_struct.current_state_.Fx));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &hw_vehicle_struct.current_state_.orientation_w));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[20].name, &hw_vehicle_struct.current_state_.Fy));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[7].name, &hw_vehicle_struct.current_state_.orientation_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[21].name, &hw_vehicle_struct.current_state_.Fz));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[8].name, &hw_vehicle_struct.current_state_.orientation_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[22].name, &hw_vehicle_struct.current_state_.Tx));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[9].name, &hw_vehicle_struct.current_state_.orientation_z));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[23].name, &hw_vehicle_struct.current_state_.Ty));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[10].name, &hw_vehicle_struct.current_state_.u));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct.current_state_.Tz));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[11].name, &hw_vehicle_struct.current_state_.v));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[12].name, &hw_vehicle_struct.current_state_.w));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct.current_state_.p));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[14].name, &hw_vehicle_struct.current_state_.q));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct.current_state_.r));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.sim_time));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct.current_state_.du));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.sim_period));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct.current_state_.dv));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct.current_state_.dw));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[19].name, &hw_vehicle_struct.current_state_.dp));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[20].name, &hw_vehicle_struct.current_state_.dq));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[21].name, &hw_vehicle_struct.current_state_.dr));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.imu_state.position_x));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[22].name, &hw_vehicle_struct.current_state_.Fx));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.imu_state.position_y));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[23].name, &hw_vehicle_struct.current_state_.Fy));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.imu_state.position_z));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct.current_state_.Fz));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.Tx));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[26].name, &hw_vehicle_struct.current_state_.Ty));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.current_state_.Tz));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.orientation_w));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.orientation_x));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.orientation_y));
-        state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_z));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.sim_period));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[34].name, &hw_vehicle_struct.dvl_state.roll));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.position_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[35].name, &hw_vehicle_struct.dvl_state.pitch));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.position_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[36].name, &hw_vehicle_struct.dvl_state.yaw));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.position_z));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_w));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[34].name, &hw_vehicle_struct.imu_state.orientation_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[35].name, &hw_vehicle_struct.imu_state.orientation_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[36].name, &hw_vehicle_struct.imu_state.orientation_z));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[37].name, &hw_vehicle_struct.dvl_state.roll));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[38].name, &hw_vehicle_struct.dvl_state.pitch));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[39].name, &hw_vehicle_struct.dvl_state.yaw));
+
         return state_interfaces;
     }
 
@@ -330,59 +341,67 @@ namespace ros2_control_blue_reach_5
             info_.joints[6].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[7].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm));
-            
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+       
+       command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &hw_vehicle_struct.command_state_.position_x));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[1].name, &hw_vehicle_struct.command_state_.position_y));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[2].name, &hw_vehicle_struct.command_state_.position_z));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[3].name, &hw_vehicle_struct.command_state_.orientation_w));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[4].name, &hw_vehicle_struct.command_state_.orientation_x));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[5].name, &hw_vehicle_struct.command_state_.orientation_y));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[6].name, &hw_vehicle_struct.command_state_.orientation_z));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[7].name, &hw_vehicle_struct.command_state_.u));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[8].name, &hw_vehicle_struct.command_state_.v));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[9].name, &hw_vehicle_struct.command_state_.w));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[10].name, &hw_vehicle_struct.command_state_.p));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[11].name, &hw_vehicle_struct.command_state_.q));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[12].name, &hw_vehicle_struct.command_state_.r));
 
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[13].name, &hw_vehicle_struct.command_state_.du));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[3].name, &hw_vehicle_struct.command_state_.roll));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[14].name, &hw_vehicle_struct.command_state_.dv));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[4].name, &hw_vehicle_struct.command_state_.pitch));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[15].name, &hw_vehicle_struct.command_state_.dw));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[16].name, &hw_vehicle_struct.command_state_.dp));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[17].name, &hw_vehicle_struct.command_state_.dq));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[18].name, &hw_vehicle_struct.command_state_.dr));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[5].name, &hw_vehicle_struct.command_state_.yaw));
 
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[19].name, &hw_vehicle_struct.command_state_.Fx));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[6].name, &hw_vehicle_struct.command_state_.orientation_w));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[20].name, &hw_vehicle_struct.command_state_.Fy));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[7].name, &hw_vehicle_struct.command_state_.orientation_x));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[21].name, &hw_vehicle_struct.command_state_.Fz));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[8].name, &hw_vehicle_struct.command_state_.orientation_y));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[22].name, &hw_vehicle_struct.command_state_.Tx));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[9].name, &hw_vehicle_struct.command_state_.orientation_z));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[23].name, &hw_vehicle_struct.command_state_.Ty));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[10].name, &hw_vehicle_struct.command_state_.u));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
-            info_.gpios[0].name, info_.gpios[0].command_interfaces[24].name, &hw_vehicle_struct.command_state_.Tz));
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[11].name, &hw_vehicle_struct.command_state_.v));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[12].name, &hw_vehicle_struct.command_state_.w));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[13].name, &hw_vehicle_struct.command_state_.p));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[14].name, &hw_vehicle_struct.command_state_.q));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[15].name, &hw_vehicle_struct.command_state_.r));
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[16].name, &hw_vehicle_struct.command_state_.du));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[17].name, &hw_vehicle_struct.command_state_.dv));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[18].name, &hw_vehicle_struct.command_state_.dw));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[19].name, &hw_vehicle_struct.command_state_.dp));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[20].name, &hw_vehicle_struct.command_state_.dq));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[21].name, &hw_vehicle_struct.command_state_.dr));
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[22].name, &hw_vehicle_struct.command_state_.Fx));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[23].name, &hw_vehicle_struct.command_state_.Fy));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[24].name, &hw_vehicle_struct.command_state_.Fz));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[25].name, &hw_vehicle_struct.command_state_.Tx));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[26].name, &hw_vehicle_struct.command_state_.Ty));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
+            info_.gpios[0].name, info_.gpios[0].command_interfaces[27].name, &hw_vehicle_struct.command_state_.Tz));
 
         return command_interfaces;
     }
@@ -492,6 +511,7 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.command_state_.position_x;
         hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.command_state_.position_y;
         hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.command_state_.position_z;
+        
         hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.command_state_.orientation_w;
         hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.command_state_.orientation_x;
         hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.command_state_.orientation_y;

@@ -221,14 +221,15 @@ namespace blue::dynamics
     uint8_t device_id;          // Unique identifier for the device
     std::string frame_id;       // origin frame
     std::string child_frame_id; // body frame
-    std::string map_frame_id; // body frame
-    std::string robot_prefix; // robot prefix
+    std::string map_frame_id;   // body frame
+    std::string robot_prefix;   // robot prefix
     double sim_time = 0;
     double sim_period = 0;
-  
+
     struct Pose_vel
     {
       double position_x, position_y, position_z;
+      double roll, pitch, yaw;
       double orientation_w, orientation_x, orientation_y, orientation_z;
       double u, v, w, p, q, r;
       double du, dv, dw, dp, dq, dr;
@@ -238,6 +239,37 @@ namespace blue::dynamics
       double Tx = 0;
       double Ty = 0;
       double Tz = 0;
+
+      void updateQuaternion()
+      {
+        // Compute half angles
+        double half_roll = roll * 0.5;
+        double half_pitch = pitch * 0.5;
+        double half_yaw = yaw * 0.5;
+
+        // Compute sin and cos for half angles
+        double cr = cos(half_roll);
+        double sr = sin(half_roll);
+        double cp = cos(half_pitch);
+        double sp = sin(half_pitch);
+        double cy = cos(half_yaw);
+        double sy = sin(half_yaw);
+
+        // Calculate quaternion components
+        orientation_w = cr * cp * cy + sr * sp * sy;
+        orientation_x = sr * cp * cy - cr * sp * sy;
+        orientation_y = cr * sp * cy + sr * cp * sy;
+        orientation_z = cr * cp * sy - sr * sp * cy;
+      }
+
+      // Method to set Euler angles and update quaternion
+      void setEuler(double new_roll, double new_pitch, double new_yaw)
+      {
+        roll = new_roll;
+        pitch = new_pitch;
+        yaw = new_yaw;
+        updateQuaternion();
+      }
     };
 
     struct dvl_info

@@ -141,6 +141,11 @@
         <command_interface name="position.x"/>
         <command_interface name="position.y"/>
         <command_interface name="position.z"/>
+
+        <command_interface name="roll"/>
+        <command_interface name="pitch"/>
+        <command_interface name="yaw"/>
+
         <command_interface name="orientation.w"/>
         <command_interface name="orientation.x"/>
         <command_interface name="orientation.y"/>
@@ -170,6 +175,11 @@
         <state_interface name="position.x"/>
         <state_interface name="position.y"/>
         <state_interface name="position.z"/>
+
+        <state_interface name="roll"/>
+        <state_interface name="pitch"/>
+        <state_interface name="yaw"/>
+
         <state_interface name="orientation.w"/>
         <state_interface name="orientation.x"/>
         <state_interface name="orientation.y"/>
@@ -178,6 +188,7 @@
         <state_interface name="velocity.x"/>
         <state_interface name="velocity.y"/>
         <state_interface name="velocity.z"/>
+
         <state_interface name="angular_velocity.x"/>
         <state_interface name="angular_velocity.y"/>
         <state_interface name="angular_velocity.z"/>
@@ -185,6 +196,7 @@
         <state_interface name="linear_acceleration.x"/>
         <state_interface name="linear_acceleration.y"/>
         <state_interface name="linear_acceleration.z"/>
+
         <state_interface name="angular_acceleration.x"/>
         <state_interface name="angular_acceleration.y"/>
         <state_interface name="angular_acceleration.z"/>
