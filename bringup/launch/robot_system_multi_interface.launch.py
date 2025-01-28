@@ -589,7 +589,7 @@ def launch_setup(context, *args, **kwargs):
         control_node,
         kf_node,
         mouse_control,
-        coverage_node,
+        # coverage_node,
         run_plotjuggler,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,

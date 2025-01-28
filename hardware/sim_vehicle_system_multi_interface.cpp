@@ -93,7 +93,7 @@ namespace ros2_control_blue_reach_5
         map_orientaion_z = 0.0;
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            0.0, 0.0, 0.0,      // map_frame at position: x, y, z
+            0.0, 0.0, 0.0, // map_frame at position: x, y, z
             0.0, 0.0, 0.0,
             1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
@@ -233,7 +233,6 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &hw_vehicle_struct.current_state_.position_z));
 
-
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -341,8 +340,8 @@ namespace ros2_control_blue_reach_5
             info_.joints[6].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.joints[7].name, custom_hardware_interface::HW_IF_PWM, &hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm));
-       
-       command_interfaces.emplace_back(hardware_interface::CommandInterface(
+
+        command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[0].name, &hw_vehicle_struct.command_state_.position_x));
         command_interfaces.emplace_back(hardware_interface::CommandInterface(
             info_.gpios[0].name, info_.gpios[0].command_interfaces[1].name, &hw_vehicle_struct.command_state_.position_y));
@@ -511,11 +510,10 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.command_state_.position_x;
         hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.command_state_.position_y;
         hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.command_state_.position_z;
-        
-        hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.command_state_.orientation_w;
-        hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.command_state_.orientation_x;
-        hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.command_state_.orientation_y;
-        hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.command_state_.orientation_z;
+
+        hw_vehicle_struct.current_state_.setEuler(hw_vehicle_struct.command_state_.roll,
+                                                  hw_vehicle_struct.command_state_.pitch,
+                                                  hw_vehicle_struct.command_state_.yaw);
 
         hw_vehicle_struct.current_state_.u = hw_vehicle_struct.command_state_.u;
         hw_vehicle_struct.current_state_.v = hw_vehicle_struct.command_state_.v;

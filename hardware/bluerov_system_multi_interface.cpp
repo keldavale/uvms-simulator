@@ -118,7 +118,7 @@ namespace ros2_control_blue_reach_5
         map_orientaion_z = 0.0;
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            0.0, 0.0, 0.0,      // map_frame at position: x, y, z
+            0.0, 0.0, 0.0, // map_frame at position: x, y, z
             0.0, 0.0, 0.0,
             1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
@@ -311,6 +311,7 @@ namespace ros2_control_blue_reach_5
                     hw_vehicle_struct.async_state_.position_x = odom_msg->pose.pose.position.x;
                     hw_vehicle_struct.async_state_.position_y = odom_msg->pose.pose.position.y;
                     hw_vehicle_struct.async_state_.position_z = odom_msg->pose.pose.position.z;
+
                     hw_vehicle_struct.async_state_.orientation_w = odom_msg->pose.pose.orientation.w;
                     hw_vehicle_struct.async_state_.orientation_x = odom_msg->pose.pose.orientation.x;
                     hw_vehicle_struct.async_state_.orientation_y = odom_msg->pose.pose.orientation.y;
@@ -319,6 +320,7 @@ namespace ros2_control_blue_reach_5
                     hw_vehicle_struct.async_state_.u = odom_msg->twist.twist.linear.x;
                     hw_vehicle_struct.async_state_.v = odom_msg->twist.twist.linear.y;
                     hw_vehicle_struct.async_state_.w = odom_msg->twist.twist.linear.z;
+
                     hw_vehicle_struct.async_state_.p = odom_msg->twist.twist.angular.x;
                     hw_vehicle_struct.async_state_.q = odom_msg->twist.twist.angular.y;
                     hw_vehicle_struct.async_state_.r = odom_msg->twist.twist.angular.z;
@@ -445,7 +447,6 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[1].name, &hw_vehicle_struct.current_state_.position_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &hw_vehicle_struct.current_state_.position_z));
-
 
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.roll));
@@ -801,14 +802,16 @@ namespace ros2_control_blue_reach_5
             hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.async_state_.position_x;
             hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.async_state_.position_y;
             hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.async_state_.position_z;
-            hw_vehicle_struct.current_state_.orientation_w = hw_vehicle_struct.async_state_.orientation_w;
-            hw_vehicle_struct.current_state_.orientation_x = hw_vehicle_struct.async_state_.orientation_x;
-            hw_vehicle_struct.current_state_.orientation_y = hw_vehicle_struct.async_state_.orientation_y;
-            hw_vehicle_struct.current_state_.orientation_z = hw_vehicle_struct.async_state_.orientation_z;
+
+            hw_vehicle_struct.current_state_.setQuaternion(hw_vehicle_struct.async_state_.orientation_w,
+                                                           hw_vehicle_struct.async_state_.orientation_x,
+                                                           hw_vehicle_struct.async_state_.orientation_y,
+                                                           hw_vehicle_struct.async_state_.orientation_z);
 
             hw_vehicle_struct.current_state_.u = hw_vehicle_struct.async_state_.u;
             hw_vehicle_struct.current_state_.v = hw_vehicle_struct.async_state_.v;
             hw_vehicle_struct.current_state_.w = hw_vehicle_struct.async_state_.w;
+
             hw_vehicle_struct.current_state_.p = hw_vehicle_struct.async_state_.p;
             hw_vehicle_struct.current_state_.q = hw_vehicle_struct.async_state_.q;
             hw_vehicle_struct.current_state_.r = hw_vehicle_struct.async_state_.r;

@@ -32,6 +32,8 @@
 #include "ros2_control_blue_reach_5/eigen.hpp"
 #include <ros2_control_blue_reach_5/json.hpp>
 #include <variant> // Add this line
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 
 namespace blue::dynamics
 {
@@ -242,24 +244,16 @@ namespace blue::dynamics
 
       void updateQuaternion()
       {
-        // Compute half angles
-        double half_roll = roll * 0.5;
-        double half_pitch = pitch * 0.5;
-        double half_yaw = yaw * 0.5;
+        tf2::Quaternion q;
+        q.setRPY(roll, pitch, yaw);
 
-        // Compute sin and cos for half angles
-        double cr = cos(half_roll);
-        double sr = sin(half_roll);
-        double cp = cos(half_pitch);
-        double sp = sin(half_pitch);
-        double cy = cos(half_yaw);
-        double sy = sin(half_yaw);
+        q.normalize();
 
         // Calculate quaternion components
-        orientation_w = cr * cp * cy + sr * sp * sy;
-        orientation_x = sr * cp * cy - cr * sp * sy;
-        orientation_y = cr * sp * cy + sr * cp * sy;
-        orientation_z = cr * cp * sy - sr * sp * cy;
+        orientation_w = q.getW();
+        orientation_x = q.getX();
+        orientation_y = q.getY();
+        orientation_z = q.getZ();
       }
 
       // Method to set Euler angles and update quaternion
@@ -269,6 +263,29 @@ namespace blue::dynamics
         pitch = new_pitch;
         yaw = new_yaw;
         updateQuaternion();
+      }
+
+      void updateEuler()
+      {
+        tf2::Quaternion q;
+        q.setW(orientation_w);
+        q.setX(orientation_x);
+        q.setY(orientation_x);
+        q.setZ(orientation_z);
+
+        q.normalize();
+
+        // Calculate euler components
+        tf2::Matrix3x3(q).getRPY(roll, pitch, yaw);
+      }
+      // Method to set quaternion angles and update euler
+      void setQuaternion(double new_W, double new_X, double new_Y, double new_Z)
+      {
+        orientation_w = new_W;
+        orientation_x = new_X;
+        orientation_y = new_Y;
+        orientation_z = new_Z;
+        updateEuler();
       }
     };
 
