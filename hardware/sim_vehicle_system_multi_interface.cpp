@@ -420,57 +420,8 @@ namespace ros2_control_blue_reach_5
         RCLCPP_INFO(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "Activating... please wait...");
 
-        // Capture the current time
-        rclcpp::Time current_time = node_topics_interface_->now();
+        publishStaticPoseTransform();
 
-        // Create and send the static map transform
-        geometry_msgs::msg::TransformStamped static_map_transform;
-
-        static_map_transform.header.stamp = current_time;
-        static_map_transform.header.frame_id = hw_vehicle_struct.frame_id;
-        static_map_transform.child_frame_id = hw_vehicle_struct.map_frame_id;
-
-        // Set translation based on current state
-        static_map_transform.transform.translation.x = map_position_x;
-        static_map_transform.transform.translation.y = map_position_y;
-        static_map_transform.transform.translation.z = map_position_z;
-
-        // Set rotation based on current state (quaternion)
-        static_map_transform.transform.rotation.x = map_orientaion_x;
-        static_map_transform.transform.rotation.y = map_orientaion_y;
-        static_map_transform.transform.rotation.z = map_orientaion_z;
-        static_map_transform.transform.rotation.w = map_orientaion_w;
-        // Publish the static transform
-        static_tf_broadcaster_->sendTransform(static_map_transform);
-
-        // Create and send the static dvl transform
-        geometry_msgs::msg::TransformStamped static_dvl_transform;
-
-        static_dvl_transform.header.stamp = current_time;
-        static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
-        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
-
-        // Set translation based on current state
-        static_dvl_transform.transform.translation.x = -0.060;
-        static_dvl_transform.transform.translation.y = 0.000;
-        static_dvl_transform.transform.translation.z = -0.105;
-
-        // Rotate the pose about X UPRIGHT
-        q_rot_dvl.setRPY(0.0, 0.0, 0.0);
-
-        q_rot_dvl.normalize();
-
-        static_dvl_transform.transform.rotation.x = q_rot_dvl.x();
-        static_dvl_transform.transform.rotation.y = q_rot_dvl.y();
-        static_dvl_transform.transform.rotation.z = q_rot_dvl.z();
-        static_dvl_transform.transform.rotation.w = q_rot_dvl.w();
-
-        // Publish the static transform
-        static_tf_broadcaster_->sendTransform(static_dvl_transform);
-
-        RCLCPP_INFO(
-            rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-            "Published static odom transform once during activation.");
 
         RCLCPP_INFO(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "System successfully activated!");
@@ -526,8 +477,8 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.current_state_.Fy = -hw_vehicle_struct.command_state_.Fy;
         hw_vehicle_struct.current_state_.Fz = -hw_vehicle_struct.command_state_.Fz;
         hw_vehicle_struct.current_state_.Tx = hw_vehicle_struct.command_state_.Tx;
-        hw_vehicle_struct.current_state_.Ty = hw_vehicle_struct.command_state_.Ty;
-        hw_vehicle_struct.current_state_.Tz = hw_vehicle_struct.command_state_.Tz;
+        hw_vehicle_struct.current_state_.Ty = -hw_vehicle_struct.command_state_.Ty;
+        hw_vehicle_struct.current_state_.Tz = -hw_vehicle_struct.command_state_.Tz;
 
         hw_vehicle_struct.sim_time = time_seconds;
         hw_vehicle_struct.sim_period = delta_seconds;
@@ -541,6 +492,61 @@ namespace ros2_control_blue_reach_5
     {
         return hardware_interface::return_type::OK;
     }
+    void SimVehicleSystemMultiInterfaceHardware::publishStaticPoseTransform()
+    {
+          // Capture the current time
+        rclcpp::Time current_time = node_topics_interface_->now();
+
+        // Create and send the static map transform
+        geometry_msgs::msg::TransformStamped static_map_transform;
+
+        static_map_transform.header.stamp = current_time;
+        static_map_transform.header.frame_id = hw_vehicle_struct.frame_id;
+        static_map_transform.child_frame_id = hw_vehicle_struct.map_frame_id;
+
+        // Set translation based on current state
+        static_map_transform.transform.translation.x = map_position_x;
+        static_map_transform.transform.translation.y = map_position_y;
+        static_map_transform.transform.translation.z = map_position_z;
+
+        // Set rotation based on current state (quaternion)
+        static_map_transform.transform.rotation.x = map_orientaion_x;
+        static_map_transform.transform.rotation.y = map_orientaion_y;
+        static_map_transform.transform.rotation.z = map_orientaion_z;
+        static_map_transform.transform.rotation.w = map_orientaion_w;
+        // Publish the static transform
+        static_tf_broadcaster_->sendTransform(static_map_transform);
+
+        // Create and send the static dvl transform
+        geometry_msgs::msg::TransformStamped static_dvl_transform;
+
+        static_dvl_transform.header.stamp = current_time;
+        static_dvl_transform.header.frame_id = hw_vehicle_struct.child_frame_id;
+        static_dvl_transform.child_frame_id = hw_vehicle_struct.robot_prefix + "dvl_link";
+
+        // Set translation based on current state
+        static_dvl_transform.transform.translation.x = -0.060;
+        static_dvl_transform.transform.translation.y = 0.000;
+        static_dvl_transform.transform.translation.z = -0.105;
+
+        // Rotate the pose about X UPRIGHT
+        q_rot_dvl.setRPY(0.0, 0.0, 0.0);
+
+        q_rot_dvl.normalize();
+
+        static_dvl_transform.transform.rotation.x = q_rot_dvl.x();
+        static_dvl_transform.transform.rotation.y = q_rot_dvl.y();
+        static_dvl_transform.transform.rotation.z = q_rot_dvl.z();
+        static_dvl_transform.transform.rotation.w = q_rot_dvl.w();
+
+        // Publish the static transform
+        static_tf_broadcaster_->sendTransform(static_dvl_transform);
+
+
+        RCLCPP_INFO(
+            rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
+            "Published static odom transform once during activation.");
+    };
 
     void SimVehicleSystemMultiInterfaceHardware::publishRealtimePoseTransform(const rclcpp::Time &time)
     {
@@ -563,8 +569,8 @@ namespace ros2_control_blue_reach_5
             q_orig.normalize();
 
             StateEstimateTransform.transform.rotation.x = q_orig.x();
-            StateEstimateTransform.transform.rotation.y = q_orig.y();
-            StateEstimateTransform.transform.rotation.z = q_orig.z();
+            StateEstimateTransform.transform.rotation.y = -q_orig.y();
+            StateEstimateTransform.transform.rotation.z = -q_orig.z();
             StateEstimateTransform.transform.rotation.w = q_orig.w();
 
             // Publish the TF

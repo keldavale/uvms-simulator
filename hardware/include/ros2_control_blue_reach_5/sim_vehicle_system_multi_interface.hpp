@@ -128,6 +128,7 @@ namespace ros2_control_blue_reach_5
             realtime_transform_publisher_;
 
         void publishRealtimePoseTransform(const rclcpp::Time& time);
+        void publishStaticPoseTransform();
         double delta_seconds;
         double time_seconds;
 
