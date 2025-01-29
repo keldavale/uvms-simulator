@@ -73,10 +73,10 @@ namespace ros2_control_blue_reach_5
 
         // Use the robot_prefix as a seed
         std::size_t seed_val = std::hash<std::string>{}(hw_vehicle_struct.robot_prefix);
-        std::mt19937 gen(seed_val);
+        std::mt19937 gen(seed_val+23);
 
         std::uniform_real_distribution<> dis_x(5.0, 5.0);
-        std::uniform_real_distribution<> dis_y(0.0, 20.0);
+        std::uniform_real_distribution<> dis_y(-15.0, 15.0);
         std::uniform_real_distribution<> dis_z(0.0, 0.0);
 
         map_position_x = dis_x(gen);
