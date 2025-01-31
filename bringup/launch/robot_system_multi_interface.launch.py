@@ -601,6 +601,17 @@ def launch_setup(context, *args, **kwargs):
             'no_efforts': len(dof_efforts)
         }]
     )
+
+    uvms_ops_node = Node(
+        package='simlab',
+        executable='uvms_ops_node',
+        parameters=[{
+            'robots_prefix': robot_prefixes,
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
+    )
+
     if task == 'manual':
         mode = mouse_control
     elif task == 'coverage':
@@ -609,6 +620,8 @@ def launch_setup(context, *args, **kwargs):
         mode = station_node
     elif task == 'formation':
         mode = shape_formation_node
+    elif task == 'ops':
+        mode = uvms_ops_node
 
   # Define the simulator actions
     simulator_actions = [
