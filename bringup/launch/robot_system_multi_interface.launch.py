@@ -342,9 +342,9 @@ def generate_launch_description():
 
     declared_arguments.append(
         DeclareLaunchArgument(
-            "use_space_mouse",
-            default_value="false",
-            description="Start simulation with a 3Dconnexion space mouse compact in the loop",
+            "task",
+            default_value="manual",
+            description="Start simulation with a task",
         )
     )
 
@@ -370,7 +370,7 @@ def launch_setup(context, *args, **kwargs):
     prefix = LaunchConfiguration("prefix").perform(context)
     use_manipulator_hardware = LaunchConfiguration("use_manipulator_hardware").perform(context)
     use_vehicle_hardware = LaunchConfiguration("use_vehicle_hardware").perform(context)
-    use_space_mouse = LaunchConfiguration("use_space_mouse").perform(context)
+    task = LaunchConfiguration("task").perform(context)
     serial_port = LaunchConfiguration("serial_port").perform(context)
     state_update_frequency = LaunchConfiguration("state_update_frequency").perform(context)
     gui = LaunchConfiguration("gui").perform(context)
@@ -404,8 +404,8 @@ def launch_setup(context, *args, **kwargs):
             "use_vehicle_hardware:=",
             use_vehicle_hardware,
             " ",
-            "use_space_mouse:=",
-            use_space_mouse,
+            "task:=",
+            task,
             " ",
             "sim_robot_count:=",
             TextSubstitution(text=str(sim_robot_count)),
@@ -554,7 +554,6 @@ def launch_setup(context, *args, **kwargs):
         package='simlab',
         executable='mouse_node_effort',
         name='space_mouse_control',
-        condition=IfCondition(use_space_mouse),
         parameters=[{
             'no_robot': len(robot_prefixes) ,
             'no_efforts': len(dof_efforts)
@@ -564,7 +563,6 @@ def launch_setup(context, *args, **kwargs):
     coverage_node = Node(
         package='simlab',
         executable='coverage_node',
-        condition=UnlessCondition(use_space_mouse),
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
@@ -584,12 +582,39 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
+    shape_formation_node = Node(
+        package='simlab',
+        executable='shape_formation_node',
+        parameters=[{
+            'robots_prefix': robot_prefixes,
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
+    )
+    
+    station_node = Node(
+        package='simlab',
+        executable='station_node',
+        parameters=[{
+            'robots_prefix': robot_prefixes,
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
+    )
+    if task == 'manual':
+        mode = mouse_control
+    elif task == 'coverage':
+        mode = coverage_node
+    elif task == 'station':
+        mode = station_node
+    elif task == 'formation':
+        mode = shape_formation_node
+
   # Define the simulator actions
     simulator_actions = [
         control_node,
         kf_node,
-        mouse_control,
-        coverage_node,
+        mode,
         run_plotjuggler,
         robot_state_pub_node,
         delay_rviz_after_joint_state_broadcaster_spawner,
