@@ -612,6 +612,18 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
+    ik_solve_node = Node(
+        package='simlab',
+        executable='ik_solve_node',
+        parameters=[{
+            'robots_prefix': robot_prefixes,
+            'no_robot': len(robot_prefixes) ,
+            'no_efforts': len(dof_efforts)
+        }]
+    )
+
+    
+
     if task == 'manual':
         mode = mouse_control
     elif task == 'coverage':
@@ -622,6 +634,8 @@ def launch_setup(context, *args, **kwargs):
         mode = shape_formation_node
     elif task == 'ops':
         mode = uvms_ops_node
+    elif task == 'ik':
+        mode = ik_solve_node
 
   # Define the simulator actions
     simulator_actions = [

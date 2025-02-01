@@ -75,8 +75,8 @@ namespace ros2_control_blue_reach_5
         std::size_t seed_val = std::hash<std::string>{}(hw_vehicle_struct.robot_prefix);
         std::mt19937 gen(seed_val+23);
 
-        std::uniform_real_distribution<> dis_x(0.0, 0.0);
-        std::uniform_real_distribution<> dis_y(0.0, 0.0);
+        std::uniform_real_distribution<> dis_x(0.0, 20.0);
+        std::uniform_real_distribution<> dis_y(0.0, 20.0);
         std::uniform_real_distribution<> dis_z(0.0, 0.0);
 
         map_position_x = dis_x(gen);
@@ -99,7 +99,7 @@ namespace ros2_control_blue_reach_5
 
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
-            robot_dis_x(gen), robot_dis_z(gen), 0.0, // position: x, y, z
+            0.0, 0.0, 0.0, // position: x, y, z
             0.0, 0.0, 0.0,
             1.0, 0.0, 0.0, 0.0, // Orientation: qw, qx, qy, qz
             0.0, 0.0, 0.0,      // Linear velocities: vx, vy, vz
