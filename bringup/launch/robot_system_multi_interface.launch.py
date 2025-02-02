@@ -8,6 +8,8 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import yaml, copy
 import random
+from launch.actions import OpaqueFunction
+
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -622,8 +624,9 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    
-
+    noop = OpaqueFunction(function=lambda context: [])
+    if task == 'cli':
+        mode = noop
     if task == 'manual':
         mode = mouse_control
     elif task == 'coverage':
