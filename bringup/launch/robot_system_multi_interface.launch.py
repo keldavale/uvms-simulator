@@ -9,7 +9,7 @@ from launch_ros.substitutions import FindPackageShare
 import yaml, copy
 import random
 from launch.actions import OpaqueFunction
-
+from launch.substitutions import PythonExpression
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -505,12 +505,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
-    thruster_forward_pwm_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["forward_pwm_controller",
-                   "--controller-manager", "/controller_manager"],
-    )
+
     # Spawner Nodes
     spawner_nodes = []
 
@@ -646,6 +641,19 @@ def launch_setup(context, *args, **kwargs):
         mode = uvms_ops_node
     elif task == 'ik':
         mode = ik_solve_node
+
+    thruster_forward_pwm_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["forward_pwm_controller",
+                "--controller-manager", "/controller_manager"],
+        condition=IfCondition(
+            PythonExpression([
+                "'", LaunchConfiguration("task"), "' == 'manual' and '",
+                LaunchConfiguration("use_vehicle_hardware"), "' == 'true'"
+            ])
+        ),
+    )
 
   # Define the simulator actions
     simulator_actions = [
