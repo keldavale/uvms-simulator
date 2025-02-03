@@ -1,6 +1,12 @@
 /**:
   ros__parameters:
-    fcu_url: "udp://:14770@192.168.2.1:14770"
+    # Make MAVROS use the same GCS system_id that ArduSub expects
+    system_id: 255       # typical GCS ID in ArduSub SITL
+    component_id: 250    # arbitrary, can be something non-conflicting
+
+    # Include both MAVROS (255) and autopilot (1) in the same link:
+    fcu_url: "udp://:14770@192.168.2.1:14770/?ids=255,1"
+
     plugin_denylist:
       - ftp
       - px4flow

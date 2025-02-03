@@ -826,14 +826,18 @@ namespace ros2_control_blue_reach_5
     hardware_interface::return_type BlueRovSystemMultiInterfaceHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
     {
-        // if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
-        // {
-        //     for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
-        //     {
-        //         rt_override_rc_pub_->msg_.channels[thruster_configs_[i].channel - 1] = static_cast<int>(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
-        //     }
-        //     rt_override_rc_pub_->unlockAndPublish();
-        // }
+
+        if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
+        {
+            for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
+            {
+                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                            "Got thruster pwm commands: %f",
+                            hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
+                rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = static_cast<int>(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
+            }
+            rt_override_rc_pub_->unlockAndPublish();
+        }
         return hardware_interface::return_type::OK;
     }
 

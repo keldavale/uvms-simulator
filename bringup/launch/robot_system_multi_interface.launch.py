@@ -505,6 +505,12 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
+    thruster_forward_pwm_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["forward_pwm_controller",
+                   "--controller-manager", "/controller_manager"],
+    )
     # Spawner Nodes
     spawner_nodes = []
 
@@ -515,6 +521,7 @@ def launch_setup(context, *args, **kwargs):
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
     spawner_nodes.append(joint_state_broadcaster_spawner)
+
 
 
     # UVMS Controller Spawner (if using mock hardware)
@@ -643,6 +650,7 @@ def launch_setup(context, *args, **kwargs):
   # Define the simulator actions
     simulator_actions = [
         control_node,
+        thruster_forward_pwm_spawner,
         kf_node,
         mode,
         run_plotjuggler,

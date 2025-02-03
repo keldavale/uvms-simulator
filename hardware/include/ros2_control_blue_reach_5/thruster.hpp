@@ -20,7 +20,7 @@ public:
         double sim_period = 0;
         double position = 0;
         double velocity = 0;
-        double command_pwm = 0;
+        double command_pwm = 1500;
         double rc_pwm = 0;
         double acceleration = 0;
         double effort = 0;
