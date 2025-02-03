@@ -17,6 +17,7 @@ namespace casadi_reach_alpha_5
         uint8_t utils_id;       // Unique identifier for the utils
         Function torque2currentMap; // forward motor utils
         Function current2torqueMap; // inverse motor utils
+        Function genForces2propThrust; // functions to transform generalized forces to proper thrusts
 
         Utils() = default;
         // Constructor with member initializer list
