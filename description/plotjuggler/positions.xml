@@ -3,15 +3,15 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <Tab tab_name="joint e" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="1" count="1">
+    <DockSplitter sizes="1" orientation="-" count="1">
      <DockArea name="...">
-      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
-       <range bottom="-0.107385" top="4.402788" left="1738601017.555063" right="1738601022.543520"/>
-       <limitY/>
-       <curve name="/dynamic_joint_states/interface_values[21]/values[0]" color="#1f77b4"/>
-       <curve name="/dynamic_joint_states/interface_values[23]/values[0]" color="#d62728"/>
-       <curve name="/dynamic_joint_states/interface_values[21]/values[15]" color="#1f77b4"/>
-       <curve name="/dynamic_joint_states/interface_values[23]/values[15]" color="#d62728"/>
+      <plot flip_x="false" flip_y="false" style="Lines" mode="TimeSeries">
+       <range top="5.600000" left="1738611611.379320" bottom="0.000000" right="1738611616.367504"/>
+       <limitY min="0" max="5.6"/>
+       <curve color="#1f77b4" name="/dynamic_joint_states/interface_values[21]/values[0]"/>
+       <curve color="#d62728" name="/dynamic_joint_states/interface_values[23]/values[0]"/>
+       <curve color="#1f77b4" name="/dynamic_joint_states/interface_values[21]/values[15]"/>
+       <curve color="#d62728" name="/dynamic_joint_states/interface_values[23]/values[15]"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -19,15 +19,15 @@
   </Tab>
   <Tab tab_name="joint d" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="1" count="1">
+    <DockSplitter sizes="1" orientation="-" count="1">
      <DockArea name="...">
-      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
-       <range bottom="-0.085000" top="3.484999" left="1738601017.555063" right="1738601022.543520"/>
-       <limitY/>
-       <curve name="/dynamic_joint_states/interface_values[2]/values[0]" color="#1ac938"/>
-       <curve name="/dynamic_joint_states/interface_values[14]/values[0]" color="#ff7f0e"/>
-       <curve name="/dynamic_joint_states/interface_values[2]/values[15]" color="#f14cc1"/>
-       <curve name="/dynamic_joint_states/interface_values[14]/values[15]" color="#17becf"/>
+      <plot flip_x="false" flip_y="false" style="Lines" mode="TimeSeries">
+       <range top="5.600000" left="1738611611.379320" bottom="0.000000" right="1738611616.367504"/>
+       <limitY min="0" max="5.6"/>
+       <curve color="#1ac938" name="/dynamic_joint_states/interface_values[2]/values[0]"/>
+       <curve color="#ff7f0e" name="/dynamic_joint_states/interface_values[14]/values[0]"/>
+       <curve color="#f14cc1" name="/dynamic_joint_states/interface_values[2]/values[15]"/>
+       <curve color="#17becf" name="/dynamic_joint_states/interface_values[14]/values[15]"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -35,15 +35,15 @@
   </Tab>
   <Tab tab_name="joint c" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="1" count="1">
+    <DockSplitter sizes="1" orientation="-" count="1">
      <DockArea name="...">
-      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
-       <range bottom="-0.000250" top="0.010250" left="1738601017.555063" right="1738601022.543520"/>
-       <limitY/>
-       <curve name="/dynamic_joint_states/interface_values[0]/values[0]" color="#bcbd22"/>
-       <curve name="/dynamic_joint_states/interface_values[22]/values[0]" color="#1f77b4"/>
-       <curve name="/dynamic_joint_states/interface_values[0]/values[15]" color="#d62728"/>
-       <curve name="/dynamic_joint_states/interface_values[22]/values[15]" color="#1ac938"/>
+      <plot flip_x="false" flip_y="false" style="Lines" mode="TimeSeries">
+       <range top="5.600000" left="1738611611.379320" bottom="0.000000" right="1738611616.367504"/>
+       <limitY min="0" max="5.6"/>
+       <curve color="#bcbd22" name="/dynamic_joint_states/interface_values[0]/values[0]"/>
+       <curve color="#1f77b4" name="/dynamic_joint_states/interface_values[22]/values[0]"/>
+       <curve color="#d62728" name="/dynamic_joint_states/interface_values[0]/values[15]"/>
+       <curve color="#1ac938" name="/dynamic_joint_states/interface_values[22]/values[15]"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -51,15 +51,15 @@
   </Tab>
   <Tab tab_name="joint b" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="1" count="1">
+    <DockSplitter sizes="1" orientation="-" count="1">
      <DockArea name="...">
-      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
-       <range bottom="-0.142500" top="5.842500" left="1738601017.555063" right="1738601022.543520"/>
-       <limitY/>
-       <curve name="/dynamic_joint_states/interface_values[1]/values[15]" color="#1f77b4"/>
-       <curve name="/dynamic_joint_states/interface_values[15]/values[15]" color="#e20c09"/>
-       <curve name="/dynamic_joint_states/interface_values[1]/values[0]" color="#1f77b4"/>
-       <curve name="/dynamic_joint_states/interface_values[15]/values[0]" color="#d62728"/>
+      <plot flip_x="false" flip_y="false" style="Lines" mode="TimeSeries">
+       <range top="5.600000" left="1738611611.379320" bottom="0.000000" right="1738611616.367504"/>
+       <limitY min="0" max="5.6"/>
+       <curve color="#1f77b4" name="/dynamic_joint_states/interface_values[1]/values[15]"/>
+       <curve color="#e20c09" name="/dynamic_joint_states/interface_values[15]/values[15]"/>
+       <curve color="#1f77b4" name="/dynamic_joint_states/interface_values[1]/values[0]"/>
+       <curve color="#d62728" name="/dynamic_joint_states/interface_values[15]/values[0]"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -72,7 +72,7 @@
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <parameters delimiter="0" time_axis=""/>
+   <parameters time_axis="" delimiter="0"/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS2 bags">

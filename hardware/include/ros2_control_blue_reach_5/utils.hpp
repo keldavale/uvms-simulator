@@ -18,6 +18,7 @@ namespace casadi_reach_alpha_5
         Function torque2currentMap; // forward motor utils
         Function current2torqueMap; // inverse motor utils
         Function genForces2propThrust; // functions to transform generalized forces to proper thrusts
+        Function from_pwm_to_thrust; // function to transform pwm to thrust
 
         Utils() = default;
         // Constructor with member initializer list
