@@ -63,7 +63,7 @@ namespace ros2_control_blue_reach_5
         // Use CasADi's "external" to load the compiled functions
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
         utils_service.genForces2propThrust = utils_service.load_casadi_fun("F_thrusters", "libF_thrust.so");
-        utils_service.from_pwm_to_thrust = utils_service.load_casadi_fun("thrust_to_pwm", "libThrust_PWM.so");
+        utils_service.from_pwm_to_thrust = utils_service.load_casadi_fun("getNpwm", "libThrust_PWM.so");
 
         if (info_.hardware_parameters.find("frame_id") == info_.hardware_parameters.cend())
         {
@@ -837,45 +837,62 @@ namespace ros2_control_blue_reach_5
     hardware_interface::return_type BlueRovSystemMultiInterfaceHardware::write(
         const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
     {
-        // DM Tc = DM::zeros(6, 1);
-        // Tc(0) = hw_vehicle_struct.command_state_.Fx;
-        // Tc(1) = hw_vehicle_struct.command_state_.Fy;
-        // Tc(2) = hw_vehicle_struct.command_state_.Fz;
-        // Tc(3) = hw_vehicle_struct.command_state_.Tx;
-        // Tc(4) = hw_vehicle_struct.command_state_.Ty;
-        // Tc(5) = hw_vehicle_struct.command_state_.Tz;
+        DM user_forces = DM::zeros(6, 1);
+        user_forces(0) = hw_vehicle_struct.command_state_.Fx;
+        user_forces(1) = hw_vehicle_struct.command_state_.Fy;
+        user_forces(2) = hw_vehicle_struct.command_state_.Fz;
+        user_forces(3) = hw_vehicle_struct.command_state_.Tx;
+        user_forces(4) = hw_vehicle_struct.command_state_.Ty;
+        user_forces(5) = hw_vehicle_struct.command_state_.Tz;
 
-        // // Define the 6×8 thrust configuration matrix.
-        // DM thrust_config = DM({{0.707, 0.707, -0.707, -0.707, 0.0, 0.0, 0.0, 0.0},
-        //                                        {-0.707, 0.707, -0.707, 0.707, 0.0, 0.0, 0.0, 0.0},
-        //                                        {0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0, -1.0},
-        //                                        {0.06, -0.06, 0.06, -0.06, -0.218, -0.218, 0.218, 0.218},
-        //                                        {0.06, 0.06, -0.06, -0.06, 0.12, -0.12, 0.12, -0.12},
-        //                                        {-0.1888, 0.1888, 0.1888, -0.1888, 0.0, 0.0, 0.0, 0.0}});
+        // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+        //             "Got thruster commands: %f %f %f %f %f %f",
+        //             (double)user_forces(0),
+        //             (double)user_forces(1),
+        //             (double)user_forces(2),
+        //             (double)user_forces(3),
+        //             (double)user_forces(4),
+        //             (double)user_forces(5));
 
-        // std::vector<DM> inputs = {Tc, thrust_config};
-        // std::vector<DM> thrust_outputs = utils_service.genForces2propThrust(inputs);
-        // // std::vector<double> thrusts = outputs.at(0).nonzeros();
+        // Define the 6×8 thrust configuration matrix.
+        DM thrust_config = DM({{0.707, 0.707, -0.707, -0.707, 0.0, 0.0, 0.0, 0.0},
+                               {-0.707, 0.707, -0.707, 0.707, 0.0, 0.0, 0.0, 0.0},
+                               {0.0, 0.0, 0.0, 0.0, -1.0, 1.0, 1.0, -1.0},
+                               {0.06, -0.06, 0.06, -0.06, -0.218, -0.218, 0.218, 0.218},
+                               {0.06, 0.06, -0.06, -0.06, 0.12, -0.12, 0.12, -0.12},
+                               {-0.1888, 0.1888, 0.1888, -0.1888, 0.0, 0.0, 0.0, 0.0}});
+        std::vector<DM> inputs = {thrust_config, user_forces};
+        std::vector<DM> thrust_outputs = utils_service.genForces2propThrust(inputs);
+        // std::vector<double> thrusts = thrust_outputs.at(0).nonzeros();
+        // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+        //                             "Got thruster pwm commands: %f %f %f %f %f %f %f %f",
+        //                             thrusts[0],
+        //                             thrusts[1],
+        //                             thrusts[2],
+        //                             thrusts[3],
+        //                             thrusts[4],
+        //                             thrusts[5],
+        //                             thrusts[6],
+        //                             thrusts[7]);
+        std::vector<DM> pwm_input = utils_service.from_pwm_to_thrust(thrust_outputs.at(0));
+        std::vector<double> pwm_commands = pwm_input.at(0).nonzeros();
 
-        // std::vector<DM> pwm_input = utils_service.from_pwm_to_thrust(thrust_outputs.at(0));
-        // std::vector<double> pwm_commands = pwm_input.at(0).nonzeros();
-
-        // hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
-        // hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
-        // hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
-        // hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
-        // hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
-        // hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
-        // hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
-        // hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
+        hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
+        hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
+        hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
+        hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
+        hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
+        hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
+        hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
+        hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
 
         if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
         {
             for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
             {
-                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                            "Got thruster pwm commands: %f",
-                            hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
+                // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                //             "Got thruster pwm commands: %f",
+                //             hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
                 rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = static_cast<int>(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
             }
             rt_override_rc_pub_->unlockAndPublish();
