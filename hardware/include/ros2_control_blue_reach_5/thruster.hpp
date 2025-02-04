@@ -13,6 +13,7 @@ public:
     rcl_interfaces::msg::Parameter param;
     int channel;
     int neutral_pwm = 1500;
+    int rc_direction = 1;
 
     struct State
     {
@@ -35,11 +36,12 @@ public:
           default_state_(default_state) {}
 
     // Constructor with member initializer list for bluerov mavros
-    Thruster(std::string joint_name, rcl_interfaces::msg::Parameter param, int channel, int neutral_pwm, State default_state)
+    Thruster(std::string joint_name, rcl_interfaces::msg::Parameter param, int channel, int neutral_pwm, int rc_direction, State default_state)
         : name(std::move(joint_name)),
           param(std::move(param)),
           channel(std::move(channel)),
           neutral_pwm(std::move(neutral_pwm)),
+          rc_direction(std::move(rc_direction)),
           default_state_(default_state) {}
     void calcAcceleration(const double &prev_velocity_, const double &period_seconds);
 };

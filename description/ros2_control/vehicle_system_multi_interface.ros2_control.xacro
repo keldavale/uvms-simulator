@@ -29,6 +29,7 @@
         <param name="default_param_value">33</param>
         <param name="channel">1</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
 
         <state_interface name="position"/>
         <state_interface name="velocity"/>
@@ -45,6 +46,8 @@
         <param name="default_param_value">34</param>
         <param name="channel">2</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+        
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -59,6 +62,8 @@
         <param name="default_param_value">35</param>
         <param name="channel">3</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -73,6 +78,8 @@
         <param name="default_param_value">36</param>
         <param name="channel">4</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -87,6 +94,8 @@
         <param name="default_param_value">37</param>
         <param name="channel">5</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -101,6 +110,8 @@
         <param name="default_param_value">38</param>
         <param name="channel">6</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -114,6 +125,8 @@
         <param name="default_param_value">39</param>
         <param name="channel">7</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>
@@ -128,6 +141,8 @@
         <param name="default_param_value">40</param>
         <param name="channel">8</param>
         <param name="neutral_pwm">1500</param>
+        <param name="direction">1</param>
+
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="acceleration"/>

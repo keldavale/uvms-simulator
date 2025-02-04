@@ -97,13 +97,6 @@ namespace ros2_control_blue_reach_5
         }
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
 
-        // Get the maximum number of attempts that can be made to set the thruster parameters before failing
-        if (info_.hardware_parameters.find("max_set_param_attempts") == info_.hardware_parameters.cend())
-        {
-            RCLCPP_ERROR( // NOLINT
-                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "The 'max_set_param_attempts' parameter is required.");
-            return hardware_interface::CallbackReturn::ERROR;
-        }
 
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
@@ -140,12 +133,13 @@ namespace ros2_control_blue_reach_5
                 joint.parameters.find("param_name") == joint.parameters.cend() ||
                 joint.parameters.find("default_param_value") == joint.parameters.cend() ||
                 joint.parameters.find("channel") == joint.parameters.cend() ||
-                joint.parameters.find("neutral_pwm") == joint.parameters.cend())
+                joint.parameters.find("neutral_pwm") == joint.parameters.cend() ||
+                joint.parameters.find("direction") == joint.parameters.cend())
             {
                 RCLCPP_ERROR( // NOLINT
                     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                    "Joint %s missing required configurations. Ensure that the `param_name`, `default_param_value`, `neutral_pwm` and "
-                    "`channel` are provided for each joint.",
+                    "Joint %s missing required configurations. Ensure that the `param_name`, `default_param_value`, `neutral_pwm` "
+                    "`channel` and `direction` are provided for each joint.",
                     joint.name.c_str());
                 return hardware_interface::CallbackReturn::ERROR;
             };
@@ -157,9 +151,10 @@ namespace ros2_control_blue_reach_5
 
             int rc_channel = std::stoi(joint.parameters.at("channel"));
             int rc_neutral_pwm = std::stoi(joint.parameters.at("neutral_pwm"));
+            int rc_direction = std::stoi(joint.parameters.at("direction"));
 
             Thruster::State defaultState{};
-            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, mavros_rc_param, rc_channel, rc_neutral_pwm, defaultState);
+            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, mavros_rc_param, rc_channel, rc_neutral_pwm, rc_direction,defaultState);
             // RRBotSystemMultiInterface has exactly 6 joint state interfaces
             if (joint.state_interfaces.size() != 6)
             {
@@ -890,11 +885,24 @@ namespace ros2_control_blue_reach_5
         {
             for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
             {
-                // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                //             "Got thruster pwm commands: %f",
-                //             hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
-                rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = static_cast<int>(hw_vehicle_struct.hw_thrust_structs_[i].command_state_.command_pwm);
+                // Retrieve the thruster struct for brevity
+                Thruster thruster = hw_vehicle_struct.hw_thrust_structs_[i];
+
+                // Scale the command_pwm using the rc_direction.
+                // For instance, if rc_direction is -1, this inverts the PWM command.
+                float scaled_pwm = thruster.command_state_.command_pwm * thruster.rc_direction;
+
+                // // Log both the original and scaled PWM values.
+                // RCLCPP_INFO(
+                //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                //     "Thruster with direction %d: original pwm = %f, scaled pwm = %f",
+                //     thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
+                // );
+
+                // If needed, update the corresponding channel (assuming channel indexing starts at 1)
+                rt_override_rc_pub_->msg_.channels[thruster.channel - 1] = static_cast<int>(scaled_pwm);
             }
+
             rt_override_rc_pub_->unlockAndPublish();
         }
         return hardware_interface::return_type::OK;
