@@ -890,7 +890,11 @@ namespace ros2_control_blue_reach_5
 
                 // Scale the command_pwm using the rc_direction.
                 // For instance, if rc_direction is -1, this inverts the PWM command.
-                float scaled_pwm = thruster.command_state_.command_pwm * thruster.rc_direction;
+                
+                float scaled_diff_pwm = (thruster.command_state_.command_pwm - 1500) * thruster.rc_direction;
+
+
+                float scaled_pwm = 1500 + scaled_diff_pwm;
 
                 // // Log both the original and scaled PWM values.
                 // RCLCPP_INFO(
