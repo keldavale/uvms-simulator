@@ -183,7 +183,9 @@ namespace ros2_control_blue_reach_5
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr filterd_odom_subscriber_;
         bool filtered_odom_new_msg_ = false;
 
-        std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+        // Use the base class
+        std::shared_ptr<rclcpp::Executor> executor_;
+
         std::thread spin_thread_;
         std::shared_ptr<rclcpp::Node> node_topics_interface_;
 

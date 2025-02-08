@@ -365,6 +365,14 @@ def generate_launch_description():
         )
     )
 
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "server",
+            default_value="false",
+            description="run framework as hardware robot server",
+        )
+    )
+
     return LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])
 
 def launch_setup(context, *args, **kwargs):
@@ -377,7 +385,7 @@ def launch_setup(context, *args, **kwargs):
     state_update_frequency = LaunchConfiguration("state_update_frequency").perform(context)
     gui = LaunchConfiguration("gui").perform(context)
     sim_robot_count = int(LaunchConfiguration("sim_robot_count").perform(context))
-
+    is_server = LaunchConfiguration("server").perform(context)
     # Define the robot description command
     robot_description_content = Command(
         [
@@ -405,6 +413,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "use_vehicle_hardware:=",
             use_vehicle_hardware,
+            " ",
+            "server:=",
+            is_server,
             " ",
             "task:=",
             task,
@@ -436,6 +447,7 @@ def launch_setup(context, *args, **kwargs):
 
     use_manipulator_hardware_bool = IfCondition(use_manipulator_hardware).evaluate(context)
     use_vehicle_hardware_bool = IfCondition(use_vehicle_hardware).evaluate(context)
+    is_server_bool = IfCondition(is_server).evaluate(context)
 
     robot_prefixes, robot_base_links, ix, dof_efforts = modify_controller_config(use_vehicle_hardware_bool,
                                                                                  use_manipulator_hardware_bool,
@@ -463,23 +475,6 @@ def launch_setup(context, *args, **kwargs):
     
     rviz_file_configure(use_vehicle_hardware_bool, use_manipulator_hardware_bool,robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
-    mavros_config = PathJoinSubstitution(
-            [
-                FindPackageShare("ros2_control_blue_reach_5"),
-                "config",
-                "mavros.yaml",
-            ]
-        )
-    mavros_config_file = str(mavros_config.perform(context))
-    mavros_node = ExecuteProcess(
-        cmd=[
-            'ros2', 'run', 'mavros', 'mavros_node',
-            '--ros-args', '--params-file', f'{mavros_config_file}'
-        ],
-        shell=False,
-        condition=IfCondition(use_vehicle_hardware)
-    )
-
     # Nodes Definitions
     robot_state_pub_node = Node(
         package="robot_state_publisher",
@@ -505,18 +500,12 @@ def launch_setup(context, *args, **kwargs):
     )
 
 
-
-    # Spawner Nodes
-    spawner_nodes = []
-
     # Joint State Broadcaster Spawner
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
-    spawner_nodes.append(joint_state_broadcaster_spawner)
-
 
 
     # UVMS Controller Spawner (if using mock hardware)
@@ -525,8 +514,9 @@ def launch_setup(context, *args, **kwargs):
         executable="spawner",
         arguments=["uvms_controller", "--controller-manager", "/controller_manager"]
     )
-    spawner_nodes.append(uvms_spawner)
-    
+
+    # Spawner Nodes
+    fts_spawner_nodes = []
     # Spawn fts and imu broadcasters for each robot
     for i in ix:
         fts_broadcaster_name = f'fts_broadcaster_{i}'
@@ -537,10 +527,10 @@ def launch_setup(context, *args, **kwargs):
             executable="spawner",
             arguments=[fts_broadcaster_name, "--controller-manager", "/controller_manager"],
         )
-        spawner_nodes.append(fts_spawner)
+        fts_spawner_nodes.append(fts_spawner)
 
-    # Delay RViz start after `joint_state_broadcaster_spawner`
-    delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+    # Delay RViz start after `fts_broadcaster_`
+    delay_rviz_after_fts_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=fts_spawner,
             on_exit=[rviz_node],
@@ -559,6 +549,7 @@ def launch_setup(context, *args, **kwargs):
         executable='mouse_node_effort',
         name='space_mouse_control',
         parameters=[{
+            'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
             'no_efforts': len(dof_efforts)
         }]
@@ -581,7 +572,7 @@ def launch_setup(context, *args, **kwargs):
         executable='kf_node',
         condition=IfCondition(use_vehicle_hardware),
         parameters=[{
-            'use_pressure': False,
+            'use_pressure': True,
             'dvl_source': 'ros_hil_simulator'
         }]
     )
@@ -655,35 +646,31 @@ def launch_setup(context, *args, **kwargs):
         ),
     )
 
+    # is_server_bool
+
+
   # Define the simulator actions
     simulator_actions = [
-        control_node,
-        thruster_forward_pwm_spawner,
-        kf_node,
+        joint_state_broadcaster_spawner, #important
+        control_node, 
+        uvms_spawner,
+        # thruster_forward_pwm_spawner,
+        # kf_node,
         mode,
         run_plotjuggler,
         robot_state_pub_node,
-        delay_rviz_after_joint_state_broadcaster_spawner,
-    ] + spawner_nodes
+        delay_rviz_after_fts_broadcaster_spawner,
+    ]
     
-    # Define delayed simulator_agent (15-second delay) conditioned on use_vehicle_hardware=True
-    simulator_agent_delayed = TimerAction(
-        period=15.0,
-        actions=simulator_actions,
-        condition=IfCondition(use_vehicle_hardware)
+    
+    # Define simulator_agent
+    simulator_agent = GroupAction(
+        actions=simulator_actions + fts_spawner_nodes,
     )
-    
-    # Define immediate simulator_agent (no delay) conditioned on use_vehicle_hardware=False
-    simulator_agent_immediate = GroupAction(
-        actions=simulator_actions,
-        condition=UnlessCondition(use_vehicle_hardware)
-    )
-    
+
     # Launch nodes
     nodes = [
-        mavros_node,
-        simulator_agent_delayed,
-        simulator_agent_immediate
+        simulator_agent
     ]
     
     return nodes

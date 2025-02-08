@@ -212,7 +212,9 @@ namespace ros2_control_blue_reach_5
             node_topics_interface_ = std::make_shared<rclcpp::Node>(system_name + "_topics_interface");
 
             // Initialize executor and add node
-            executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+            // executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+            executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+
             executor_->add_node(node_topics_interface_);
 
             // Start spinning in a separate thread
@@ -225,35 +227,35 @@ namespace ros2_control_blue_reach_5
             // Initialize the StaticTransformBroadcaster
             static_tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(node_topics_interface_);
 
-            // override_rc publisher
-            override_rc_pub_ = rclcpp::create_publisher<mavros_msgs::msg::OverrideRCIn>(node_topics_interface_,
-                                                                                        "mavros/rc/override",
-                                                                                        rclcpp::SystemDefaultsQoS());
+            // // override_rc publisher
+            // override_rc_pub_ = rclcpp::create_publisher<mavros_msgs::msg::OverrideRCIn>(node_topics_interface_,
+            //                                                                             "mavros/rc/override",
+            //                                                                             rclcpp::SystemDefaultsQoS());
 
-            rt_override_rc_pub_ = std::make_unique<realtime_tools::RealtimePublisher<mavros_msgs::msg::OverrideRCIn>>(override_rc_pub_);
+            // rt_override_rc_pub_ = std::make_unique<realtime_tools::RealtimePublisher<mavros_msgs::msg::OverrideRCIn>>(override_rc_pub_);
 
-            rt_override_rc_pub_->lock();
-            for (auto &channel : rt_override_rc_pub_->msg_.channels)
-            {
-                channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
-            }
-            rt_override_rc_pub_->unlock();
+            // rt_override_rc_pub_->lock();
+            // for (auto &channel : rt_override_rc_pub_->msg_.channels)
+            // {
+            //     channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+            // }
+            // rt_override_rc_pub_->unlock();
 
-            // Assuming node_topics_interface_ is a shared_ptr<rclcpp::Node>
-            set_params_client_ = node_topics_interface_->create_client<rcl_interfaces::srv::SetParameters>("mavros/param/set_parameters");
+            // // Assuming node_topics_interface_ is a shared_ptr<rclcpp::Node>
+            // set_params_client_ = node_topics_interface_->create_client<rcl_interfaces::srv::SetParameters>("mavros/param/set_parameters");
 
-            using namespace std::chrono_literals;
-            while (!set_params_client_->wait_for_service(1s))
-            {
-                if (!rclcpp::ok())
-                {
-                    RCLCPP_ERROR( // NOLINT
-                        rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Interrupted while waiting for the `mavros/set_parameters` service.");
-                    return hardware_interface::CallbackReturn::ERROR;
-                }
-                RCLCPP_INFO( // NOLINT
-                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Waiting for the `mavros/set_parameters` service to be available...");
-            }
+            // using namespace std::chrono_literals;
+            // while (!set_params_client_->wait_for_service(1s))
+            // {
+            //     if (!rclcpp::ok())
+            //     {
+            //         RCLCPP_ERROR( // NOLINT
+            //             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Interrupted while waiting for the `mavros/param/set_parameters` service.");
+            //         return hardware_interface::CallbackReturn::ERROR;
+            //     }
+            //     RCLCPP_INFO( // NOLINT
+            //         rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Waiting for the `mavros/set_parameters` service to be available...");
+            // }
 
             // tf publisher
             transform_publisher_ = rclcpp::create_publisher<tf>(node_topics_interface_,
@@ -633,66 +635,66 @@ namespace ros2_control_blue_reach_5
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Activating... please wait...");
 
         publishStaticPoseTransform();
-        // Prepare parameters to set thruster to RC passthrough
-        std::vector<rcl_interfaces::msg::Parameter> params;
-        params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
+        // // Prepare parameters to set thruster to RC passthrough
+        // std::vector<rcl_interfaces::msg::Parameter> params;
+        // params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
 
-        for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
-        {
-            RCLCPP_INFO(
-                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Setting parameter: %s", config.param.name.c_str());
-            rcl_interfaces::msg::Parameter param;
-            param.name = config.param.name;
-            param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
-            param.value.integer_value = 1; // Set to RC passthrough
-            params.emplace_back(param);
-        }
+        // for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
+        // {
+        //     RCLCPP_INFO(
+        //         rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Setting parameter: %s", config.param.name.c_str());
+        //     rcl_interfaces::msg::Parameter param;
+        //     param.name = config.param.name;
+        //     param.value.type = rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER;
+        //     param.value.integer_value = 1; // Set to RC passthrough
+        //     params.emplace_back(param);
+        // }
 
-        auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
-        request->parameters = params;
+        // auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+        // request->parameters = params;
 
-        // Send the service request with a callback
-        auto future = set_params_client_->async_send_request(
-            request,
-            [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
-            {
-                std::lock_guard<std::mutex> lock(activate_mutex_);
-                const auto responses = future.get()->results;
-                for (const auto &response : responses)
-                {
-                    if (!response.successful)
-                    {
-                        RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set thruster parameter: %s", response.reason.c_str());
-                        activation_successful_ = false;
-                        activation_complete_ = true;
-                        activate_cv_.notify_one();
-                        return;
-                    }
-                }
+        // // Send the service request with a callback
+        // auto future = set_params_client_->async_send_request(
+        //     request,
+        //     [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
+        //     {
+        //         std::lock_guard<std::mutex> lock(activate_mutex_);
+        //         const auto responses = future.get()->results;
+        //         for (const auto &response : responses)
+        //         {
+        //             if (!response.successful)
+        //             {
+        //                 RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set thruster parameter: %s", response.reason.c_str());
+        //                 activation_successful_ = false;
+        //                 activation_complete_ = true;
+        //                 activate_cv_.notify_one();
+        //                 return;
+        //             }
+        //         }
 
-                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully set thruster parameters to RC passthrough!");
+        //         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully set thruster parameters to RC passthrough!");
 
-                // Stop the thrusters before switching to an external controller
-                stop_thrusters();
+        //         // Stop the thrusters before switching to an external controller
+        //         stop_thrusters();
 
-                activation_successful_ = true;
-                activation_complete_ = true;
-                activate_cv_.notify_one();
-            });
+        //         activation_successful_ = true;
+        //         activation_complete_ = true;
+        //         activate_cv_.notify_one();
+        //     });
 
-        // Wait for the activation to complete
-        {
-            std::unique_lock<std::mutex> lock(activate_mutex_);
-            activate_cv_.wait(lock, [this]()
-                              { return activation_complete_; });
-        }
+        // // Wait for the activation to complete
+        // {
+        //     std::unique_lock<std::mutex> lock(activate_mutex_);
+        //     activate_cv_.wait(lock, [this]()
+        //                       { return activation_complete_; });
+        // }
 
-        if (!activation_successful_)
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                         "Failed to set thruster parameters to passthrough mode.");
-            return hardware_interface::CallbackReturn::ERROR;
-        }
+        // if (!activation_successful_)
+        // {
+        //     RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+        //                  "Failed to set thruster parameters to passthrough mode.");
+        //     return hardware_interface::CallbackReturn::ERROR;
+        // }
         RCLCPP_INFO(
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "System successfully activated!");
         return hardware_interface::CallbackReturn::SUCCESS;
@@ -705,59 +707,59 @@ namespace ros2_control_blue_reach_5
             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Deactivating... please wait...");
 
         // Stop the thrusters before switching out of passthrough mode
-        stop_thrusters();
+        // stop_thrusters();
 
-        // Prepare parameters to set thruster to default
-        std::vector<rcl_interfaces::msg::Parameter> default_params;
-        default_params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
+        // // Prepare parameters to set thruster to default
+        // std::vector<rcl_interfaces::msg::Parameter> default_params;
+        // default_params.reserve(hw_vehicle_struct.hw_thrust_structs_.size());
 
-        for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
-        {
-            default_params.emplace_back(config.param);
-        }
+        // for (const auto &config : hw_vehicle_struct.hw_thrust_structs_)
+        // {
+        //     default_params.emplace_back(config.param);
+        // }
 
-        auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
-        request->parameters = default_params;
+        // auto request = std::make_shared<rcl_interfaces::srv::SetParameters::Request>();
+        // request->parameters = default_params;
 
-        // Send the service request with a callback
-        auto future = set_params_client_->async_send_request(
-            request,
-            [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
-            {
-                std::lock_guard<std::mutex> lock(deactivate_mutex_);
-                const auto responses = future.get()->results;
-                for (const auto &response : responses)
-                {
-                    if (!response.successful)
-                    {
-                        RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set default thruster parameter: %s", response.reason.c_str());
-                        deactivation_successful_ = false;
-                        deactivation_complete_ = true;
-                        deactivate_cv_.notify_one();
-                        return;
-                    }
-                }
+        // // Send the service request with a callback
+        // auto future = set_params_client_->async_send_request(
+        //     request,
+        //     [this](rclcpp::Client<rcl_interfaces::srv::SetParameters>::SharedFuture future)
+        //     {
+        //         std::lock_guard<std::mutex> lock(deactivate_mutex_);
+        //         const auto responses = future.get()->results;
+        //         for (const auto &response : responses)
+        //         {
+        //             if (!response.successful)
+        //             {
+        //                 RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to set default thruster parameter: %s", response.reason.c_str());
+        //                 deactivation_successful_ = false;
+        //                 deactivation_complete_ = true;
+        //                 deactivate_cv_.notify_one();
+        //                 return;
+        //             }
+        //         }
 
-                RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully restored the default thruster parameter!");
+        //         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully restored the default thruster parameter!");
 
-                deactivation_successful_ = true;
-                deactivation_complete_ = true;
-                deactivate_cv_.notify_one();
-            });
+        //         deactivation_successful_ = true;
+        //         deactivation_complete_ = true;
+        //         deactivate_cv_.notify_one();
+        //     });
 
-        // Wait for the activation to complete
-        {
-            std::unique_lock<std::mutex> lock(deactivate_mutex_);
-            deactivate_cv_.wait(lock, [this]()
-                                { return deactivation_complete_; });
-        }
+        // // Wait for the activation to complete
+        // {
+        //     std::unique_lock<std::mutex> lock(deactivate_mutex_);
+        //     deactivate_cv_.wait(lock, [this]()
+        //                         { return deactivation_complete_; });
+        // }
 
-        if (!deactivation_successful_)
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                         "Failed to set default thruster parameters.");
-            return hardware_interface::CallbackReturn::ERROR;
-        }
+        // if (!deactivation_successful_)
+        // {
+        //     RCLCPP_ERROR(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+        //                  "Failed to set default thruster parameters.");
+        //     return hardware_interface::CallbackReturn::ERROR;
+        // }
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully deactivated!");
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -872,43 +874,47 @@ namespace ros2_control_blue_reach_5
         std::vector<DM> pwm_input = utils_service.from_pwm_to_thrust(thrust_outputs.at(0));
         std::vector<double> pwm_commands = pwm_input.at(0).nonzeros();
 
-        hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
-        hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
-        hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
-        hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
-        hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
-        hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
-        hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
-        hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
+        // hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
+        // hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
+        // hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
+        // hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
+        // hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
+        // hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
+        // hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
+        // hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
 
-        if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
-        {
-            for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
-            {
-                // Retrieve the thruster struct for brevity
-                Thruster thruster = hw_vehicle_struct.hw_thrust_structs_[i];
+        // if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
+        // {
+        //     for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
+        //     {
+        //         // Retrieve the thruster struct for brevity
+        //         Thruster thruster = hw_vehicle_struct.hw_thrust_structs_[i];
 
-                // Scale the command_pwm using the rc_direction.
-                // For instance, if rc_direction is -1, this inverts the PWM command.
+        //         // Scale the command_pwm using the rc_direction.
+        //         // For instance, if rc_direction is -1, this inverts the PWM command.
                 
-                float scaled_diff_pwm = (thruster.command_state_.command_pwm - 1500) * thruster.rc_direction;
+        //         float scaled_diff_pwm = (thruster.command_state_.command_pwm - 1500) * thruster.rc_direction;
 
 
-                float scaled_pwm = 1500 + scaled_diff_pwm;
+        //         float scaled_pwm = 1500 + scaled_diff_pwm;
 
-                // // Log both the original and scaled PWM values.
-                // RCLCPP_INFO(
-                //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                //     "Thruster with direction %d: original pwm = %f, scaled pwm = %f",
-                //     thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
-                // );
+        //         if (scaled_pwm != 1500) {
+        //         // // Log both the original and scaled PWM values.
+        //         RCLCPP_INFO(
+        //             rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+        //             "Thruster with direction %d: original pwm = %f, scaled pwm = %f",
+        //             thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
+        //         );
+        //         }
 
-                // If needed, update the corresponding channel (assuming channel indexing starts at 1)
-                rt_override_rc_pub_->msg_.channels[thruster.channel - 1] = static_cast<int>(scaled_pwm);
-            }
 
-            rt_override_rc_pub_->unlockAndPublish();
-        }
+
+        //         // If needed, update the corresponding channel (assuming channel indexing starts at 1)
+        //         rt_override_rc_pub_->msg_.channels[thruster.channel - 1] = static_cast<int>(scaled_pwm);
+        //     }
+
+        //     rt_override_rc_pub_->unlockAndPublish();
+        // }
         return hardware_interface::return_type::OK;
     }
 
@@ -983,7 +989,7 @@ namespace ros2_control_blue_reach_5
             StateEstimateTransform.header.frame_id = hw_vehicle_struct.map_frame_id;
             StateEstimateTransform.child_frame_id = hw_vehicle_struct.child_frame_id;
             StateEstimateTransform.header.stamp = time;
-            StateEstimateTransform.transform.translation.x = -hw_vehicle_struct.current_state_.position_x;
+            StateEstimateTransform.transform.translation.x = hw_vehicle_struct.current_state_.position_x;
             StateEstimateTransform.transform.translation.y = hw_vehicle_struct.current_state_.position_y;
             StateEstimateTransform.transform.translation.z = hw_vehicle_struct.current_state_.position_z;
 
@@ -1059,17 +1065,17 @@ namespace ros2_control_blue_reach_5
                     "Executor stopped and spin thread joined.");
     }
 
-    void BlueRovSystemMultiInterfaceHardware::stop_thrusters()
-    {
-        if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
-        {
-            for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
-            {
-                rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = hw_vehicle_struct.hw_thrust_structs_[i].neutral_pwm;
-            }
-            rt_override_rc_pub_->unlockAndPublish();
-        }
-    }
+    // void BlueRovSystemMultiInterfaceHardware::stop_thrusters()
+    // {
+    //     if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
+    //     {
+    //         for (size_t i = 0; i < hw_vehicle_struct.hw_thrust_structs_.size(); ++i)
+    //         {
+    //             rt_override_rc_pub_->msg_.channels[hw_vehicle_struct.hw_thrust_structs_[i].channel - 1] = hw_vehicle_struct.hw_thrust_structs_[i].neutral_pwm;
+    //         }
+    //         rt_override_rc_pub_->unlockAndPublish();
+    //     }
+    // }
 
     hardware_interface::CallbackReturn BlueRovSystemMultiInterfaceHardware::on_cleanup(
         const rclcpp_lifecycle::State & /*previous_state*/)
