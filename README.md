@@ -22,13 +22,18 @@ Ensure the following dependencies are installed:
 
 ```bash
 sudo apt-get install git-lfs
-sudo apt-get install ros-humble-hardware-interface
-sudo apt-get install ros-humble-xacro
-sudo apt-get install ros-humble-controller-manager
-sudo apt-get install ros-humble-joint-state-broadcaster
-sudo apt-get install ros-humble-joint-state-publisher-gui
-sudo apt-get install ros-humble-forward-command-controller
-sudo apt-get install ros-humble-ros2-control
+sudo apt-get install ros-<distro>-hardware-interface
+sudo apt-get install ros-<distro>-xacro
+sudo apt-get install ros-<distro>-controller-manager
+sudo apt-get install ros-<distro>-joint-state-broadcaster
+sudo apt-get install ros-<distro>-joint-state-publisher-gui
+sudo apt-get install ros-<distro>-forward-command-controller
+sudo apt-get install ros-<distro>-ros2-control
+sudo apt-get install ros-<distro>-mavros
+sudo apt-get install ros-<distro>-mavros-msgs
+sudo apt-get install ros-<distro>-nav2-msgs
+
+# Replace "<distro>" with your distrubution of ros. Tested with humble and jazzy
 
 # Install CasADi (required for dynamics and kinematics calculations)
 # Follow the installation instructions on the CasADi wiki:
