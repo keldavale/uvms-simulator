@@ -145,8 +145,8 @@ def rviz_robots_path_configure(robot_prefixes, rviz_config):
         else:
             path_color = generate_random_color()
             traj_color = generate_random_color()
-        rviz_path_display(f"{prefix}/Path", f"/{prefix}Path", rviz_config, path_color, enabled)
-        rviz_path_display(f"{prefix}/TrajectoryPath", f"/{prefix}TrajectoryPath", rviz_config, traj_color, enabled)
+        rviz_path_display(f"{prefix}/desiredPath", f"/{prefix}desiredPath", rviz_config, path_color, enabled)
+        rviz_path_display(f"{prefix}/robotPath", f"/{prefix}robotPath", rviz_config, traj_color, enabled)
 
 def rviz_states_axes_configure(robot_prefixes, rviz_config):
     for prefix in robot_prefixes:
@@ -475,6 +475,23 @@ def launch_setup(context, *args, **kwargs):
     
     rviz_file_configure(use_vehicle_hardware_bool, use_manipulator_hardware_bool,robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
+    mavros_config = PathJoinSubstitution(
+            [
+                FindPackageShare("ros2_control_blue_reach_5"),
+                "config",
+                "mavros.yaml",
+            ]
+        )
+    mavros_config_file = str(mavros_config.perform(context))
+    mavros_node = ExecuteProcess(
+        cmd=[
+            'ros2', 'run', 'mavros', 'mavros_node',
+            '--ros-args', '--params-file', f'{mavros_config_file}'
+        ],
+        shell=False,
+        condition=IfCondition(use_vehicle_hardware)
+    )
+
     # Nodes Definitions
     robot_state_pub_node = Node(
         package="robot_state_publisher",
@@ -597,9 +614,9 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    uvms_ops_node = Node(
+    ik_solve_node = Node(
         package='simlab',
-        executable='uvms_ops_node',
+        executable='ik_solve_node',
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
@@ -607,9 +624,9 @@ def launch_setup(context, *args, **kwargs):
         }]
     )
 
-    ik_solve_node = Node(
+    pid_metrics_node = Node(
         package='simlab',
-        executable='ik_solve_node',
+        executable='pid_metrics_node',
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
@@ -628,8 +645,6 @@ def launch_setup(context, *args, **kwargs):
         mode = station_node
     elif task == 'formation':
         mode = shape_formation_node
-    elif task == 'ops':
-        mode = uvms_ops_node
     elif task == 'ik':
         mode = ik_solve_node
 
@@ -654,18 +669,24 @@ def launch_setup(context, *args, **kwargs):
         joint_state_broadcaster_spawner, #important
         control_node, 
         uvms_spawner,
-        # thruster_forward_pwm_spawner,
-        # kf_node,
+        thruster_forward_pwm_spawner,
+        kf_node,
         mode,
         run_plotjuggler,
         robot_state_pub_node,
         delay_rviz_after_fts_broadcaster_spawner,
     ]
-    
+ 
+    # simulator_agent_delayed = TimerAction(
+    #     period=15.0,
+    #     actions=simulator_actions + fts_spawner_nodes,
+    #     condition=IfCondition(use_vehicle_hardware)
+    # )
     
     # Define simulator_agent
     simulator_agent = GroupAction(
         actions=simulator_actions + fts_spawner_nodes,
+        condition=UnlessCondition(use_vehicle_hardware)
     )
 
     # Launch nodes
