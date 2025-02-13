@@ -475,23 +475,6 @@ def launch_setup(context, *args, **kwargs):
     
     rviz_file_configure(use_vehicle_hardware_bool, use_manipulator_hardware_bool,robot_prefixes, robot_base_links, ix, rviz_config_read_file, rviz_config_modified_file)
 
-    mavros_config = PathJoinSubstitution(
-            [
-                FindPackageShare("ros2_control_blue_reach_5"),
-                "config",
-                "mavros.yaml",
-            ]
-        )
-    mavros_config_file = str(mavros_config.perform(context))
-    mavros_node = ExecuteProcess(
-        cmd=[
-            'ros2', 'run', 'mavros', 'mavros_node',
-            '--ros-args', '--params-file', f'{mavros_config_file}'
-        ],
-        shell=False,
-        condition=IfCondition(use_vehicle_hardware)
-    )
-
     # Nodes Definitions
     robot_state_pub_node = Node(
         package="robot_state_publisher",
@@ -561,10 +544,10 @@ def launch_setup(context, *args, **kwargs):
         shell=True
     )
     
-    mouse_control = Node(
+    joystick_control_node = Node(
         package='simlab',
-        executable='mouse_node_effort',
-        name='space_mouse_control',
+        executable='joystick_control',
+        name='joystick_control',
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
@@ -638,7 +621,7 @@ def launch_setup(context, *args, **kwargs):
     if task == 'cli':
         mode = noop
     if task == 'manual':
-        mode = mouse_control
+        mode = joystick_control_node
     elif task == 'coverage':
         mode = coverage_node
     elif task == 'station':
@@ -661,9 +644,6 @@ def launch_setup(context, *args, **kwargs):
         ),
     )
 
-    # is_server_bool
-
-
   # Define the simulator actions
     simulator_actions = [
         joint_state_broadcaster_spawner, #important
@@ -677,16 +657,9 @@ def launch_setup(context, *args, **kwargs):
         delay_rviz_after_fts_broadcaster_spawner,
     ]
  
-    # simulator_agent_delayed = TimerAction(
-    #     period=15.0,
-    #     actions=simulator_actions + fts_spawner_nodes,
-    #     condition=IfCondition(use_vehicle_hardware)
-    # )
-    
     # Define simulator_agent
     simulator_agent = GroupAction(
         actions=simulator_actions + fts_spawner_nodes,
-        condition=UnlessCondition(use_vehicle_hardware)
     )
 
     # Launch nodes

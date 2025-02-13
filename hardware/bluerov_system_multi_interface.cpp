@@ -750,14 +750,14 @@ namespace ros2_control_blue_reach_5
         std::vector<DM> pwm_input = utils_service.from_pwm_to_thrust(thrust_outputs.at(0));
         std::vector<double> pwm_commands = pwm_input.at(0).nonzeros();
 
-        // hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
-        // hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
-        // hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
-        // hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
-        // hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
-        // hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
-        // hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
-        // hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
+        hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm = pwm_commands[0];
+        hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm = pwm_commands[1];
+        hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm = pwm_commands[2];
+        hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm = pwm_commands[3];
+        hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm = pwm_commands[4];
+        hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm = pwm_commands[5];
+        hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm = pwm_commands[6];
+        hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm = pwm_commands[7];
 
         if (rt_override_rc_pub_ && rt_override_rc_pub_->trylock())
         {
@@ -776,11 +776,11 @@ namespace ros2_control_blue_reach_5
 
                 // if (scaled_pwm != 1500) {
                 // // Log both the original and scaled PWM values.
-                RCLCPP_INFO(
-                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                    "Thruster with direction %d: original pwm = %f, scaled pwm = %f",
-                    thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
-                );
+                // RCLCPP_INFO(
+                //     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                //     "Thruster with direction %d: original pwm = %f, scaled pwm = %f",
+                //     thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
+                // );
                 // }
 
 
