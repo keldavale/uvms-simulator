@@ -26,8 +26,8 @@ def rviz_file_configure(use_vehicle_hardware, use_manipulator_hardware, robot_pr
     rviz_robots_path_configure(robot_prefixes, new_rviz_config)
     if use_vehicle_hardware:
         imu_display("Imu Sensor", "/mavros/imu/data", new_rviz_config, False)
-        rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02, False)
-        rviz_axes_display('dvl_frame', "dvl_link", new_rviz_config, 0.1, 0.01, False)
+        # rviz_axes_display('imu_frame', "imu_link", new_rviz_config, 0.3, 0.02, False)
+        rviz_axes_display('dvl_frame', "robot_real_dvl_link", new_rviz_config, 0.1, 0.01, True)
 
     add_wrench_entries(ix, new_rviz_config)
     with open(new_rviz_config_path,'w') as file:

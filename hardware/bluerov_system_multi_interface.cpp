@@ -31,8 +31,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <random>
-#include <rclcpp/qos.hpp>                // Ensure this header is included
-#include <mavlink/v2.0/common/mavlink.h> // your MAVLink headers
+#include <rclcpp/qos.hpp>
 
 using namespace casadi;
 
@@ -65,6 +64,8 @@ namespace ros2_control_blue_reach_5
         utils_service.usage_cplusplus_checks("test", "libtest.so", "vehicle");
         utils_service.genForces2propThrust = utils_service.load_casadi_fun("F_thrusters", "libF_thrust.so");
         utils_service.from_pwm_to_thrust = utils_service.load_casadi_fun("getNpwm", "libThrust_PWM.so");
+        utils_service.uv_kalman_update = utils_service.load_casadi_fun("kalman_update", "libUVkalman_update.so");
+        utils_service.pwm2rads = utils_service.load_casadi_fun("pwm_to_rads", "libPWM_RAD.so");
 
         if (info_.hardware_parameters.find("frame_id") == info_.hardware_parameters.cend())
         {
@@ -271,8 +272,8 @@ namespace ros2_control_blue_reach_5
 
                     // Convert quaternion to roll, pitch, yaw
                     tf2::Matrix3x3(imu_q).getRPY(hw_vehicle_struct.imu_state.roll,
-                                             hw_vehicle_struct.imu_state.pitch,
-                                             hw_vehicle_struct.imu_state.yaw);
+                                                 hw_vehicle_struct.imu_state.pitch,
+                                                 hw_vehicle_struct.imu_state.yaw);
 
                     hw_vehicle_struct.imu_state.angular_vel_x = imu_msg->angular_velocity.x;
                     hw_vehicle_struct.imu_state.angular_vel_y = imu_msg->angular_velocity.y;
@@ -301,9 +302,6 @@ namespace ros2_control_blue_reach_5
                 std::bind(&BlueRovSystemMultiInterfaceHardware::mavlink_data_handler, this, std::placeholders::_1));
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Subscribed to /uas1/mavlink_source for MAVLink messages.");
-
-            // Setup Kalman filtered odom subscription
-            auto reliable_qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
 
             // Initialize the realtime dvl publisher
             dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_,
@@ -680,11 +678,24 @@ namespace ros2_control_blue_reach_5
             publishDVLVelocity(time);
             new_dvl_data_available_ = false;
         }
+
+        std::vector<DM> pwm_inputs = {{hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[1].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[2].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[3].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[4].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[5].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm,
+                                      hw_vehicle_struct.hw_thrust_structs_[0].command_state_.command_pwm}};
+
+        std::vector<DM> rads_output_dm = utils_service.pwm2rads(pwm_inputs);
+        std::vector<double> rads_output = rads_output_dm.at(0).nonzeros();
+
         for (std::size_t i = 0; i < info_.joints.size(); i++)
         {
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_time = time_seconds;
             hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_period = delta_seconds;
-            hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position += 60 * delta_seconds;
+            hw_vehicle_struct.hw_thrust_structs_[i].current_state_.position += rads_output[i] * delta_seconds;
         }
 
         hw_vehicle_struct.current_state_.Fx = hw_vehicle_struct.command_state_.Fx;
