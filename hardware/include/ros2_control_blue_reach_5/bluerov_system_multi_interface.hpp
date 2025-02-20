@@ -65,6 +65,9 @@
 #include "tf2_ros/static_transform_broadcaster.h"
 #include <casadi/casadi.hpp>
 
+#include <mavlink/v2.0/common/mavlink.h>
+#include "mavros_msgs/msg/mavlink.hpp"
+
 namespace ros2_control_blue_reach_5
 {
 
@@ -120,6 +123,19 @@ namespace ros2_control_blue_reach_5
             const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
     private:
+        // --- Declaration of the helper function to rebuild the full MAVLink packet ---
+        static std::vector<uint8_t> convertToBytes(const mavros_msgs::msg::Mavlink::SharedPtr &msg);
+
+        // Callback for MAVLink subscription.
+        void mavlink_data_handler(const mavros_msgs::msg::Mavlink::SharedPtr mavros_data);
+
+        // (Other private members omitted for brevity)
+
+        // Example: subscription for MAVLink messages.
+        rclcpp::Subscription<mavros_msgs::msg::Mavlink>::SharedPtr mavlink_sub_;
+
+        inline double pressureToDepth(double press_abs_hpa, double water_density);
+ 
         // Store the utils function for the robot joints
         casadi_reach_alpha_5::Utils utils_service;
 
@@ -130,11 +146,10 @@ namespace ros2_control_blue_reach_5
         double map_position_x, map_position_y, map_position_z;
         double map_orientaion_w, map_orientaion_x, map_orientaion_y, map_orientaion_z;
 
-
         using tf = tf2_msgs::msg::TFMessage;
 
         tf2::Quaternion q_orig, q_rot, q_new, q_rot_dvl;
-        
+
         std::shared_ptr<rclcpp::Publisher<tf>> transform_publisher_;
         std::shared_ptr<realtime_tools::RealtimePublisher<tf>>
             realtime_transform_publisher_;
@@ -146,8 +161,7 @@ namespace ros2_control_blue_reach_5
 
         void publishStaticPoseTransform();
         void publishRealtimePoseTransform(
-        const rclcpp::Time &time
-        );
+            const rclcpp::Time &time);
 
         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
 

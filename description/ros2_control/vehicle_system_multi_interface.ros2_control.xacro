@@ -226,18 +226,32 @@
         <state_interface name="sim_time"/>
         <state_interface name="sim_period"/>
 
-        <state_interface name="imu_position_x"/>
-        <state_interface name="imu_position_y"/>
-        <state_interface name="imu_position_z"/>
+        <state_interface name="imu_roll"/>
+        <state_interface name="imu_pitch"/>
+        <state_interface name="imu_yaw"/>
 
         <state_interface name="imu_orientation_w"/>
         <state_interface name="imu_orientation_x"/>
         <state_interface name="imu_orientation_y"/>
         <state_interface name="imu_orientation_z"/>
 
+        <state_interface name="imu_angular_vel_x"/>
+        <state_interface name="imu_angular_vel_y"/>
+        <state_interface name="imu_angular_vel_z"/>
+
+        <state_interface name="imu_linear_acceleration_x"/>
+        <state_interface name="imu_linear_acceleration_y"/>
+        <state_interface name="imu_linear_acceleration_z"/>
+
+        <state_interface name="depth_from_pressure2"/>
+
         <state_interface name="dvl_gyro_roll"/>
         <state_interface name="dvl_gyro_pitch"/>
         <state_interface name="dvl_gyro_yaw"/>
+
+        <state_interface name="dvl_speed_x"/>
+        <state_interface name="dvl_speed_y"/>
+        <state_interface name="dvl_speed_z"/>
       </gpio>
 
     </ros2_control>

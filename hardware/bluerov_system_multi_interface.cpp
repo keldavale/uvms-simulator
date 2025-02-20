@@ -31,7 +31,8 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <random>
-#include <rclcpp/qos.hpp> // Ensure this header is included
+#include <rclcpp/qos.hpp>                // Ensure this header is included
+#include <mavlink/v2.0/common/mavlink.h> // your MAVLink headers
 
 using namespace casadi;
 
@@ -97,7 +98,6 @@ namespace ros2_control_blue_reach_5
         }
         hw_vehicle_struct.robot_prefix = info_.hardware_parameters["prefix"];
 
-
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************robot prefix: %s", hw_vehicle_struct.robot_prefix.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************frame id: %s", hw_vehicle_struct.frame_id.c_str());
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "*************child frame id: %s", hw_vehicle_struct.child_frame_id.c_str());
@@ -154,7 +154,7 @@ namespace ros2_control_blue_reach_5
             int rc_direction = std::stoi(joint.parameters.at("direction"));
 
             Thruster::State defaultState{};
-            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, mavros_rc_param, rc_channel, rc_neutral_pwm, rc_direction,defaultState);
+            hw_vehicle_struct.hw_thrust_structs_.emplace_back(joint.name, mavros_rc_param, rc_channel, rc_neutral_pwm, rc_direction, defaultState);
             // RRBotSystemMultiInterface has exactly 6 joint state interfaces
             if (joint.state_interfaces.size() != 6)
             {
@@ -179,12 +179,12 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 40 gpio state interfaces
-            if (gpio.state_interfaces.size() != 40)
+            // RRBotSystemMultiInterface has exactly 50 gpio state interfaces
+            if (gpio.state_interfaces.size() != 50)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 40 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 50 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -253,17 +253,12 @@ namespace ros2_control_blue_reach_5
             transform_message.transforms.resize(1);
 
             // Setup IMU subscription with Reliable QoS for testing
-            auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
             auto imu_callback =
                 [this](const std::shared_ptr<sensor_msgs::msg::Imu> imu_msg) -> void
             {
                 // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received IMU message");
                 {
                     std::lock_guard<std::mutex> lock(imu_mutex_);
-                    hw_vehicle_struct.imu_state.position_x = 0.0;
-                    hw_vehicle_struct.imu_state.position_y = 0.0;
-                    hw_vehicle_struct.imu_state.position_z = 0.0;
-
                     hw_vehicle_struct.imu_state.orientation_w = imu_msg->orientation.w;
                     hw_vehicle_struct.imu_state.orientation_x = imu_msg->orientation.x;
                     hw_vehicle_struct.imu_state.orientation_y = imu_msg->orientation.y;
@@ -272,6 +267,8 @@ namespace ros2_control_blue_reach_5
                 }
             };
 
+            auto best_effort_qos = rclcpp::QoS(rclcpp::KeepLast(10)).best_effort();
+
             imu_subscriber_ =
                 node_topics_interface_->create_subscription<sensor_msgs::msg::Imu>(
                     "/mavros/imu/data", best_effort_qos, imu_callback);
@@ -279,49 +276,15 @@ namespace ros2_control_blue_reach_5
             RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "Subscribed to /mavros/imu/data with Reliable QoS");
 
+            mavlink_sub_ = node_topics_interface_->create_subscription<mavros_msgs::msg::Mavlink>(
+                "/uas1/mavlink_source",
+                best_effort_qos,
+                std::bind(&BlueRovSystemMultiInterfaceHardware::mavlink_data_handler, this, std::placeholders::_1));
+            RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                        "Subscribed to /uas1/mavlink_source for MAVLink messages.");
+
             // Setup Kalman filtered odom subscription
             auto reliable_qos = rclcpp::QoS(rclcpp::KeepLast(10)).reliable();
-
-            // Define the odometry callback
-            auto filtered_odom_callback =
-                [this](const std::shared_ptr<nav_msgs::msg::Odometry> odom_msg) -> void
-            {
-                // Log receipt of odometry message
-                // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received filtered odom message");
-
-                {
-                    std::lock_guard<std::mutex> lock_odom(filtered_odom_mutex_);
-                    hw_vehicle_struct.async_state_.position_x = odom_msg->pose.pose.position.x;
-                    hw_vehicle_struct.async_state_.position_y = odom_msg->pose.pose.position.y;
-                    hw_vehicle_struct.async_state_.position_z = odom_msg->pose.pose.position.z;
-
-                    hw_vehicle_struct.async_state_.orientation_w = odom_msg->pose.pose.orientation.w;
-                    hw_vehicle_struct.async_state_.orientation_x = odom_msg->pose.pose.orientation.x;
-                    hw_vehicle_struct.async_state_.orientation_y = odom_msg->pose.pose.orientation.y;
-                    hw_vehicle_struct.async_state_.orientation_z = odom_msg->pose.pose.orientation.z;
-
-                    hw_vehicle_struct.async_state_.u = odom_msg->twist.twist.linear.x;
-                    hw_vehicle_struct.async_state_.v = odom_msg->twist.twist.linear.y;
-                    hw_vehicle_struct.async_state_.w = odom_msg->twist.twist.linear.z;
-
-                    hw_vehicle_struct.async_state_.p = odom_msg->twist.twist.angular.x;
-                    hw_vehicle_struct.async_state_.q = odom_msg->twist.twist.angular.y;
-                    hw_vehicle_struct.async_state_.r = odom_msg->twist.twist.angular.z;
-                    filtered_odom_new_msg_ = true;
-                }
-            };
-
-            // Create the Odometry subscriber
-            filterd_odom_subscriber_ =
-                node_topics_interface_->create_subscription<nav_msgs::msg::Odometry>(
-                    "/blue_rov/odom", // Updated topic name for odometry
-                    reliable_qos,     // Use reliable QoS as per the log message
-                    filtered_odom_callback);
-
-            // Log the subscription
-            RCLCPP_INFO(
-                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
-                "Subscribed to /blue_rov/odom_ned with Reliable QoS");
 
             // Initialize the realtime dvl publisher
             dvl_velocity_publisher_ = rclcpp::create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(node_topics_interface_,
@@ -424,6 +387,7 @@ namespace ros2_control_blue_reach_5
                 info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_PERIOD, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_period));
         }
 
+        // 0-2: Position
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[0].name, &hw_vehicle_struct.current_state_.position_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -431,6 +395,7 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &hw_vehicle_struct.current_state_.position_z));
 
+        // 3-5: Orientation (roll, pitch, yaw)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -438,6 +403,7 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &hw_vehicle_struct.current_state_.yaw));
 
+        // 6-9: Body Orientation (quaternion)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &hw_vehicle_struct.current_state_.orientation_w));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -446,12 +412,16 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[8].name, &hw_vehicle_struct.current_state_.orientation_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[9].name, &hw_vehicle_struct.current_state_.orientation_z));
+
+        // 10-12: Linear Velocity (u, v, w)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[10].name, &hw_vehicle_struct.current_state_.u));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[11].name, &hw_vehicle_struct.current_state_.v));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[12].name, &hw_vehicle_struct.current_state_.w));
+
+        // 13-15: Angular Velocity (p, q, r)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct.current_state_.p));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -459,12 +429,15 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct.current_state_.r));
 
+        // 16-18: Linear Acceleration
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct.current_state_.du));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct.current_state_.dv));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct.current_state_.dw));
+
+        // 19-21: Angular Acceleration
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[19].name, &hw_vehicle_struct.current_state_.dp));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -472,12 +445,15 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[21].name, &hw_vehicle_struct.current_state_.dr));
 
+        // 22-24: Force
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[22].name, &hw_vehicle_struct.current_state_.Fx));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[23].name, &hw_vehicle_struct.current_state_.Fy));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct.current_state_.Fz));
+
+        // 25-27: Torque
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.Tx));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -485,18 +461,22 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.current_state_.Tz));
 
+        // 28-29: Simulation time and period
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.sim_period));
 
+        // 30-42: IMU interfaces
+        // 30-32: IMU angles (roll, pitch, yaw)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.position_x));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.position_y));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.pitch));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.position_z));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.yaw));
 
+        // 33-36: IMU orientation (quaternion)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_w));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -506,12 +486,41 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[36].name, &hw_vehicle_struct.imu_state.orientation_z));
 
+        // 37-39: IMU angular velocity
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[37].name, &hw_vehicle_struct.dvl_state.roll));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[37].name, &hw_vehicle_struct.imu_state.angular_vel_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[38].name, &hw_vehicle_struct.dvl_state.pitch));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[38].name, &hw_vehicle_struct.imu_state.angular_vel_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[39].name, &hw_vehicle_struct.dvl_state.yaw));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[39].name, &hw_vehicle_struct.imu_state.angular_vel_z));
+
+        // 40-42: IMU linear acceleration
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[40].name, &hw_vehicle_struct.imu_state.linear_acceleration_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[41].name, &hw_vehicle_struct.imu_state.linear_acceleration_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[42].name, &hw_vehicle_struct.imu_state.linear_acceleration_z));
+
+        // 43: Depth measurement
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[43].name, &hw_vehicle_struct.depth_from_pressure2));
+
+        // 44-46: DVL gyro (roll, pitch, yaw)
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[44].name, &hw_vehicle_struct.dvl_state.roll));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[45].name, &hw_vehicle_struct.dvl_state.pitch));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[46].name, &hw_vehicle_struct.dvl_state.yaw));
+
+        // 47-49: DVL speed (x, y, z)
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[47].name, &hw_vehicle_struct.dvl_state.vx));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[48].name, &hw_vehicle_struct.dvl_state.vy));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[49].name, &hw_vehicle_struct.dvl_state.vz));
 
         return state_interfaces;
     }
@@ -635,7 +644,6 @@ namespace ros2_control_blue_reach_5
         // Stop the thrusters before switching out of passthrough mode
         stop_thrusters();
 
-       
         RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Successfully deactivated!");
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -679,28 +687,28 @@ namespace ros2_control_blue_reach_5
         hw_vehicle_struct.hw_thrust_structs_[6].current_state_.rc_pwm = hw_vehicle_struct.hw_thrust_structs_[6].command_state_.command_pwm;
         hw_vehicle_struct.hw_thrust_structs_[7].current_state_.rc_pwm = hw_vehicle_struct.hw_thrust_structs_[7].command_state_.command_pwm;
 
-        // Lock and check if new data is available
-        std::lock_guard<std::mutex> lock_odom(filtered_odom_mutex_);
-        if (filtered_odom_new_msg_)
-        {
-            hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.async_state_.position_x;
-            hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.async_state_.position_y;
-            hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.async_state_.position_z;
+        // // Lock and check if new data is available
+        // std::lock_guard<std::mutex> lock_odom(filtered_odom_mutex_);
+        // if (filtered_odom_new_msg_)
+        // {
+        //     hw_vehicle_struct.current_state_.position_x = hw_vehicle_struct.async_state_.position_x;
+        //     hw_vehicle_struct.current_state_.position_y = hw_vehicle_struct.async_state_.position_y;
+        //     hw_vehicle_struct.current_state_.position_z = hw_vehicle_struct.async_state_.position_z;
 
-            hw_vehicle_struct.current_state_.setQuaternion(hw_vehicle_struct.async_state_.orientation_w,
-                                                           hw_vehicle_struct.async_state_.orientation_x,
-                                                           hw_vehicle_struct.async_state_.orientation_y,
-                                                           hw_vehicle_struct.async_state_.orientation_z);
+        //     hw_vehicle_struct.current_state_.setQuaternion(hw_vehicle_struct.async_state_.orientation_w,
+        //                                                    hw_vehicle_struct.async_state_.orientation_x,
+        //                                                    hw_vehicle_struct.async_state_.orientation_y,
+        //                                                    hw_vehicle_struct.async_state_.orientation_z);
 
-            hw_vehicle_struct.current_state_.u = hw_vehicle_struct.async_state_.u;
-            hw_vehicle_struct.current_state_.v = hw_vehicle_struct.async_state_.v;
-            hw_vehicle_struct.current_state_.w = hw_vehicle_struct.async_state_.w;
+        //     hw_vehicle_struct.current_state_.u = hw_vehicle_struct.async_state_.u;
+        //     hw_vehicle_struct.current_state_.v = hw_vehicle_struct.async_state_.v;
+        //     hw_vehicle_struct.current_state_.w = hw_vehicle_struct.async_state_.w;
 
-            hw_vehicle_struct.current_state_.p = hw_vehicle_struct.async_state_.p;
-            hw_vehicle_struct.current_state_.q = hw_vehicle_struct.async_state_.q;
-            hw_vehicle_struct.current_state_.r = hw_vehicle_struct.async_state_.r;
-            filtered_odom_new_msg_ = false;
-        }
+        //     hw_vehicle_struct.current_state_.p = hw_vehicle_struct.async_state_.p;
+        //     hw_vehicle_struct.current_state_.q = hw_vehicle_struct.async_state_.q;
+        //     hw_vehicle_struct.current_state_.r = hw_vehicle_struct.async_state_.r;
+        //     filtered_odom_new_msg_ = false;
+        // }
 
         // Publish transforms
         publishRealtimePoseTransform(time);
@@ -768,9 +776,8 @@ namespace ros2_control_blue_reach_5
 
                 // Scale the command_pwm using the rc_direction.
                 // For instance, if rc_direction is -1, this inverts the PWM command.
-                
-                float scaled_diff_pwm = (thruster.command_state_.command_pwm - 1500) * thruster.rc_direction;
 
+                float scaled_diff_pwm = (thruster.command_state_.command_pwm - 1500) * thruster.rc_direction;
 
                 float scaled_pwm = 1500 + scaled_diff_pwm;
 
@@ -782,8 +789,6 @@ namespace ros2_control_blue_reach_5
                 //     thruster.rc_direction, thruster.command_state_.command_pwm, scaled_pwm
                 // );
                 // }
-
-
 
                 // If needed, update the corresponding channel (assuming channel indexing starts at 1)
                 rt_override_rc_pub_->msg_.channels[thruster.channel - 1] = static_cast<int>(scaled_pwm);
@@ -810,13 +815,6 @@ namespace ros2_control_blue_reach_5
         static_map_transform.transform.translation.x = map_position_x;
         static_map_transform.transform.translation.y = map_position_y;
         static_map_transform.transform.translation.z = map_position_z;
-
-        RCLCPP_INFO(
-            rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "current attitude from KF odom : %f %f %f %f",
-            hw_vehicle_struct.async_state_.orientation_w,
-            hw_vehicle_struct.async_state_.orientation_x,
-            hw_vehicle_struct.async_state_.orientation_y,
-            hw_vehicle_struct.async_state_.orientation_z);
 
         // Set rotation based on current state (quaternion)
         static_map_transform.transform.rotation.x = map_orientaion_x;
@@ -910,6 +908,166 @@ namespace ros2_control_blue_reach_5
         else
         {
             RCLCPP_WARN(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Failed to acquire lock for DVL velocity publishing.");
+        }
+    }
+
+    //--- Helper function: convertToBytes ---
+    // Rebuilds the full MAVLink packet from the ROS message.
+    std::vector<uint8_t> BlueRovSystemMultiInterfaceHardware::convertToBytes(
+        const mavros_msgs::msg::Mavlink::SharedPtr &msg)
+    {
+        std::vector<uint8_t> buffer;
+        size_t payload_octets = msg->payload64.size();
+
+        // For MAVLink v1.0: header is 6 bytes.
+        if (msg->magic == mavros_msgs::msg::Mavlink::MAVLINK_V10)
+        {
+            buffer.push_back(msg->magic);
+            buffer.push_back(msg->len); // payload length (in bytes)
+            buffer.push_back(msg->seq);
+            buffer.push_back(msg->sysid);
+            buffer.push_back(msg->compid);
+            buffer.push_back(msg->msgid);
+            for (size_t i = 0; i < payload_octets; i++)
+            {
+                uint64_t val = msg->payload64[i];
+                for (int b = 0; b < 8; b++)
+                {
+                    buffer.push_back(static_cast<uint8_t>((val >> (8 * b)) & 0xFF));
+                }
+            }
+            size_t expectedPacketSize = 6 + msg->len;
+            if (buffer.size() > expectedPacketSize)
+            {
+                buffer.resize(expectedPacketSize);
+            }
+            buffer.push_back(static_cast<uint8_t>(msg->checksum & 0xFF));
+            buffer.push_back(static_cast<uint8_t>((msg->checksum >> 8) & 0xFF));
+        }
+        // For MAVLink v2.0: header is 10 bytes.
+        else
+        {
+            buffer.push_back(msg->magic);
+            buffer.push_back(msg->len);
+            buffer.push_back(msg->incompat_flags);
+            buffer.push_back(msg->compat_flags);
+            buffer.push_back(msg->seq);
+            buffer.push_back(msg->sysid);
+            buffer.push_back(msg->compid);
+            buffer.push_back(msg->msgid & 0xFF);
+            buffer.push_back((msg->msgid >> 8) & 0xFF);
+            buffer.push_back((msg->msgid >> 16) & 0xFF);
+            for (size_t i = 0; i < payload_octets; i++)
+            {
+                uint64_t val = msg->payload64[i];
+                for (int b = 0; b < 8; b++)
+                {
+                    buffer.push_back(static_cast<uint8_t>((val >> (8 * b)) & 0xFF));
+                }
+            }
+            size_t expectedPacketSize = 10 + msg->len;
+            if (buffer.size() > expectedPacketSize)
+            {
+                buffer.resize(expectedPacketSize);
+            }
+            buffer.push_back(static_cast<uint8_t>(msg->checksum & 0xFF));
+            buffer.push_back(static_cast<uint8_t>((msg->checksum >> 8) & 0xFF));
+            for (auto byte : msg->signature)
+            {
+                buffer.push_back(byte);
+            }
+        }
+        return buffer;
+    }
+
+    inline double BlueRovSystemMultiInterfaceHardware::pressureToDepth(double press_abs_hpa, double water_density = 997.0)
+    {
+        // Convert hPa to Pa
+        const double press_abs_pa = press_abs_hpa * 100.0;
+
+        // Standard atmospheric pressure at sea level, in Pascals
+        const double press_surface_pa = 101325.0;
+
+        // Compute the overpressure relative to surface
+        const double delta_p = press_abs_pa - press_surface_pa;
+
+        // Standard gravitational acceleration (m/s^2)
+        const double g = 9.80665;
+
+        // Depth in meters
+        const double depth = delta_p / (water_density * g);
+
+        return depth;
+    }
+
+    void BlueRovSystemMultiInterfaceHardware::mavlink_data_handler(
+        const mavros_msgs::msg::Mavlink::SharedPtr mavros_data)
+    {
+        // 1. Convert ROS mavlink msg into raw bytes
+        std::vector<uint8_t> packet = convertToBytes(mavros_data);
+
+        mavlink_message_t parsed_msg;
+        mavlink_status_t status;
+        std::memset(&status, 0, sizeof(status));
+
+        bool any_parsed = false;
+
+        // 2. Parse each byte in the buffer
+        for (size_t i = 0; i < packet.size(); i++)
+        {
+            if (mavlink_parse_char(MAVLINK_COMM_0, packet[i], &parsed_msg, &status))
+            {
+                any_parsed = true;
+                RCLCPP_DEBUG(
+                    rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                    "Parsed MAVLink msg: id=%d, len=%d",
+                    parsed_msg.msgid, parsed_msg.len);
+
+                // 3. Handle specific message IDs
+                switch (parsed_msg.msgid)
+                {
+                case MAVLINK_MSG_ID_SCALED_PRESSURE:
+                {
+                    mavlink_scaled_pressure_t sp{};
+                    mavlink_msg_scaled_pressure_decode(&parsed_msg, &sp);
+
+                    RCLCPP_DEBUG(
+                        rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                        "SCALED_PRESSURE: time_boot_ms=%d, press_abs=%.2f, press_diff=%.2f",
+                        sp.time_boot_ms, sp.press_abs, sp.press_diff);
+
+                    // currently not in use
+                    break;
+                }
+
+                case MAVLINK_MSG_ID_SCALED_PRESSURE2:
+                {
+                    mavlink_scaled_pressure2_t sp2{};
+                    mavlink_msg_scaled_pressure2_decode(&parsed_msg, &sp2);
+
+                    double water_density = 1000.0; // typical freshwater density
+                    double depth_meters = pressureToDepth(sp2.press_abs, water_density);
+
+                    RCLCPP_INFO(
+                        rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                        "SCALED_PRESSURE2: time_boot_ms=%d, press_abs=%.2f, calculated depth=%.2f",
+                        sp2.time_boot_ms, sp2.press_abs, depth_meters);
+                    break;
+                }
+
+                default:
+                    // Other messages can be handled or simply ignored
+                    break;
+                } // end switch
+            }
+        } // end for
+
+        // 4. If no messages were successfully parsed, optionally log an error
+        if (!any_parsed)
+        {
+            RCLCPP_DEBUG(
+                rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
+                "No MAVLink messages parsed in this packet!");
         }
     }
 

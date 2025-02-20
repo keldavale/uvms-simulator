@@ -320,14 +320,22 @@ namespace blue::dynamics
 
     struct imu_info
     {
-      double position_x{0.0};
-      double position_y{0.0};
-      double position_z{0.0};
+      double roll{0.0};
+      double pitch{0.0};
+      double yaw{0.0};
       double orientation_w{0.0};
       double orientation_x{0.0};
       double orientation_y{0.0};
       double orientation_z{0.0};
+      double angular_vel_x{0.0};
+      double angular_vel_y{0.0};
+      double angular_vel_z{0.0};
+      double linear_acceleration_x{0.0};
+      double linear_acceleration_y{0.0};
+      double linear_acceleration_z{0.0};
     };
+
+    double depth_from_pressure2{0.0};
 
     Pose_vel default_state_, command_state_, current_state_, async_state_;
     dvl_info dvl_state;

@@ -274,7 +274,7 @@ def add_uvms_model_control(use_vehicle_hardware, use_manipulator_hardware, new_p
     # Add agent-specific parameters under uvms_controller
     new_param['uvms_controller']['ros__parameters'][agent_name] = {
         'prefix': prefix,
-        'base_TF_translation': [0.140, 0.000, -0.120],
+        'base_TF_translation': [0.190, 0.000, -0.120],
         'base_TF_rotation': [3.142, 0.000, 0.000],
     }
 
@@ -367,9 +367,9 @@ def generate_launch_description():
 
     declared_arguments.append(
         DeclareLaunchArgument(
-            "server",
+            "record_data",
             default_value="false",
-            description="run framework as hardware robot server",
+            description="record robot data",
         )
     )
 
@@ -385,7 +385,7 @@ def launch_setup(context, *args, **kwargs):
     state_update_frequency = LaunchConfiguration("state_update_frequency").perform(context)
     gui = LaunchConfiguration("gui").perform(context)
     sim_robot_count = int(LaunchConfiguration("sim_robot_count").perform(context))
-    is_server = LaunchConfiguration("server").perform(context)
+    record_data = LaunchConfiguration("record_data").perform(context)
     # Define the robot description command
     robot_description_content = Command(
         [
@@ -414,8 +414,8 @@ def launch_setup(context, *args, **kwargs):
             "use_vehicle_hardware:=",
             use_vehicle_hardware,
             " ",
-            "server:=",
-            is_server,
+            "record_data:=",
+            record_data,
             " ",
             "task:=",
             task,
@@ -447,7 +447,7 @@ def launch_setup(context, *args, **kwargs):
 
     use_manipulator_hardware_bool = IfCondition(use_manipulator_hardware).evaluate(context)
     use_vehicle_hardware_bool = IfCondition(use_vehicle_hardware).evaluate(context)
-    is_server_bool = IfCondition(is_server).evaluate(context)
+    record_data_bool = IfCondition(record_data).evaluate(context)
 
     robot_prefixes, robot_base_links, ix, dof_efforts = modify_controller_config(use_vehicle_hardware_bool,
                                                                                  use_manipulator_hardware_bool,
@@ -544,14 +544,26 @@ def launch_setup(context, *args, **kwargs):
         shell=True
     )
     
-    joystick_control_node = Node(
+    # joystick_control_node = Node(
+    #     package='simlab',
+    #     executable='joystick_control',
+    #     name='joystick_controller',
+    #     parameters=[{
+    #         'robots_prefix': robot_prefixes,
+    #         'no_robot': len(robot_prefixes) ,
+    #         'no_efforts': len(dof_efforts)
+    #     }]
+    # )
+
+    joystick_controller_node = Node(
         package='simlab',
-        executable='joystick_control',
-        name='joystick_control',
+        executable='joystick_controller',
+        name='joystick_controller',
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
 
@@ -561,21 +573,11 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
 
-    
-
-    kf_node = Node(
-        package='bluerov_kalmanfilter',
-        executable='kf_node',
-        condition=IfCondition(use_vehicle_hardware),
-        parameters=[{
-            'use_pressure': True,
-            'dvl_source': 'ros_hil_simulator'
-        }]
-    )
 
     shape_formation_node = Node(
         package='simlab',
@@ -583,7 +585,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
     
@@ -593,7 +596,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
 
@@ -603,7 +607,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
 
@@ -613,7 +618,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{
             'robots_prefix': robot_prefixes,
             'no_robot': len(robot_prefixes) ,
-            'no_efforts': len(dof_efforts)
+            'no_efforts': len(dof_efforts),
+            'record_data': record_data_bool
         }]
     )
 
@@ -621,7 +627,7 @@ def launch_setup(context, *args, **kwargs):
     if task == 'cli':
         mode = noop
     if task == 'manual':
-        mode = joystick_control_node
+        mode = joystick_controller_node
     elif task == 'coverage':
         mode = coverage_node
     elif task == 'station':
@@ -650,7 +656,6 @@ def launch_setup(context, *args, **kwargs):
         control_node, 
         uvms_spawner,
         thruster_forward_pwm_spawner,
-        kf_node,
         mode,
         run_plotjuggler,
         robot_state_pub_node,

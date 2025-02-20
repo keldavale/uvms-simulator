@@ -73,7 +73,7 @@ namespace ros2_control_blue_reach_5
 
         // Use the robot_prefix as a seed
         std::size_t seed_val = std::hash<std::string>{}(hw_vehicle_struct.robot_prefix);
-        std::mt19937 gen(seed_val+23);
+        std::mt19937 gen(seed_val + 23);
 
         std::uniform_real_distribution<> dis_x(0.0, 0.0);
         std::uniform_real_distribution<> dis_y(0.0, 0.0);
@@ -92,11 +92,9 @@ namespace ros2_control_blue_reach_5
         map_orientaion_y = 0.0;
         map_orientaion_z = 0.0;
 
-
         std::uniform_real_distribution<> robot_dis_x(0.0, -10.0);
         std::uniform_real_distribution<> robot_dis_y(0.0, 10.0);
         std::uniform_real_distribution<> robot_dis_z(0.0, 0.0);
-
 
         blue::dynamics::Vehicle::Pose_vel initial_state{
             robot_dis_x(gen), robot_dis_y(gen), robot_dis_z(gen), // position: x, y, z
@@ -138,12 +136,12 @@ namespace ros2_control_blue_reach_5
 
         for (const hardware_interface::ComponentInfo &gpio : info_.gpios)
         {
-            // RRBotSystemMultiInterface has exactly 40 gpio state interfaces
-            if (gpio.state_interfaces.size() != 40)
+            // RRBotSystemMultiInterface has exactly 50 gpio state interfaces
+            if (gpio.state_interfaces.size() != 50)
             {
                 RCLCPP_FATAL(
                     rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),
-                    "GPIO '%s'has %zu state interfaces. 40 expected.", gpio.name.c_str(),
+                    "GPIO '%s'has %zu state interfaces. 50 expected.", gpio.name.c_str(),
                     gpio.state_interfaces.size());
                 return hardware_interface::CallbackReturn::ERROR;
             }
@@ -232,6 +230,7 @@ namespace ros2_control_blue_reach_5
                 info_.joints[i].name, custom_hardware_interface::HW_IF_SIM_PERIOD, &hw_vehicle_struct.hw_thrust_structs_[i].current_state_.sim_period));
         }
 
+        // 0-2: Position
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[0].name, &hw_vehicle_struct.current_state_.position_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -239,6 +238,7 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[2].name, &hw_vehicle_struct.current_state_.position_z));
 
+        // 3-5: Orientation (roll, pitch, yaw)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[3].name, &hw_vehicle_struct.current_state_.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -246,6 +246,7 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[5].name, &hw_vehicle_struct.current_state_.yaw));
 
+        // 6-9: Body Orientation (quaternion)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[6].name, &hw_vehicle_struct.current_state_.orientation_w));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -254,12 +255,16 @@ namespace ros2_control_blue_reach_5
             info_.gpios[0].name, info_.gpios[0].state_interfaces[8].name, &hw_vehicle_struct.current_state_.orientation_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[9].name, &hw_vehicle_struct.current_state_.orientation_z));
+
+        // 10-12: Linear Velocity (u, v, w)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[10].name, &hw_vehicle_struct.current_state_.u));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[11].name, &hw_vehicle_struct.current_state_.v));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[12].name, &hw_vehicle_struct.current_state_.w));
+
+        // 13-15: Angular Velocity (p, q, r)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[13].name, &hw_vehicle_struct.current_state_.p));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -267,12 +272,15 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[15].name, &hw_vehicle_struct.current_state_.r));
 
+        // 16-18: Linear Acceleration
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[16].name, &hw_vehicle_struct.current_state_.du));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[17].name, &hw_vehicle_struct.current_state_.dv));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[18].name, &hw_vehicle_struct.current_state_.dw));
+
+        // 19-21: Angular Acceleration
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[19].name, &hw_vehicle_struct.current_state_.dp));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -280,12 +288,15 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[21].name, &hw_vehicle_struct.current_state_.dr));
 
+        // 22-24: Force
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[22].name, &hw_vehicle_struct.current_state_.Fx));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[23].name, &hw_vehicle_struct.current_state_.Fy));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[24].name, &hw_vehicle_struct.current_state_.Fz));
+
+        // 25-27: Torque
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[25].name, &hw_vehicle_struct.current_state_.Tx));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -293,18 +304,22 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[27].name, &hw_vehicle_struct.current_state_.Tz));
 
+        // 28-29: Simulation time and period
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[28].name, &hw_vehicle_struct.sim_time));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[29].name, &hw_vehicle_struct.sim_period));
 
+        // 30-42: IMU interfaces
+        // 30-32: IMU angles (roll, pitch, yaw)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.position_x));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[30].name, &hw_vehicle_struct.imu_state.roll));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.position_y));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[31].name, &hw_vehicle_struct.imu_state.pitch));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.position_z));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[32].name, &hw_vehicle_struct.imu_state.yaw));
 
+        // 33-36: IMU orientation (quaternion)
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[33].name, &hw_vehicle_struct.imu_state.orientation_w));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
@@ -314,12 +329,41 @@ namespace ros2_control_blue_reach_5
         state_interfaces.emplace_back(hardware_interface::StateInterface(
             info_.gpios[0].name, info_.gpios[0].state_interfaces[36].name, &hw_vehicle_struct.imu_state.orientation_z));
 
+        // 37-39: IMU angular velocity
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[37].name, &hw_vehicle_struct.dvl_state.roll));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[37].name, &hw_vehicle_struct.imu_state.angular_vel_x));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[38].name, &hw_vehicle_struct.dvl_state.pitch));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[38].name, &hw_vehicle_struct.imu_state.angular_vel_y));
         state_interfaces.emplace_back(hardware_interface::StateInterface(
-            info_.gpios[0].name, info_.gpios[0].state_interfaces[39].name, &hw_vehicle_struct.dvl_state.yaw));
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[39].name, &hw_vehicle_struct.imu_state.angular_vel_z));
+
+        // 40-42: IMU linear acceleration
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[40].name, &hw_vehicle_struct.imu_state.linear_acceleration_x));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[41].name, &hw_vehicle_struct.imu_state.linear_acceleration_y));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[42].name, &hw_vehicle_struct.imu_state.linear_acceleration_z));
+
+        // 43: Depth measurement
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[43].name, &hw_vehicle_struct.depth_from_pressure2));
+
+        // 44-46: DVL gyro (roll, pitch, yaw)
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[44].name, &hw_vehicle_struct.dvl_state.roll));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[45].name, &hw_vehicle_struct.dvl_state.pitch));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[46].name, &hw_vehicle_struct.dvl_state.yaw));
+
+        // 47-49: DVL speed (x, y, z)
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[47].name, &hw_vehicle_struct.dvl_state.vx));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[48].name, &hw_vehicle_struct.dvl_state.vy));
+        state_interfaces.emplace_back(hardware_interface::StateInterface(
+            info_.gpios[0].name, info_.gpios[0].state_interfaces[49].name, &hw_vehicle_struct.dvl_state.vz));
 
         return state_interfaces;
     }
@@ -428,7 +472,6 @@ namespace ros2_control_blue_reach_5
 
         publishStaticPoseTransform();
 
-
         RCLCPP_INFO(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"), "System successfully activated!");
         return hardware_interface::CallbackReturn::SUCCESS;
@@ -500,7 +543,7 @@ namespace ros2_control_blue_reach_5
     }
     void SimVehicleSystemMultiInterfaceHardware::publishStaticPoseTransform()
     {
-          // Capture the current time
+        // Capture the current time
         rclcpp::Time current_time = node_topics_interface_->now();
 
         // Create and send the static map transform
@@ -547,7 +590,6 @@ namespace ros2_control_blue_reach_5
 
         // Publish the static transform
         static_tf_broadcaster_->sendTransform(static_dvl_transform);
-
 
         RCLCPP_INFO(
             rclcpp::get_logger("SimVehicleSystemMultiInterfaceHardware"),

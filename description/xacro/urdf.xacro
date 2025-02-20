@@ -71,7 +71,7 @@
     </joint>
 
     <joint name="${prefix}manipulator_mount_joint" type="fixed">
-      <origin rpy="0 0 0" xyz="0.14 0.0 -0.12" />
+      <origin rpy="0 0 0" xyz="0.19 0.0 -0.12" />
       <parent link="${prefix}base_link" />
       <child link="${prefix}manipulator_mount_link" />
     </joint>
