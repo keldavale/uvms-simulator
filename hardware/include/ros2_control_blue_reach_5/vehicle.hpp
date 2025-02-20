@@ -336,6 +336,7 @@ namespace blue::dynamics
     };
 
     double depth_from_pressure2{0.0};
+    double water_density{1000.0}; // typical freshwater density
 
     Pose_vel default_state_, command_state_, current_state_, async_state_;
     dvl_info dvl_state;

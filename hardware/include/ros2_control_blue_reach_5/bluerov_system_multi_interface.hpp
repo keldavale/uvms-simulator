@@ -206,6 +206,7 @@ namespace ros2_control_blue_reach_5
         // Mutex for thread-safe IMU data access
         std::mutex imu_mutex_;
         std::mutex filtered_odom_mutex_;
+        std::mutex mavlink_mutex_;
 
         std::mutex activate_mutex_;
         std::condition_variable activate_cv_;

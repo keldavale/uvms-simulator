@@ -259,10 +259,29 @@ namespace ros2_control_blue_reach_5
                 // RCLCPP_INFO(rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"), "Received IMU message");
                 {
                     std::lock_guard<std::mutex> lock(imu_mutex_);
+
                     hw_vehicle_struct.imu_state.orientation_w = imu_msg->orientation.w;
                     hw_vehicle_struct.imu_state.orientation_x = imu_msg->orientation.x;
                     hw_vehicle_struct.imu_state.orientation_y = imu_msg->orientation.y;
                     hw_vehicle_struct.imu_state.orientation_z = imu_msg->orientation.z;
+
+                    // Convert the geometry_msgs quaternion to a tf2 quaternion
+                    tf2::Quaternion imu_q;
+                    tf2::fromMsg(imu_msg->orientation, imu_q);
+
+                    // Convert quaternion to roll, pitch, yaw
+                    tf2::Matrix3x3(imu_q).getRPY(hw_vehicle_struct.imu_state.roll,
+                                             hw_vehicle_struct.imu_state.pitch,
+                                             hw_vehicle_struct.imu_state.yaw);
+
+                    hw_vehicle_struct.imu_state.angular_vel_x = imu_msg->angular_velocity.x;
+                    hw_vehicle_struct.imu_state.angular_vel_y = imu_msg->angular_velocity.y;
+                    hw_vehicle_struct.imu_state.angular_vel_z = imu_msg->angular_velocity.z;
+
+                    hw_vehicle_struct.imu_state.linear_acceleration_x = imu_msg->linear_acceleration.x;
+                    hw_vehicle_struct.imu_state.linear_acceleration_y = imu_msg->linear_acceleration.y;
+                    hw_vehicle_struct.imu_state.linear_acceleration_z = imu_msg->linear_acceleration.z;
+
                     imu_new_msg_ = true;
                 }
             };
@@ -1045,13 +1064,16 @@ namespace ros2_control_blue_reach_5
                     mavlink_scaled_pressure2_t sp2{};
                     mavlink_msg_scaled_pressure2_decode(&parsed_msg, &sp2);
 
-                    double water_density = 1000.0; // typical freshwater density
-                    double depth_meters = pressureToDepth(sp2.press_abs, water_density);
+                    // Acquire lock before modifying shared data
+                    {
+                        std::lock_guard<std::mutex> lock(mavlink_mutex_);
+                        hw_vehicle_struct.depth_from_pressure2 = pressureToDepth(sp2.press_abs, hw_vehicle_struct.water_density);
+                    }
 
-                    RCLCPP_INFO(
+                    RCLCPP_DEBUG(
                         rclcpp::get_logger("BlueRovSystemMultiInterfaceHardware"),
                         "SCALED_PRESSURE2: time_boot_ms=%d, press_abs=%.2f, calculated depth=%.2f",
-                        sp2.time_boot_ms, sp2.press_abs, depth_meters);
+                        sp2.time_boot_ms, sp2.press_abs, hw_vehicle_struct.depth_from_pressure2);
                     break;
                 }
 
